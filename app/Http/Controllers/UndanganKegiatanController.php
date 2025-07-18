@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Storage;
 use App\Mail\UndanganKegiatanMail;
 use App\Models\PenerimaUndangan;
 use App\Models\AnggotaTim;
+use Illuminate\Support\Facades\Auth;
 
 class UndanganKegiatanController extends Controller
 {
@@ -58,16 +59,25 @@ class UndanganKegiatanController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
-    {
-        return Inertia::render('Pegawai/CreateUndangan', [
-            'kegiatans' => Kegiatan::select('id', 'nama_kegiatan')->get(),
-            'tims' => Tim::select('id', 'nama_tim')->get(),
-            'pegawaiList' => User::where('role', 'pegawai')->select('id', 'name', 'email')->get(),
-    'anggotaTim' => AnggotaTim::select('user_id', 'tim_id')->get(),
+public function create()
+{
+    $userId = Auth::id();
 
-        ]);
-    }
+    // Ambil semua tim_id yang diikuti oleh user dari tabel anggota_tim
+    $timIds = AnggotaTim::where('user_id', $userId)->pluck('tim_id');
+
+    // Ambil kegiatan yang memiliki tim_id dalam daftar tersebut
+    $kegiatanOptions = Kegiatan::whereIn('tim_id', $timIds)->get(['id', 'nama_kegiatan']);
+
+    return Inertia::render('Pegawai/CreateUndangan', [
+        'kegiatans' => $kegiatanOptions,
+        'tims' => Tim::select('id', 'nama_tim')->get(),
+        'pegawaiList' => User::where('role', 'pegawai')
+            ->select('id', 'name', 'email')
+            ->get(),
+        'anggotaTim' => AnggotaTim::select('user_id', 'tim_id')->get(),
+    ]);
+}
 
     /**
      * Store a newly created resource in storage.
@@ -111,29 +121,86 @@ class UndanganKegiatanController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(UndanganKegiatan $undanganKegiatan)
-    {
-        $kegiatans = Kegiatan::select('id', 'nama_kegiatan')->get();
+public function edit(UndanganKegiatan $undanganKegiatan)
+{
+    $user = Auth::user();
+
+    // Ambil semua tim yang diikuti user (anggota tim)
+    $timIds = $user->anggotaTim()->pluck('tim_id');
+
+    // Filter kegiatan berdasarkan tim yang user ikuti
+    $kegiatans = Kegiatan::whereIn('tim_id', $timIds)->get(['id', 'nama_kegiatan', 'tim_id']);
+
+    // Ambil semua tim (opsional, jika perlu untuk dropdown tim)
+    $tims = Tim::all(['id', 'nama_tim']);
+
+    // Ambil semua pegawai yang tergabung dalam tim-tim tersebut
+    $pegawaiOptions = User::whereHas('anggotaTim', function ($query) use ($timIds) {
+        $query->whereIn('tim_id', $timIds);
+    })->get()->map(function ($user) {
+        return [
+            'value' => $user->id,
+            'label' => $user->name,
+        ];
+    });
+
+    // Ambil data undangan beserta relasi penerima undangan
+    $undangan = UndanganKegiatan::with(['penerimaUndangan.user'])->findOrFail($undanganKegiatan->id);
+
+    // Format pegawai yang sudah dipilih (penerima undangan)
+    $selectedPegawai = $undangan->penerimaUndangan->map(function ($penerima) {
+        return [
+            'value' => $penerima->user_id,
+            'label' => $penerima->user->name ?? 'Tidak diketahui',
+        ];
+    });
 
     return Inertia::render('Pegawai/EditUndangan', [
-        'undangan' => $undanganKegiatan,
+        'undangan' => $undangan,
         'kegiatans' => $kegiatans,
+        'tims' => $tims,
+        'pegawaiOptions' => $pegawaiOptions,
+        'selectedPegawai' => $selectedPegawai,
     ]);
-    }
+}
+
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateUndanganKegiatanRequest $request, UndanganKegiatan $undanganKegiatan)
-    {
-        $data = $request->validated();
-    $data['updated_by'] = auth()->id(); // untuk tracking siapa yang terakhir mengedit
+public function update(UpdateUndanganKegiatanRequest $request, UndanganKegiatan $undanganKegiatan)
+{
+    $data = $request->validated();
+    $data['updated_by'] = auth()->id();
 
+    // Update data undangan kegiatan (seperti nama undangan, kegiatan_id, dll)
     $undanganKegiatan->update($data);
+
+    // Cek apakah ada user_id yang dikirim dari frontend
+    if ($request->has('user_ids') && is_array($request->user_ids)) {
+        // Hapus semua penerima lama yang terkait dengan undangan ini
+        PenerimaUndangan::where('undangan_id', $undanganKegiatan->id)->delete();
+
+        // Masukkan ulang user_id yang baru
+        foreach ($request->user_ids as $userId) {
+            // Ambil tim_id dari tabel anggota_tim (jika ada)
+            $timId = AnggotaTim::where('user_id', $userId)->value('tim_id');
+
+            // Buat penerima undangan baru
+            PenerimaUndangan::create([
+                'undangan_id'      => $undanganKegiatan->id,
+                'user_id'          => $userId,
+                'tim_id'           => $timId,
+                'status_penerima'  => 'terima',
+                'status_kehadiran' => 'belum',
+            ]);
+        }
+    }
 
     return redirect()->route('undangan_kegiatan.index')
         ->with('success', 'Undangan berhasil diperbarui.');
-    }
+}
+
 
     /**
      * Remove the specified resource from storage.

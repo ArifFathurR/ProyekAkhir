@@ -69,52 +69,28 @@ class DokumentasiKegiatanController extends Controller
     }
 
     public function store(StoreDokumentasiKegiatanRequest $request)
-{
-    $data = $request->validated();
+    {
+        $data = $request->validated();
 
-    $dokumentasi = DokumentasiKegiatan::create([
-        'kegiatan_id' => $data['kegiatan_id'],
-        'undangan_id' => $data['undangan_id'],
-        'notulensi'   => $data['notulensi'] ?? null,
-        'link_zoom'   => $data['link_zoom'],
-        'link_materi' => $data['link_materi'],
-    ]);
+        $dokumentasi = DokumentasiKegiatan::create([
+            'kegiatan_id' => $data['kegiatan_id'],
+            'undangan_id' => $data['undangan_id'],
+            'notulensi'   => $data['notulensi'] ?? null,
+            'link_zoom'   => $data['link_zoom'],
+            'link_materi' => $data['link_materi'],
+        ]);
 
-    if ($request->hasFile('foto')) {
-        // ✅ GUNAKAN DRIVER RESMI DARI V3
-        $manager = new ImageManager(new GdDriver());
+        $this->handleFotoUpload($request, $dokumentasi->id);
 
-        foreach ($request->file('foto') as $file) {
-            $filename = Str::random(20) . '.jpg';
-
-            $image = $manager->read($file->getPathname());
-            $image = $image->scale(width: 800);
-
-            $quality = 75;
-            $encodedImage = $image->toJpeg($quality);
-
-            while (strlen((string) $encodedImage) > 30 * 1024 && $quality > 10) {
-                $quality -= 5;
-                $encodedImage = $image->toJpeg($quality);
-            }
-
-            Storage::disk('public')->put('foto_dokumentasi/' . $filename, $encodedImage);
-
-            FotoDokumentasi::create([
-                'dokumentasi_id' => $dokumentasi->id,
-                'foto' => 'foto_dokumentasi/' . $filename,
-            ]);
-        }
+        return redirect()->route('dokumentasi_kegiatan.index')->with('success', 'Dokumentasi berhasil ditambahkan.');
     }
-
-    return redirect()->route('dokumentasi_kegiatan.index')->with('success', 'Dokumentasi berhasil ditambahkan.');
-}
-
 
     public function edit(DokumentasiKegiatan $dokumentasi_kegiatan)
     {
         $kegiatan = Kegiatan::select('id', 'nama_kegiatan')->get();
         $undangan = UndanganKegiatan::select('id', 'judul')->get();
+
+        $dokumentasi_kegiatan->load('fotoDokumentasi');
 
         return Inertia::render('Pegawai/EditDokumentasi', [
             'dokumentasi' => $dokumentasi_kegiatan,
@@ -123,20 +99,43 @@ class DokumentasiKegiatanController extends Controller
         ]);
     }
 
-    public function update(Request $request, DokumentasiKegiatan $dokumentasi_kegiatan)
-    {
-        $data = $request->validate([
-            'kegiatan_id' => 'required|exists:kegiatans,id',
-            'undangan_id' => 'required|exists:undangan_kegiatans,id',
-            'notulensi'   => 'nullable|string',
-            'link_zoom'   => 'nullable|url',
-            'link_materi' => 'nullable|url',
-        ]);
+    public function update(Request $request, $id)
+{
+    $request->validate([
+        'kegiatan_id' => 'required|exists:kegiatans,id',
+        'undangan_id' => 'required|exists:undangan_kegiatans,id',
+        'notulensi' => 'nullable|string',
+        'link_zoom' => 'nullable|url',
+        'link_materi' => 'nullable|url',
+        'foto' => 'nullable|array',
+        'foto.*' => 'image|mimes:jpeg,png,jpg|max:2048',
+    ]);
 
-        $dokumentasi_kegiatan->update($data);
+    $dokumentasi = DokumentasiKegiatan::findOrFail($id);
 
-        return redirect()->route('dokumentasi_kegiatan.index')->with('success', 'Dokumentasi berhasil diperbarui.');
+    $dokumentasi->update([
+        'kegiatan_id' => $request->kegiatan_id,
+        'undangan_id' => $request->undangan_id,
+        'notulensi' => $request->notulensi,
+        'link_zoom' => $request->link_zoom,
+        'link_materi' => $request->link_materi,
+    ]);
+
+    if ($request->hasFile('foto')) {
+        // Hapus foto lama
+        foreach ($dokumentasi->fotoDokumentasi as $foto) {
+            if (Storage::disk('public')->exists($foto->foto)) {
+                Storage::disk('public')->delete($foto->foto);
+            }
+            $foto->delete();
+        }
+
+        $this->handleFotoUpload($request, $dokumentasi->id);
     }
+
+    return redirect()->route('dokumentasi_kegiatan.index')->with('success', 'Dokumentasi berhasil diperbarui.');
+}
+
 
     public function destroy(DokumentasiKegiatan $dokumentasi_kegiatan)
     {
@@ -151,4 +150,47 @@ class DokumentasiKegiatanController extends Controller
 
         return redirect()->route('dokumentasi_kegiatan.index')->with('success', 'Dokumentasi berhasil dihapus.');
     }
+
+    private function handleFotoUpload(Request $request, $dokumentasiId)
+    {
+        if ($request->hasFile('foto')) {
+            $manager = new ImageManager(new GdDriver());
+
+            foreach ($request->file('foto') as $file) {
+                $filename = Str::random(20) . '.jpg';
+
+                $image = $manager->read($file->getPathname());
+                $image = $image->scale(width: 800);
+
+                $quality = 75;
+                $encodedImage = $image->toJpeg($quality);
+
+                while (strlen((string) $encodedImage) > 30 * 1024 && $quality > 10) {
+                    $quality -= 5;
+                    $encodedImage = $image->toJpeg($quality);
+                }
+
+                Storage::disk('public')->put('foto_dokumentasi/' . $filename, $encodedImage);
+
+                FotoDokumentasi::create([
+                    'dokumentasi_id' => $dokumentasiId,
+                    'foto' => 'foto_dokumentasi/' . $filename,
+                ]);
+            }
+        }
+    }
+
+    public function deleteFoto($id)
+{
+    $foto = FotoDokumentasi::findOrFail($id);
+
+    if (Storage::disk('public')->exists($foto->foto)) {
+        Storage::disk('public')->delete($foto->foto);
+    }
+
+    $foto->delete();
+
+    return back()->with('success', 'Foto berhasil dihapus.');
+}
+
 }

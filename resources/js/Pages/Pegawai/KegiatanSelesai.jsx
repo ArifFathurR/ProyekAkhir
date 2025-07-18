@@ -31,6 +31,7 @@ export default function KegiatanSelesai({ kegiatan = [], auth }) {
                   <th className="p-2 border">Tanggal</th>
                   <th className="p-2 border">Undangan</th>
                   {/* <th className="p-2 border">Presensi</th> */}
+                  <th className='p-2 border'>Dokumentasi</th>
                 </tr>
               </thead>
               <tbody>
@@ -50,6 +51,11 @@ export default function KegiatanSelesai({ kegiatan = [], auth }) {
                         >
                           <FaFilePdf className="mr-1" /> PDF
                         </a>
+                      </td>
+                      <td className='p-2'> 
+                        <button className='bg-blue-500 px-3 py-1 rounded text-white'>
+                          Lihat
+                        </button>
                       </td>
                       {/* <td className="py-2 text-center align-middle">
                         <button
@@ -81,7 +87,7 @@ export default function KegiatanSelesai({ kegiatan = [], auth }) {
         </main>
       </div>
 
-      {/* ✅ Pop-up untuk Input TTD */}
+      {/* ✅ Pop-up untuk Input TTD
       {showPopup && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded shadow relative w-full max-w-lg">
@@ -97,7 +103,9 @@ export default function KegiatanSelesai({ kegiatan = [], auth }) {
             />
           </div>
         </div>
-      )}
+      )} */}
+
+
     </div>
   );
 }

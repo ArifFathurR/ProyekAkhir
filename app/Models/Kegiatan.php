@@ -36,4 +36,9 @@ class Kegiatan extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function undanganKegiatan()
+{
+    return $this->hasOne(UndanganKegiatan::class);
+}
 }

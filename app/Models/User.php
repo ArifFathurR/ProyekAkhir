@@ -51,4 +51,10 @@ class User extends Authenticatable
 {
     return $this->hasMany(AnggotaTim::class);
 }
+
+public function timPegawai()
+{
+    return $this->hasMany(Tim::class);
+}
+
 }

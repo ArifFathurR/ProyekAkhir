@@ -100,10 +100,21 @@ export default function DataDokumentasi({ dokumentasis, filters = {} }) {
                         </td>
                         <td className="p-2">
                           <button
-                            onClick={() => router.get(`/dokumentasi_kegiatan/${item.id}`)}
-                            className="bg-sky-600 text-white px-3 py-1 rounded"
+                            onClick={() => router.get(route('dokumentasi_kegiatan.edit', item.id))}
+                            className="bg-yellow-400 text-white px-3 py-1 rounded m-1 shadow-md hover:bg-yellow-500"
                           >
-                            Lihat
+                            Edit
+                          </button>
+
+                          <button
+                            onClick={() => {
+                              if (confirm('Apakah Anda yakin ingin menghapus dokumentasi ini?')) {
+                                router.delete(route('dokumentasi_kegiatan.destroy', item.id));
+                              }
+                            }}
+                            className="bg-red-500 text-white px-3 py-1 rounded m-1 shadow-md hover:bg-red-600"
+                          >
+                            Delete
                           </button>
                         </td>
                       </tr>
