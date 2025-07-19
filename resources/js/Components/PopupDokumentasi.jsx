@@ -31,14 +31,15 @@ export default function PopupDokumentasi({ show, onClose, dokumentasi }) {
         <h2 className="text-lg font-semibold mb-4 text-center">Dokumentasi Kegiatan</h2>
 
         <div className="mb-2">
-          <strong>Notulensi:</strong>
+          <strong className='text-blue-500'>Notulensi:</strong>
           <p className="text-sm">{dokumentasi.notulensi || '-'}</p>
         </div>
 
         <div className="mb-2">
-          <strong>Link Zoom:</strong>
+          <strong className='text-blue-500'>Link Zoom:</strong>
+          <br/>
           {dokumentasi.link_zoom ? (
-            <a href={dokumentasi.link_zoom} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline ml-1">
+            <a href={dokumentasi.link_zoom} target="_blank" rel="noopener noreferrer" className="text-black-600 underline ml-1">
               {dokumentasi.link_zoom}
             </a>
           ) : (
@@ -47,9 +48,10 @@ export default function PopupDokumentasi({ show, onClose, dokumentasi }) {
         </div>
 
         <div className="mb-2">
-          <strong>Link Materi:</strong>
+          <strong className='text-blue-500'>Link Materi:</strong>
+          <br />
           {dokumentasi.link_materi ? (
-            <a href={dokumentasi.link_materi} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline ml-1">
+            <a href={dokumentasi.link_materi} target="_blank" rel="noopener noreferrer" className="text-black-600 underline ml-1">
               {dokumentasi.link_materi}
             </a>
           ) : (
@@ -59,7 +61,7 @@ export default function PopupDokumentasi({ show, onClose, dokumentasi }) {
 
         <div className="mb-4">
           <div className="flex items-center justify-between">
-            <strong>Foto Dokumentasi:</strong>
+            <strong className='text-blue-500'>Foto Dokumentasi:</strong>
             {dokumentasi.foto && dokumentasi.foto.length > 0 && (
               <button
                 onClick={handleDownloadAll}

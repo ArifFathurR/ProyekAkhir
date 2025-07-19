@@ -43,19 +43,19 @@ export default function Sidebar() {
           <ul className="space-y-2">
             <li>
               <Link
-                href="/dashboard-pegawai"
+                href={route('dokumentasisupervisor.index')}
                 className={`flex items-center p-2 rounded ${
-                  isActive('/dashboard-pegawai') ? 'bg-blue-100 text-black font-semibold' : 'hover:bg-gray-100 text-gray-700'
+                  isActive('/dokumentasisupervisor') ? 'bg-blue-100 text-black font-semibold' : 'hover:bg-gray-100 text-gray-700'
                 }`}
               >
-                👥 Semua Kegiatan
+                🗂️ Semua Kegiatan 
               </Link>
             </li>
             <li>
               <Link
-                href={route('undangan_kegiatan.create')}
+                href='/kegiatan-saya-supervisor'
                 className={`flex items-center p-2 rounded ${
-                  isActive('/undangan_kegiatan/create') ? 'bg-blue-100 text-black font-semibold' : 'hover:bg-gray-100 text-gray-700'
+                  isActive('/kegiatan-saya-supervisor') ? 'bg-blue-100 text-black font-semibold' : 'hover:bg-gray-100 text-gray-700'
                 }`}
               >
                 📋 Kegiatan Saya
@@ -70,19 +70,19 @@ export default function Sidebar() {
                     : 'hover:bg-gray-100 text-gray-700'
                 }`}
               >
-                ✏️ Konfirmasi Undangan
+                📩 Konfirmasi Undangan
               </Link>
             </li>
             <li>
               <Link
-                href={route('undangan_kegiatan.index')}
+                href={route('penerima.index')}
                 className={`flex items-center p-2 rounded ${
-                  isActive('/undangan_kegiatan') && !url.includes('/create')
+                  isActive('/penerima') && !url.includes('/create')
                     ? 'bg-blue-100 text-black font-semibold'
                     : 'hover:bg-gray-100 text-gray-700'
                 }`}
               >
-                ✏️ Lihat Presensi
+                ☑️ Lihat Presensi
               </Link>
             </li>
             <li>
@@ -99,14 +99,14 @@ export default function Sidebar() {
             </li>
             <li>
               <Link
-                href={route('undangan_kegiatan.index')}
+                href={route('supervisor.anggota_tim')}
                 className={`flex items-center p-2 rounded ${
-                  isActive('/undangan_kegiatan') && !url.includes('/create')
+                  isActive('/anggota-tim') && !url.includes('/create')
                     ? 'bg-blue-100 text-black font-semibold'
                     : 'hover:bg-gray-100 text-gray-700'
                 }`}
               >
-                ✏️ Anggota Tim
+                👥 Anggota Tim
               </Link>
             </li>
           </ul>

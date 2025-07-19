@@ -25,7 +25,7 @@ class PenerimaUndangan extends Model
 
     public function tim()
 {
-    return $this->belongsTo(Tim::class, 'id_tim');
+    return $this->belongsTo(Tim::class);
 }
 
 public function user()

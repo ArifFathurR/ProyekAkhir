@@ -8,6 +8,8 @@ use App\Http\Controllers\SupervisorController;
 use App\Http\Controllers\UndanganKegiatanController;
 use App\Http\Controllers\AnggotaTimController;
 use App\Http\Controllers\DokumentasiKegiatanController;
+use App\Http\Controllers\DokumentasiKegiatanSupervisorController;
+use App\Http\Controllers\PenerimaUndanganController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -47,30 +49,30 @@ Route::middleware(['web', 'auth'])->group(function () {
         Route::get('/kegiatan-SedangBerlangsung', [PegawaiController::class, 'sedang'])->name('pegawai.sedang');
         Route::get('/kegiatan-Selesai', [PegawaiController::class, 'selesai'])->name('pegawai.selesai');
         Route::get('/undangan/{id}/cetak', [UndanganKegiatanController::class, 'cetak'])->name('pegawai.undangan.cetak');
-        Route::post('/pegawai/undangan/{id}/kirim', [UndanganKegiatanController::class, 'kirim'])
-    ->name('pegawai.undangan.kirim');
-    Route::get('/pegawai/undangan/{id}', [PegawaiController::class, 'preview'])
-    ->name('undangan_kegiatan.preview');
-Route::post('/pegawai/konfirmasi/{id}/toggle', [PegawaiController::class, 'toggleKonfirmasi'])
-    ->name('pegawai.konfirmasi.toggle');
-Route::post('/presensi/store', [PegawaiController::class, 'storePresensi']);
-Route::post('/ttd/store', [PegawaiController::class, 'storeTtd'])->name('ttd.store');
-Route::delete('/foto_dokumentasi/{id}', [\App\Http\Controllers\DokumentasiKegiatanController::class, 'deleteFoto'])->name('foto_dokumentasi.destroy');
-// routes/web.php
-Route::get('/get-dokumentasi/{penerima_id}', [PegawaiController::class, 'getByPenerimaId']);
+        Route::post('/pegawai/undangan/{id}/kirim', [UndanganKegiatanController::class, 'kirim'])->name('pegawai.undangan.kirim');
+        Route::post('/pegawai/konfirmasi/{id}/toggle', [PegawaiController::class, 'toggleKonfirmasi'])->name('pegawai.konfirmasi.toggle');
+        Route::post('/presensi/store', [PegawaiController::class, 'storePresensi']);
+        Route::post('/ttd/store', [PegawaiController::class, 'storeTtd'])->name('ttd.store');
+        Route::delete('/foto_dokumentasi/{id}', [\App\Http\Controllers\DokumentasiKegiatanController::class, 'deleteFoto'])->name('foto_dokumentasi.destroy');
+        Route::get('/get-dokumentasi/{penerima_id}', [PegawaiController::class, 'getByPenerimaId']);
+});
 
-
-    });
-
-    Route::middleware([RoleMiddleware::class . ':supervisor'])->group(function () {
+Route::middleware([RoleMiddleware::class . ':supervisor'])->group(function () {
         Route::resource('supervisor', SupervisorController::class);
-        // Route::resource('undangan_kegiatan', UndanganKegiatanController::class);
-        Route::get('/supervisor/undangan/{id}/preview', [SupervisorController::class, 'preview'])
-        ->name('supervisor.undangan.preview');
-        Route::post('/supervisor/undangan/{id}/konfirmasi', [SupervisorController::class, 'konfirmasi'])
-    ->name('supervisor.undangan.konfirmasi');
+        Route::get('/supervisor/undangan/{id}/preview', [SupervisorController::class, 'preview'])->name('supervisor.undangan.preview');
+        Route::post('/supervisor/undangan/{id}/konfirmasi', [SupervisorController::class, 'konfirmasi'])->name('supervisor.undangan.konfirmasi');
+        Route::get('/semua-dokumentasi', [SupervisorController::class, 'semuaDokumentasi'])->name('supervisor.semuaDokumentasi');
+        Route::get('/kegiatan-saya-supervisor', [SupervisorController::class, 'show'])->name('supervisor.show');
+        Route::get('/kegiatan-SedangBerlangsung-supervisor', [SupervisorController::class, 'sedang'])->name('supervisor.sedang');
+        Route::get('/kegiatan-Selesai-supervisor', [SupervisorController::class, 'selesai'])->name('supervisor.selesai');
+        Route::resource('dokumentasisupervisor', DokumentasiKegiatanSupervisorController::class);
+        Route::resource('penerima', PenerimaUndanganController::class);
+        Route::get('/anggota-tim', [SupervisorController::class, 'AnggotaTim'])->name('supervisor.anggota_tim');
     });
 });
+
+Route::get('/pegawai/undangan/{id}', [PegawaiController::class, 'preview'])
+    ->name('undangan_kegiatan.preview');
 
 Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');

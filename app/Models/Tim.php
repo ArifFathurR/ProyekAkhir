@@ -17,4 +17,9 @@ class Tim extends Model
         'nama_tim', // Misalnya kolom nama tim
     ];
 
+    public function anggotaTim()
+{
+    return $this->hasMany(AnggotaTim::class, 'tim_id');
+}
+
 }
