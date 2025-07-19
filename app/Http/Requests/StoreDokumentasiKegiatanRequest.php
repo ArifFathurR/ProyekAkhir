@@ -24,6 +24,7 @@ class StoreDokumentasiKegiatanRequest extends FormRequest
          return [
             'undangan_id'   => 'nullable|exists:undangan_kegiatans,id',
             'kegiatan_id'   => 'nullable|exists:kegiatans,id',
+            'notulensi'     => 'required|string|max:255|string',
             'link_zoom'     => 'required|string|max:255|url',
             'link_materi'   => 'required|string|max:255|url',
         ];

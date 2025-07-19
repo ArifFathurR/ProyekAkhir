@@ -4,11 +4,22 @@ import SidebarPegawai from '@/Layouts/SidebarPegawai';
 import { FaFilePdf } from 'react-icons/fa';
 import MenuKegiatan from '@/Components/MenuKegiatan';
 import FlashPopup from '@/Components/FlashPopup';
-import InputTtd from '@/Components/InputTtd'; 
-// Halaman pop up detail belum
+import axios from 'axios';
+import PopupDokumentasi from '@/Components/PopupDokumentasi';
+
 export default function KegiatanSelesai({ kegiatan = [], auth }) {
   const [showPopup, setShowPopup] = useState(false);
-  const [dataPresensi, setDataPresensi] = useState({});
+  const [dokumentasi, setDokumentasi] = useState(null);
+
+  const handleLihatDokumentasi = async (penerimaId) => {
+    try {
+      const response = await axios.get(`/get-dokumentasi/${penerimaId}`);
+      setDokumentasi(response.data);
+      setShowPopup(true);
+    } catch (error) {
+      console.error('Gagal mengambil dokumentasi:', error);
+    }
+  };
 
   return (
     <div className="flex justify-start">
@@ -19,7 +30,6 @@ export default function KegiatanSelesai({ kegiatan = [], auth }) {
         <main className="pt-28 px-6">
           <div className="bg-white shadow rounded p-8 mx-auto">
             <h2 className="text-xl font-semibold text-center mb-6">Pusat Informasi Kegiatan</h2>
-
             <MenuKegiatan />
 
             <table className="w-full border text-sm mt-6">
@@ -30,8 +40,7 @@ export default function KegiatanSelesai({ kegiatan = [], auth }) {
                   <th className="p-2 border">Sub-Kegiatan</th>
                   <th className="p-2 border">Tanggal</th>
                   <th className="p-2 border">Undangan</th>
-                  {/* <th className="p-2 border">Presensi</th> */}
-                  <th className='p-2 border'>Dokumentasi</th>
+                  <th className="p-2 border">Dokumentasi</th>
                 </tr>
               </thead>
               <tbody>
@@ -52,26 +61,14 @@ export default function KegiatanSelesai({ kegiatan = [], auth }) {
                           <FaFilePdf className="mr-1" /> PDF
                         </a>
                       </td>
-                      <td className='p-2'> 
-                        <button className='bg-blue-500 px-3 py-1 rounded text-white'>
+                      <td className="p-2">
+                        <button
+                          onClick={() => handleLihatDokumentasi(item.id)}
+                          className="bg-blue-500 px-3 py-1 rounded text-white"
+                        >
                           Lihat
                         </button>
                       </td>
-                      {/* <td className="py-2 text-center align-middle">
-                        <button
-                          onClick={() => {
-                            setDataPresensi({
-                              penerimaId: item.id,
-                              userId: auth.user.id,
-                              timId: item.tim_id,
-                              undanganId: item.undangan_id
-                            });
-                            setShowPopup(true);
-                          }}
-                          className='bg-blue-500 text-white w-14 rounded-md shadow-md h-6'>
-                          Isi
-                        </button>
-                      </td> */}
                     </tr>
                   ))
                 ) : (
@@ -87,25 +84,12 @@ export default function KegiatanSelesai({ kegiatan = [], auth }) {
         </main>
       </div>
 
-      {/* ✅ Pop-up untuk Input TTD
-      {showPopup && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded shadow relative w-full max-w-lg">
-            <button
-              onClick={() => setShowPopup(false)}
-              className="absolute top-2 right-4 text-red-500 text-xl font-bold"
-            >
-              ×
-            </button>
-            <InputTtd
-              penerimaId={dataPresensi.penerimaId}
-              onClose={() => setShowPopup(false)}
-            />
-          </div>
-        </div>
-      )} */}
-
-
+      {/* Komponen Pop-up */}
+      <PopupDokumentasi
+        show={showPopup}
+        onClose={() => setShowPopup(false)}
+        dokumentasi={dokumentasi}
+      />
     </div>
   );
 }

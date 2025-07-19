@@ -16,6 +16,8 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use App\Http\Requests\UpdatePenerimaUndanganRequest;
 use Illuminate\Support\Carbon;
+use App\Models\DokumentasiKegiatan;
+
 
 class PegawaiController extends Controller
 {
@@ -186,6 +188,48 @@ public function storeTtd(Request $request)
     ]);
 
     return redirect()->route('pegawai.sedang')->with('success', 'TTD dan presensi berhasil disimpan.');
+}
+
+public function getByPenerimaId($penerima_id)
+{
+    // 1. Cari data penerima undangan
+    $penerima = PenerimaUndangan::find($penerima_id);
+
+    if (!$penerima) {
+        return response()->json(['message' => 'Penerima tidak ditemukan'], 404);
+    }
+
+    // 2. Ambil undangan_id dari penerima
+    $undanganId = $penerima->undangan_id;
+
+    // 3. Cari dokumentasi berdasarkan undangan_id
+    $dokumentasi = DokumentasiKegiatan::with('fotoDokumentasi')
+        ->where('undangan_id', $undanganId)
+        ->first();
+
+    // 4. Jika dokumentasi tidak ditemukan, beri respons kosong
+    if (!$dokumentasi) {
+        return response()->json([
+            'notulensi' => '-',
+            'link_zoom' => '-',
+            'link_materi' => '-',
+            'foto' => [],
+        ]);
+    }
+
+    // 5. Kembalikan semua data dokumentasi & foto terkait
+    return response()->json([
+        'notulensi' => $dokumentasi->notulensi,
+        'link_zoom' => $dokumentasi->link_zoom,
+        'link_materi' => $dokumentasi->link_materi,
+        'foto' => $dokumentasi->fotoDokumentasi->map(function ($foto) {
+            return [
+                'file_foto' => $foto->foto, // ← kolom foto dari tabel foto_dokumentasis
+                'id' => $foto->id,
+                'created_at' => $foto->created_at,
+            ];
+        }),
+    ]);
 }
 
 }

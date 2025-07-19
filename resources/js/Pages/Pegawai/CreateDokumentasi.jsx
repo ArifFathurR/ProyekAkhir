@@ -111,6 +111,7 @@ export default function CreateDokumentasi({ kegiatanOptions = [], undanganOption
               <label className="block text-sm mb-1">Notulensi</label>
               <textarea
                 name="notulensi"
+                type="text"
                 value={formData.notulensi}
                 onChange={handleChange}
                 className="w-full border px-3 py-2 rounded"

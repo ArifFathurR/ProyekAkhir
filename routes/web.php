@@ -56,6 +56,8 @@ Route::post('/pegawai/konfirmasi/{id}/toggle', [PegawaiController::class, 'toggl
 Route::post('/presensi/store', [PegawaiController::class, 'storePresensi']);
 Route::post('/ttd/store', [PegawaiController::class, 'storeTtd'])->name('ttd.store');
 Route::delete('/foto_dokumentasi/{id}', [\App\Http\Controllers\DokumentasiKegiatanController::class, 'deleteFoto'])->name('foto_dokumentasi.destroy');
+// routes/web.php
+Route::get('/get-dokumentasi/{penerima_id}', [PegawaiController::class, 'getByPenerimaId']);
 
 
     });

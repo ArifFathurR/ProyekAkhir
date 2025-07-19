@@ -14,6 +14,7 @@ class DokumentasiKegiatan extends Model
     protected $fillable = [
         'kegiatan_id',
         'undangan_id',
+        'notulensi',
         'link_zoom',
         'link_materi',
     ];

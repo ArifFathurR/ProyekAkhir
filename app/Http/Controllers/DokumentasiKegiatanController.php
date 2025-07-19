@@ -75,7 +75,7 @@ class DokumentasiKegiatanController extends Controller
         $dokumentasi = DokumentasiKegiatan::create([
             'kegiatan_id' => $data['kegiatan_id'],
             'undangan_id' => $data['undangan_id'],
-            'notulensi'   => $data['notulensi'] ?? null,
+            'notulensi'   => $data['notulensi'],
             'link_zoom'   => $data['link_zoom'],
             'link_materi' => $data['link_materi'],
         ]);
