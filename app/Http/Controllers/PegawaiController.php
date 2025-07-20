@@ -54,6 +54,9 @@ class PegawaiController extends Controller
 
     $kegiatan = PenerimaUndangan::with(['undangan.kegiatan'])
         ->where('user_id', $userId)
+        ->whereHas('undangan', function ($query) {
+            $query->where('status', 'Diterima'); // 🔍 Cek status di tabel undangan_kegiatans
+        })
         ->get()
         ->map(function ($item) {
             return [
@@ -170,6 +173,29 @@ public function Selesai(Pegawai $pegawai)
     ]);
 }
 
+public function kalender(Pegawai $pegawai)
+{
+    $userId = auth()->id();
+
+    $kegiatan = PenerimaUndangan::with('undangan')
+        ->where('user_id', $userId)
+        ->whereHas('undangan', fn($q) => $q->where('status', 'Diterima'))
+        ->get()
+        ->map(function ($item) {
+            return [
+                'title' => $item->undangan->judul,
+                'date' => $item->undangan->tanggal,
+                'waktu' => $item->undangan->waktu, // ⏰ Tambahkan waktu di sini
+            ];
+        });
+
+    return Inertia::render('Pegawai/KalenderKegiatan', [
+        'kegiatan' => $kegiatan,
+    ]);
+}
+
+
+
 
 
 public function storeTtd(Request $request)
@@ -179,7 +205,7 @@ public function storeTtd(Request $request)
         'ttd' => 'required|string',
     ]);
 
-    $penerima = \App\Models\PenerimaUndangan::findOrFail($request->penerima_id);
+    $penerima = PenerimaUndangan::findOrFail($request->penerima_id);
 
     $penerima->update([
         'ttd' => $request->ttd,

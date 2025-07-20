@@ -29,7 +29,7 @@ const MenuKegiatan = () => {
       label: 'Kalender',
       icon: <FaCalendarAlt />,
       value: 'kalender',
-      route: 'supervisor.kegiatan.kalender',
+      route: 'supervisor.kalender',
     },
   ];
 

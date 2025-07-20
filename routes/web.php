@@ -39,6 +39,7 @@ Route::middleware(['web', 'auth'])->group(function () {
     
       
     });
+       
 
     // Untuk pegawai
     Route::middleware([RoleMiddleware::class . ':pegawai'])->group(function () {
@@ -53,7 +54,8 @@ Route::middleware(['web', 'auth'])->group(function () {
         Route::post('/pegawai/konfirmasi/{id}/toggle', [PegawaiController::class, 'toggleKonfirmasi'])->name('pegawai.konfirmasi.toggle');
         Route::post('/presensi/store', [PegawaiController::class, 'storePresensi']);
         Route::post('/ttd/store', [PegawaiController::class, 'storeTtd'])->name('ttd.store');
-        Route::delete('/foto_dokumentasi/{id}', [\App\Http\Controllers\DokumentasiKegiatanController::class, 'deleteFoto'])->name('foto_dokumentasi.destroy');
+         Route::get('/kalender', [PegawaiController::class, 'kalender'])->name('pegawai.kalender');
+        Route::delete('/foto_dokumentasi/{id}', [DokumentasiKegiatanController::class, 'deleteFoto'])->name('foto_dokumentasi.destroy');
         Route::get('/get-dokumentasi/{penerima_id}', [PegawaiController::class, 'getByPenerimaId']);
 });
 
@@ -68,6 +70,7 @@ Route::middleware([RoleMiddleware::class . ':supervisor'])->group(function () {
         Route::resource('dokumentasisupervisor', DokumentasiKegiatanSupervisorController::class);
         Route::resource('penerima', PenerimaUndanganController::class);
         Route::get('/anggota-tim', [SupervisorController::class, 'AnggotaTim'])->name('supervisor.anggota_tim');
+        Route::get('/kalender-supervisor', [SupervisorController::class, 'kalender'])->name('supervisor.kalender');
     });
 });
 
@@ -93,6 +96,5 @@ Route::get('/test-email', function () {
 
     return 'Email test dikirim. Cek inbox/spam.';
 });
-
 
 require __DIR__.'/auth.php';

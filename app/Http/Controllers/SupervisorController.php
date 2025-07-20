@@ -207,6 +207,28 @@ public function Selesai(Supervisor $Supervisor)
     ]);
 }
 
+public function kalender(){
+    {
+    $userId = auth()->id();
+
+    $kegiatan = PenerimaUndangan::with('undangan')
+        ->where('user_id', $userId)
+        ->whereHas('undangan', fn($q) => $q->where('status', 'Diterima'))
+        ->get()
+        ->map(function ($item) {
+            return [
+                'title' => $item->undangan->judul,
+                'date' => $item->undangan->tanggal,
+                'waktu' => $item->undangan->waktu, // ⏰ Tambahkan waktu di sini
+            ];
+        });
+
+    return Inertia::render('Supervisor/KalenderKegiatan', [
+        'kegiatan' => $kegiatan,
+    ]);
+}
+}
+
 public function AnggotaTim(){
     $search = request('search');
     $filterTim = request('tim');

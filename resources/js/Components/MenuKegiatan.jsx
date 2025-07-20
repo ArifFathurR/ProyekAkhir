@@ -29,7 +29,7 @@ const MenuKegiatan = () => {
       label: 'Kalender',
       icon: <FaCalendarAlt />,
       value: 'kalender',
-      route: 'pegawai.kegiatan.kalender',
+      route: 'pegawai.kalender',
     },
   ];
 
