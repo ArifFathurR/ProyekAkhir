@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Pemantau;
 use App\Http\Requests\StorePemantauRequest;
 use App\Http\Requests\UpdatePemantauRequest;
+use Inertia\Inertia;
 
 class PemantauController extends Controller
 {
@@ -13,7 +14,7 @@ class PemantauController extends Controller
      */
     public function index()
     {
-        //
+        return Inertia::render('Pemantau/Dashboard');
     }
 
     /**

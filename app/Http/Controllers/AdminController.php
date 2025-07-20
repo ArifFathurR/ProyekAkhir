@@ -47,7 +47,7 @@ class AdminController extends Controller
     }
     public function edit(User $user)
     {
-        $roles = ['admin', 'pegawai', 'supervisor'];
+        $roles = ['admin', 'pegawai', 'supervisor', 'pemantau'];
         return Inertia::render('Admin/EditPegawai', [
             'pegawai' => $user,
             'roles' => $roles

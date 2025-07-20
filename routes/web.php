@@ -10,6 +10,7 @@ use App\Http\Controllers\AnggotaTimController;
 use App\Http\Controllers\DokumentasiKegiatanController;
 use App\Http\Controllers\DokumentasiKegiatanSupervisorController;
 use App\Http\Controllers\PenerimaUndanganController;
+use App\Http\Controllers\PemantauController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -72,6 +73,10 @@ Route::middleware([RoleMiddleware::class . ':supervisor'])->group(function () {
         Route::get('/anggota-tim', [SupervisorController::class, 'AnggotaTim'])->name('supervisor.anggota_tim');
         Route::get('/kalender-supervisor', [SupervisorController::class, 'kalender'])->name('supervisor.kalender');
     });
+});
+
+Route::middleware([RoleMiddleware::class . ':pemantau'])->group(function () {
+    route::resource('pemantau', PemantauController::class);
 });
 
 Route::get('/pegawai/undangan/{id}', [PegawaiController::class, 'preview'])

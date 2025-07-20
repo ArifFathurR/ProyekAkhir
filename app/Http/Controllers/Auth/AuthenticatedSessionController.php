@@ -40,6 +40,8 @@ class AuthenticatedSessionController extends Controller
             return redirect()->route('dokumentasi_kegiatan.index');
         } elseif ($user->role == 'supervisor') {
             return redirect()->route('supervisor.index');
+        }elseif ($user->role == 'pemantau') {
+            return redirect()->route('pemantau.index');
         }
         
 

@@ -25,7 +25,7 @@ class UpdateUserRequest extends FormRequest
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $this->user->id,
             'no_hp' => 'required|string|max:20',
-            'role' => 'required|in:admin,pegawai,supervisor',
+            'role' => 'required|in:admin,pegawai,supervisor,pemantau',
         ];
     }
 }
