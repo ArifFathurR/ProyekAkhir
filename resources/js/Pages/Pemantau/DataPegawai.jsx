@@ -27,7 +27,7 @@ export default function DataPegawai({ users, filters }) {
       <SidebarPemantau />
       <div className="flex-1 bg-[#F5F7FA] min-h-screen md:ml-64">
         <Header />
-        <FlashPopup/>
+        <FlashPopup />
         <main className="pt-28 px-6">
           <div className="bg-white shadow rounded p-8 mx-auto">
             <h2 className="text-xl font-semibold text-center mb-4">Data Pegawai</h2>
@@ -60,7 +60,16 @@ export default function DataPegawai({ users, filters }) {
 
             <div className="overflow-x-auto">
               <table className="w-full border text-sm">
-                <TabelPegawaiHeader />
+                <thead className="bg-[#0B2E74] text-white">
+                  <tr>
+                    <th className="p-2 border">No</th>
+                    <th className="p-2 border">Nama Pegawai</th>
+                    <th className="p-2 border">Email</th>
+                    <th className="p-2 border">Nomor Hp</th>
+                    <th className="p-2 border">Role</th>
+                    {/* <th className="p-2 border">Aksi</th> */}
+                  </tr>
+                </thead>
                 <tbody>
                   {users?.data?.length > 0 ? (
                     users.data.map((user, idx) => (
