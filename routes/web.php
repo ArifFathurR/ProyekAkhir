@@ -77,6 +77,11 @@ Route::middleware([RoleMiddleware::class . ':supervisor'])->group(function () {
 
 Route::middleware([RoleMiddleware::class . ':pemantau'])->group(function () {
     route::resource('pemantau', PemantauController::class);
+    route::get('/data-pegawai',[PemantauController::class, 'DataPegawai'])->name('pemantau.datapegawai');
+    route::get('/tim-data', [PemantauController::class, 'DataTim'])->name('pemantau.datatim');
+    route::get('/anggota-tim-data',[PemantauController::class, 'DataAnggotaTim'])->name('pemantau.anggotatim');
+    route::get('/presensi-kegiatan',[PemantauController::class, 'DataPresensi'])->name('pemantau.datapresensi');
+    route::get('/dokumentasi-kegiatan', [PemantauController::class, 'DataDokumentasi'])->name('pemantau.datadokumentasi');
 });
 
 Route::get('/pegawai/undangan/{id}', [PegawaiController::class, 'preview'])

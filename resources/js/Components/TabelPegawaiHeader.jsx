@@ -7,7 +7,7 @@ export default function TabelPegawaiHeader() {
           <th className="p-2 border">Email</th>
           <th className="p-2 border">Nomor Hp</th>
           <th className="p-2 border">Role</th>
-          <th className="p-2 border">Aksi</th>
+          {/* <th className="p-2 border">Aksi</th> */}
         </tr>
       </thead>
     );

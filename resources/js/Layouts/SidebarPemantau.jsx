@@ -53,9 +53,9 @@ export default function Sidebar() {
             </li>
             <li>
               <Link
-                href='/kegiatan-saya-supervisor'
+                href='/data-pegawai'
                 className={`flex items-center p-2 rounded ${
-                  isActive('/kegiatan-saya-supervisor') ? 'bg-blue-100 text-black font-semibold' : 'hover:bg-gray-100 text-gray-700'
+                  isActive('/data-pegawai') ? 'bg-blue-100 text-black font-semibold' : 'hover:bg-gray-100 text-gray-700'
                 }`}
               >
                 📋 Pegawai
@@ -63,9 +63,9 @@ export default function Sidebar() {
             </li>
             <li>
               <Link
-                href={route('supervisor.index')}
+                href={route('pemantau.datatim')}
                 className={`flex items-center p-2 rounded ${
-                  isActive('/supervisor') && !url.includes('/create')
+                  isActive('/tim-data') && !url.includes('/create')
                     ? 'bg-blue-100 text-black font-semibold'
                     : 'hover:bg-gray-100 text-gray-700'
                 }`}
@@ -75,9 +75,9 @@ export default function Sidebar() {
             </li>
             <li>
               <Link
-                href={route('penerima.index')}
+                href={route('pemantau.anggotatim')}
                 className={`flex items-center p-2 rounded ${
-                  isActive('/penerima') && !url.includes('/create')
+                  isActive('/anggota-tim-data') && !url.includes('/create')
                     ? 'bg-blue-100 text-black font-semibold'
                     : 'hover:bg-gray-100 text-gray-700'
                 }`}
@@ -87,9 +87,9 @@ export default function Sidebar() {
             </li>
             <li>
               <Link
-                href={route('undangan_kegiatan.index')}
+                href={route('pemantau.datapresensi')}
                 className={`flex items-center p-2 rounded ${
-                  isActive('/undangan_kegiatan') && !url.includes('/create')
+                  isActive('/presensi-kegiatan') && !url.includes('/create')
                     ? 'bg-blue-100 text-black font-semibold'
                     : 'hover:bg-gray-100 text-gray-700'
                 }`}
@@ -99,9 +99,9 @@ export default function Sidebar() {
             </li>
             <li>
               <Link
-                href={route('supervisor.anggota_tim')}
+                href={route('pemantau.datadokumentasi')}
                 className={`flex items-center p-2 rounded ${
-                  isActive('/anggota-tim') && !url.includes('/create')
+                  isActive('/dokumentasi-kegiatan') && !url.includes('/create')
                     ? 'bg-blue-100 text-black font-semibold'
                     : 'hover:bg-gray-100 text-gray-700'
                 }`}
