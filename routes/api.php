@@ -9,8 +9,18 @@ use Illuminate\Support\Facades\Route;
 // })->middleware('auth:sanctum');
 use App\Http\Controllers\Api\UserApiController;
 use App\Http\Controllers\Api\DokumentasiApiController;
+use App\Http\Controllers\Api\AuthController;
+
 Route::get('/', function(){
     return'API';
+});
+
+Route::post('/login', [AuthController::class, 'login']);
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/logout', [AuthController::class, 'logout']);
+
+    // Tambahkan route lain di sini
+    Route::get('/profile', fn(Request $request) => $request->user());
 });
 
 Route::apiResource('users', UserApiController::class);
