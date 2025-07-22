@@ -3,130 +3,144 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\DokumentasiKegiatan;
-use App\Models\FotoDokumentasi;
-use App\Models\PenerimaUndangan;
-use App\Models\UndanganKegiatan;
-use App\Models\Kegiatan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
+use App\Models\DokumentasiKegiatan;
+use App\Models\FotoDokumentasi;
+use App\Models\PenerimaUndangan;
 
 class DokumentasiApiController extends Controller
 {
-    public function index(Request $request)
-{
-    $search = $request->search;
-    $createdAt = $request->created_at;
+    public function index()
+    {
+        $userId = Auth::id();
 
-    $dokumentasis = DokumentasiKegiatan::with(['kegiatan:id,nama_kegiatan', 'undangan:id,judul', 'fotoDokumentasi'])
-        ->when($search, fn ($query) =>
-            $query->whereHas('kegiatan', fn ($q) =>
-                $q->where('nama_kegiatan', 'like', '%' . $search . '%')
-            )
-        )
-        ->when($createdAt, fn ($query) =>
-            $query->whereDate('created_at', $createdAt)
-        )
-        ->latest()
-        ->get();
+        $undanganIds = PenerimaUndangan::where('user_id', $userId)
+            ->pluck('undangan_id');
 
-    return response()->json($dokumentasis);
-}
+        $dokumentasi = DokumentasiKegiatan::with('fotoDokumentasi', 'undangan.kegiatan')
+            ->whereIn('undangan_id', $undanganIds)
+            ->get();
+
+        return response()->json([
+            'data' => $dokumentasi
+        ]);
+    }
 
     public function store(Request $request)
     {
-        $data = $request->validate([
-            'kegiatan_id' => 'required|exists:kegiatans,id',
-            'undangan_id' => 'required|exists:undangan_kegiatans,id',
-            'notulensi'   => 'nullable|string',
-            'link_zoom'   => 'nullable|url',
-            'link_materi' => 'nullable|url',
-            'foto.*'      => 'nullable|image|max:2048'
+        $userId = Auth::id();
+
+        $request->validate([
+            'undangan_id' => 'required|exists:undangan_kegiatan,id',
+            'kegiatan_id' => 'required|exists:kegiatan,id',
+            'deskripsi' => 'required|string',
+            'foto_dokumentasi.*' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ]);
+
+        $isAuthorized = PenerimaUndangan::where('user_id', $userId)
+            ->where('undangan_id', $request->undangan_id)
+            ->exists();
+
+        if (!$isAuthorized) {
+            return response()->json([
+                'message' => 'Anda tidak memiliki akses untuk undangan ini.'
+            ], 403);
+        }
 
         $dokumentasi = DokumentasiKegiatan::create([
-            'kegiatan_id' => $data['kegiatan_id'],
-            'undangan_id' => $data['undangan_id'],
-            'notulensi'   => $data['notulensi'] ?? null,
-            'link_zoom'   => $data['link_zoom'] ?? null,
-            'link_materi' => $data['link_materi'] ?? null,
+            'undangan_id' => $request->undangan_id,
+            'kegiatan_id' => $request->kegiatan_id,
+            'deskripsi' => $request->deskripsi,
         ]);
 
-        if ($request->hasFile('foto')) {
-            foreach ($request->file('foto') as $file) {
-                $filename = Str::random(20) . '.' . $file->getClientOriginalExtension();
-                $path = $file->storeAs('foto_dokumentasi', $filename, 'public');
-
+        if ($request->hasFile('foto_dokumentasi')) {
+            foreach ($request->file('foto_dokumentasi') as $file) {
+                $path = $file->store('foto_dokumentasi', 'public');
                 FotoDokumentasi::create([
-                    'dokumentasi_id' => $dokumentasi->id,
+                    'dokumentasi_kegiatan_id' => $dokumentasi->id,
                     'foto' => $path,
                 ]);
             }
         }
 
         return response()->json([
-            'message' => 'Dokumentasi berhasil ditambahkan.',
+            'message' => 'Dokumentasi berhasil disimpan.',
             'data' => $dokumentasi->load('fotoDokumentasi')
-        ]);
-    }
-
-    public function show($id)
-    {
-        $dokumentasi = DokumentasiKegiatan::with(['kegiatan', 'undangan', 'fotoDokumentasi'])->findOrFail($id);
-        return response()->json($dokumentasi);
+        ], 201);
     }
 
     public function update(Request $request, $id)
     {
-        $dokumentasi = DokumentasiKegiatan::findOrFail($id);
+        $userId = Auth::id();
 
-        $data = $request->validate([
-            'kegiatan_id' => 'required|exists:kegiatans,id',
-            'undangan_id' => 'required|exists:undangan_kegiatans,id',
-            'notulensi'   => 'nullable|string',
-            'link_zoom'   => 'nullable|url',
-            'link_materi' => 'nullable|url',
+        $request->validate([
+            'undangan_id' => 'required|exists:undangan_kegiatan,id',
+            'kegiatan_id' => 'required|exists:kegiatan,id',
+            'deskripsi' => 'required|string',
+            'foto_dokumentasi.*' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ]);
 
-        $dokumentasi->update($data);
+        $dokumentasi = DokumentasiKegiatan::findOrFail($id);
 
-        return response()->json(['message' => 'Dokumentasi berhasil diperbarui.']);
+        $isAuthorized = PenerimaUndangan::where('user_id', $userId)
+            ->where('undangan_id', $request->undangan_id)
+            ->exists();
+
+        if (!$isAuthorized) {
+            return response()->json([
+                'message' => 'Anda tidak memiliki akses untuk mengedit dokumentasi ini.'
+            ], 403);
+        }
+
+        $dokumentasi->update([
+            'undangan_id' => $request->undangan_id,
+            'kegiatan_id' => $request->kegiatan_id,
+            'deskripsi' => $request->deskripsi,
+        ]);
+
+        if ($request->hasFile('foto_dokumentasi')) {
+            foreach ($request->file('foto_dokumentasi') as $file) {
+                $path = $file->store('foto_dokumentasi', 'public');
+                FotoDokumentasi::create([
+                    'dokumentasi_kegiatan_id' => $dokumentasi->id,
+                    'foto' => $path,
+                ]);
+            }
+        }
+
+        return response()->json([
+            'message' => 'Dokumentasi berhasil diperbarui.',
+            'data' => $dokumentasi->load('fotoDokumentasi')
+        ]);
     }
 
     public function destroy($id)
     {
+        $userId = Auth::id();
+
         $dokumentasi = DokumentasiKegiatan::with('fotoDokumentasi')->findOrFail($id);
 
+        $isAuthorized = PenerimaUndangan::where('user_id', $userId)
+            ->where('undangan_id', $dokumentasi->undangan_id)
+            ->exists();
+
+        if (!$isAuthorized) {
+            return response()->json([
+                'message' => 'Anda tidak memiliki akses untuk menghapus dokumentasi ini.'
+            ], 403);
+        }
+
         foreach ($dokumentasi->fotoDokumentasi as $foto) {
-            if (Storage::disk('public')->exists($foto->foto)) {
-                Storage::disk('public')->delete($foto->foto);
-            }
+            Storage::disk('public')->delete($foto->foto);
             $foto->delete();
         }
 
         $dokumentasi->delete();
 
-        return response()->json(['message' => 'Dokumentasi berhasil dihapus.']);
-    }
-
-    public function formOptions()
-    {
-        $userId = auth()->id();
-
-        $undangan = UndanganKegiatan::with('kegiatan:id,nama_kegiatan')
-            ->whereHas('penerimaUndangan', function ($query) use ($userId) {
-                $query->where('user_id', $userId);
-            })
-            ->select('id', 'judul', 'kegiatan_id')
-            ->get();
-
-        $kegiatan = $undangan->pluck('kegiatan')->unique('id')->values();
-
         return response()->json([
-            'kegiatan' => $kegiatan,
-            'undangan' => $undangan
+            'message' => 'Dokumentasi berhasil dihapus.'
         ]);
     }
 }
