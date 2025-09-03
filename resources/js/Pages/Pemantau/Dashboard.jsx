@@ -54,7 +54,7 @@ export default function Dashboard({ statistik = {}, kegiatan = [] }) {
   const eventsByMonth = {};
   kegiatan.forEach(item => {
     const date = dayjs(item.date);
-    const month = date.month(); // 0-indexed
+    const month = date.month(); 
     const day = date.date();
     if (!eventsByMonth[month]) eventsByMonth[month] = {};
     if (!eventsByMonth[month][day]) eventsByMonth[month][day] = [];

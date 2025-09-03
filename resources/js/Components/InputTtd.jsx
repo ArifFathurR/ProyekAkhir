@@ -22,7 +22,7 @@ export default function InputTtd({ penerimaId, onClose }) {
       onSuccess: () => {
         setLoading(false);
         if (onClose) onClose(); // ✅ langsung tutup pop-up
-        router.reload();         // 🔄 opsional: refresh halaman
+        router.reload();
       },
       onError: () => {
         setLoading(false);

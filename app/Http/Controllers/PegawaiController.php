@@ -205,16 +205,29 @@ public function storeTtd(Request $request)
         'ttd' => 'required|string',
     ]);
 
-    $penerima = PenerimaUndangan::findOrFail($request->penerima_id);
+    $penerima = PenerimaUndangan::with('undangan')->findOrFail($request->penerima_id);
 
+    // Ambil waktu kegiatan dari tabel undangan_kegiatans
+    $waktuKegiatan = Carbon::parse($penerima->undangan->tanggal . ' ' . $penerima->undangan->waktu);
+
+    // Waktu presensi saat ini
+    $waktuPresensi = Carbon::now();
+
+    // Cek keterlambatan: lewat 5 menit dari waktu kegiatan
+    $statusKehadiran = $waktuPresensi->greaterThan($waktuKegiatan->addMinutes(5))
+        ? 'terlambat'
+        : 'hadir';
+
+    // Update data presensi
     $penerima->update([
         'ttd' => $request->ttd,
-        'status_kehadiran' => 'hadir',
-        'waktu_presensi' => Carbon::now(), // ⏱ timestamp sekarang
+        'status_kehadiran' => $statusKehadiran,
+        'waktu_presensi' => $waktuPresensi,
     ]);
 
     return redirect()->route('pegawai.sedang')->with('success', 'TTD dan presensi berhasil disimpan.');
 }
+
 
 public function getByPenerimaId($penerima_id)
 {
