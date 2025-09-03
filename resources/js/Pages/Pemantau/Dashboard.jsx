@@ -35,7 +35,7 @@ export default function Dashboard({ statistik = {}, kegiatan = [] }) {
     {
       icon: <MdOutlineAccessTime size={32} className="text-green-500" />,
       value: statistik.berlangsung ?? 0,
-      label: 'Sedang Berlangsung',
+      label: 'Sedang Dilaksanakan',
     },
     {
       icon: <FaCheckDouble size={32} className="text-sky-500" />,
@@ -45,8 +45,9 @@ export default function Dashboard({ statistik = {}, kegiatan = [] }) {
   ];
 
   const getStatusColor = (status) => {
-    if (status === 'Selesai') return 'bg-green-500 text-white';
-    if (status === 'Belum Dilaksanakan' || status === 'Akan Datang') return 'bg-yellow-400 text-black';
+    if (status === 'Selesai') return 'bg-sky-500 text-white'
+    else if (status === 'Belum Dilaksanakan' || status === 'Akan Datang') return 'bg-yellow-400 text-black'
+    else if (status === 'Sedang Dilaksanakan') return'bg-green-500 text-white';
     return 'bg-gray-300';
   };
 

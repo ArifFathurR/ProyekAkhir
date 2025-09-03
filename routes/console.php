@@ -11,13 +11,22 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote')->hourly();
 
 Schedule::call(function () {
-    $now = Carbon::now()->format('H:i');
+    $now = Carbon::now();
 
+    // Update ke Sedang Dilaksanakan
     DB::table('undangan_kegiatans')
-        ->where('waktu', $now)
+        ->whereRaw("CONCAT(tanggal, ' ', waktu) = ?", [$now->format('Y-m-d H:i')])
         ->where('status', 'Diterima')
+        ->where('status_pelaksanaan', 'Akan Datang')
         ->update(['status_pelaksanaan' => 'Sedang Dilaksanakan']);
-    
-    logger("Status pelaksanaan diperbarui otomatis pada $now");
+
+    // Update ke Selesai
+    DB::table('undangan_kegiatans')
+        ->whereRaw("CONCAT(tanggal, ' ', waktu) < ?", [$now->format('Y-m-d H:i')])
+        ->where('status', 'Diterima')
+        ->where('status_pelaksanaan', 'Sedang Dilaksanakan')
+        ->update(['status_pelaksanaan' => 'Selesai']);
+
+    logger("Status pelaksanaan diperbarui otomatis pada " . $now->format('Y-m-d H:i'));
 })->everyMinute();
 
