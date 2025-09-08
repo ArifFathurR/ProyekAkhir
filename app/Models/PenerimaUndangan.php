@@ -18,6 +18,8 @@ class PenerimaUndangan extends Model
         'status_penerima',
         'status_kehadiran',
         'ttd',
+        'latitude',
+        'longitude',
         'koordinat',
         'waktu_presensi',
         'alasan_berhalangan',

@@ -145,7 +145,7 @@ class DokumentasiKegiatanSupervisorController extends Controller
 
                 $image = $manager->read($file->getPathname());
                 $image = $image->scale(width: 800);
-
+                
                 $quality = 75;
                 $encodedImage = $image->toJpeg($quality);
 

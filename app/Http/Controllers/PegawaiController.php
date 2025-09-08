@@ -200,33 +200,34 @@ public function kalender(Pegawai $pegawai)
 
 public function storeTtd(Request $request)
 {
-    $request->validate([
+    $validated = $request->validate([
         'penerima_id' => 'required|exists:penerima_undangans,id',
-        'ttd' => 'required|string',
+        'ttd'         => 'required|string',
+        'latitude'    => 'nullable|numeric',
+        'longitude'   => 'nullable|numeric',
     ]);
 
-    $penerima = PenerimaUndangan::with('undangan')->findOrFail($request->penerima_id);
+    $penerima = PenerimaUndangan::with('undangan')->findOrFail($validated['penerima_id']);
 
-    // Ambil waktu kegiatan dari tabel undangan_kegiatans
+    // Waktu kegiatan
     $waktuKegiatan = Carbon::parse($penerima->undangan->tanggal . ' ' . $penerima->undangan->waktu);
-
-    // Waktu presensi saat ini
     $waktuPresensi = Carbon::now();
 
-    // Cek keterlambatan: lewat 5 menit dari waktu kegiatan
-    $statusKehadiran = $waktuPresensi->greaterThan($waktuKegiatan->addMinutes(5))
+    $statusKehadiran = $waktuPresensi->greaterThan($waktuKegiatan->copy()->addMinutes(5))
         ? 'terlambat'
         : 'hadir';
 
-    // Update data presensi
     $penerima->update([
-        'ttd' => $request->ttd,
+        'ttd'              => $validated['ttd'],
+        'latitude'         => $validated['latitude'] ?? null,
+        'longitude'        => $validated['longitude'] ?? null,
         'status_kehadiran' => $statusKehadiran,
-        'waktu_presensi' => $waktuPresensi,
+        'waktu_presensi'   => $waktuPresensi,
     ]);
 
     return redirect()->route('pegawai.sedang')->with('success', 'TTD dan presensi berhasil disimpan.');
 }
+
 
 
 public function getByPenerimaId($penerima_id)
