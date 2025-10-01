@@ -151,4 +151,31 @@ class PegawaiApiController extends Controller
             ]),
         ]);
     }
+
+    // PegawaiApiController.php
+public function dropdownDokumentasi()
+{
+    $userId = auth()->id();
+
+    // Ambil undangan yang diterima user
+    $undangans = PenerimaUndangan::with('undangan.kegiatan')
+        ->where('user_id', $userId)
+        ->get()
+        ->map(function($penerima) {
+            return [
+                'undangan_id' => $penerima->undangan->id,
+                'judul' => $penerima->undangan->judul,
+                'kegiatan_id' => $penerima->undangan->kegiatan->id,
+                'nama_kegiatan' => $penerima->undangan->kegiatan->nama_kegiatan,
+            ];
+        });
+
+    return response()->json([
+        'data' => $undangans
+    ]);
+}
+
+
+
+
 }

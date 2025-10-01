@@ -35,6 +35,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/pegawai/kegiatan/kalender', [PegawaiApiController::class, 'kalender']);
     Route::post('/pegawai/ttd', [PegawaiApiController::class, 'storeTtd']);
     Route::get('/pegawai/dokumentasi/{penerima_id}', [PegawaiApiController::class, 'getByPenerimaId']);
+// Route
+Route::get('/pegawai/dropdown-dokumentasi', [PegawaiApiController::class, 'dropdownDokumentasi']);
 
 });
 
