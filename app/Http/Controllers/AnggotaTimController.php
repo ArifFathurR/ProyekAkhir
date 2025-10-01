@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AnggotaTim;
 use App\Models\Tim;
-use App\Models\User;
+    use App\Models\User;
 use App\Http\Requests\StoreAnggotaTimRequest;
 use App\Http\Requests\UpdateAnggotaTimRequest;
 use Inertia\Inertia;

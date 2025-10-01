@@ -1,15 +1,23 @@
 import { Link, usePage } from '@inertiajs/react';
 import { useState } from 'react';
+import {
+  Users,
+  UserPlus,
+  ClipboardList,
+  FileEdit,
+  Settings,
+  LogOut,
+} from 'lucide-react';
 
 export default function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
-  const { url } = usePage(); // Mendapatkan URL saat ini
+  const { url } = usePage();
 
   const isActive = (path) => url.startsWith(path);
 
   return (
     <>
-     {/* Mobile Toggle Header */}
+      {/* Mobile Toggle Header */}
       <div className="md:hidden bg-white p-4 shadow flex justify-between items-center fixed top-0 left-0 right-0 z-50">
         <h2 className="font-bold text-lg">Dashboard Pegawai</h2>
         <button
@@ -44,47 +52,73 @@ export default function Sidebar() {
             <li>
               <Link
                 href="/dashboard-admin"
-                className={`flex items-center p-2 rounded ${isActive('/dashboard-admin') ? 'bg-blue-100 font-semibold' : 'hover:bg-gray-100'}`}
+                className={`flex items-center gap-2 p-2 rounded ${
+                  isActive('/dashboard-admin')
+                    ? 'bg-blue-100 font-semibold'
+                    : 'hover:bg-gray-100'
+                }`}
               >
-                👥 Kelola Pegawai
+                <Users size={18} />
+                Kelola Pegawai
               </Link>
             </li>
             <li>
               <Link
                 href={route('tim.index')}
-                className={`flex items-center p-2 rounded ${isActive('/tim') ? 'bg-blue-100 font-semibold' : 'hover:bg-gray-100'}`}
+                className={`flex items-center gap-2 p-2 rounded ${
+                  isActive('/tim')
+                    ? 'bg-blue-100 font-semibold'
+                    : 'hover:bg-gray-100'
+                }`}
               >
-                📋 Kelola Tim
+                <ClipboardList size={18} />
+                Kelola Tim
               </Link>
             </li>
             <li>
               <Link
                 href={route('anggota_tim.index')}
-                className={`flex items-center p-2 rounded ${isActive('/anggota_tim') ? 'bg-blue-100 font-semibold' : 'hover:bg-gray-100'}`}
+                className={`flex items-center gap-2 p-2 rounded ${
+                  isActive('/anggota_tim')
+                    ? 'bg-blue-100 font-semibold'
+                    : 'hover:bg-gray-100'
+                }`}
               >
-                👥 Kelola Anggota Tim
+                <UserPlus size={18} />
+                Kelola Anggota Tim
               </Link>
             </li>
             <li>
               <Link
                 href={route('kegiatan.index')}
-                className={`flex items-center p-2 rounded ${isActive('/kegiatan') ? 'bg-blue-100 font-semibold' : 'hover:bg-gray-100'}`}
+                className={`flex items-center gap-2 p-2 rounded ${
+                  isActive('/kegiatan')
+                    ? 'bg-blue-100 font-semibold'
+                    : 'hover:bg-gray-100'
+                }`}
               >
-                ✏️ Kelola Kegiatan
+                <FileEdit size={18} />
+                Kelola Kegiatan
               </Link>
             </li>
           </ul>
         </nav>
 
-        <div className="mt-20 border-t pt-4 ">
+        {/* Pusat Akun */}
+        <div className="mt-20 border-t pt-4">
           <p className="text-sm text-gray-400">Pusat Akun</p>
           <ul className="space-y-2 mt-2">
             <li>
               <Link
                 href="/profile"
-                className={`flex items-center p-2 rounded ${isActive('/profile') ? 'bg-blue-100 font-semibold' : 'hover:bg-gray-100'}`}
+                className={`flex items-center gap-2 p-2 rounded ${
+                  isActive('/profile')
+                    ? 'bg-blue-100 font-semibold'
+                    : 'hover:bg-gray-100'
+                }`}
               >
-                ⚙️ Akun
+                <Settings size={18} />
+                Akun
               </Link>
             </li>
             <li>
@@ -92,9 +126,10 @@ export default function Sidebar() {
                 href="/logout"
                 method="post"
                 as="button"
-                className="flex items-center p-2 hover:bg-gray-100 rounded"
+                className="flex items-center gap-2 p-2 hover:bg-gray-100 text-red-600 rounded"
               >
-                🚪 Logout
+                <LogOut size={18} />
+                Logout
               </Link>
             </li>
           </ul>

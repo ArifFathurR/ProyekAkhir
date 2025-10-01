@@ -1,5 +1,15 @@
 import { Link, usePage } from '@inertiajs/react';
 import { useState } from 'react';
+import {
+  FolderKanban,
+  ClipboardList,
+  MailCheck,
+  CheckSquare,
+  FileText,
+  Users,
+  Settings,
+  LogOut,
+} from 'lucide-react';
 
 export default function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -9,7 +19,7 @@ export default function Sidebar() {
 
   return (
     <>
-     {/* Mobile Toggle Header */}
+      {/* Mobile Toggle Header */}
       <div className="md:hidden bg-white p-4 shadow flex justify-between items-center fixed top-0 left-0 right-0 z-50">
         <h2 className="font-bold text-lg">Dashboard Supervisor</h2>
         <button
@@ -20,7 +30,7 @@ export default function Sidebar() {
         </button>
       </div>
 
-      {/* Sidebar Overlay on Mobile */}
+      {/* Overlay Mobile */}
       {isOpen && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden"
@@ -34,95 +44,111 @@ export default function Sidebar() {
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
         md:translate-x-0 md:block`}
       >
+        {/* Header */}
         <div className="mb-6">
           <h2 className="font-bold text-lg hidden md:block">Dashboard Supervisor</h2>
-          <p className="text-sm text-gray-500 hidden md:block">menu</p>
+          <p className="text-sm text-gray-500 hidden md:block">Menu</p>
         </div>
 
+        {/* Menu Navigasi */}
         <nav>
           <ul className="space-y-2">
             <li>
               <Link
                 href={route('dokumentasisupervisor.index')}
-                className={`flex items-center p-2 rounded ${
-                  isActive('/dokumentasisupervisor') ? 'bg-blue-100 text-black font-semibold' : 'hover:bg-gray-100 text-gray-700'
+                className={`flex items-center gap-2 p-2 rounded ${
+                  isActive('/dokumentasisupervisor')
+                    ? 'bg-blue-100 text-black font-semibold'
+                    : 'hover:bg-gray-100 text-gray-700'
                 }`}
               >
-                🗂️ Semua Kegiatan 
+                <FolderKanban size={18} />
+                Semua Kegiatan
               </Link>
             </li>
             <li>
               <Link
-                href='/kegiatan-saya-supervisor'
-                className={`flex items-center p-2 rounded ${
-                  isActive('/kegiatan-saya-supervisor') ? 'bg-blue-100 text-black font-semibold' : 'hover:bg-gray-100 text-gray-700'
+                href="/kegiatan-saya-supervisor"
+                className={`flex items-center gap-2 p-2 rounded ${
+                  isActive('/kegiatan-saya-supervisor')
+                    ? 'bg-blue-100 text-black font-semibold'
+                    : 'hover:bg-gray-100 text-gray-700'
                 }`}
               >
-                📋 Kegiatan Saya
+                <ClipboardList size={18} />
+                Kegiatan Saya
               </Link>
             </li>
             <li>
               <Link
                 href={route('supervisor.index')}
-                className={`flex items-center p-2 rounded ${
-                  isActive('/supervisor') && !url.includes('/create')
+                className={`flex items-center gap-2 p-2 rounded ${
+                  isActive('/supervisor')
                     ? 'bg-blue-100 text-black font-semibold'
                     : 'hover:bg-gray-100 text-gray-700'
                 }`}
               >
-                📩 Konfirmasi Undangan
+                <MailCheck size={18} />
+                Konfirmasi Undangan
               </Link>
             </li>
             <li>
               <Link
                 href={route('penerima.index')}
-                className={`flex items-center p-2 rounded ${
-                  isActive('/penerima') && !url.includes('/create')
+                className={`flex items-center gap-2 p-2 rounded ${
+                  isActive('/penerima')
                     ? 'bg-blue-100 text-black font-semibold'
                     : 'hover:bg-gray-100 text-gray-700'
                 }`}
               >
-                ☑️ Lihat Presensi
+                <CheckSquare size={18} />
+                Lihat Presensi
               </Link>
             </li>
             <li>
               <Link
                 href={route('undangan_kegiatan.index')}
-                className={`flex items-center p-2 rounded ${
-                  isActive('/undangan_kegiatan') && !url.includes('/create')
+                className={`flex items-center gap-2 p-2 rounded ${
+                  isActive('/undangan_kegiatan')
                     ? 'bg-blue-100 text-black font-semibold'
                     : 'hover:bg-gray-100 text-gray-700'
                 }`}
               >
-                ✏️ Status Pelaksanaan
+                <FileText size={18} />
+                Status Pelaksanaan
               </Link>
             </li>
             <li>
               <Link
                 href={route('supervisor.anggota_tim')}
-                className={`flex items-center p-2 rounded ${
-                  isActive('/anggota-tim') && !url.includes('/create')
+                className={`flex items-center gap-2 p-2 rounded ${
+                  isActive('/anggota-tim')
                     ? 'bg-blue-100 text-black font-semibold'
                     : 'hover:bg-gray-100 text-gray-700'
                 }`}
               >
-                👥 Anggota Tim
+                <Users size={18} />
+                Anggota Tim
               </Link>
             </li>
           </ul>
         </nav>
 
+        {/* Akun */}
         <div className="mt-20 border-t pt-4">
           <p className="text-sm text-gray-400">Pusat Akun</p>
           <ul className="space-y-2 mt-2">
             <li>
               <Link
                 href="/profile"
-                className={`flex items-center p-2 rounded ${
-                  isActive('/profile') ? 'bg-blue-100 text-blue-600 font-semibold' : 'hover:bg-gray-100 text-gray-700'
+                className={`flex items-center gap-2 p-2 rounded ${
+                  isActive('/profile')
+                    ? 'bg-blue-100 text-black font-semibold'
+                    : 'hover:bg-gray-100 text-gray-700'
                 }`}
               >
-                ⚙️ Akun
+                <Settings size={18} />
+                Akun
               </Link>
             </li>
             <li>
@@ -130,9 +156,10 @@ export default function Sidebar() {
                 href="/logout"
                 method="post"
                 as="button"
-                className="flex items-center p-2 hover:bg-gray-100 text-red-600 rounded"
+                className="flex items-center gap-2 p-2 hover:bg-gray-100 text-red-600 rounded"
               >
-                🚪 Logout
+                <LogOut size={18} />
+                Logout
               </Link>
             </li>
           </ul>

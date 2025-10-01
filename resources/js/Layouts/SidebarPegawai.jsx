@@ -1,11 +1,46 @@
 import { Link, usePage } from '@inertiajs/react';
 import { useState } from 'react';
+import {
+  FileText,
+  Info,
+  PlusSquare,
+  Clock,
+  Settings,
+  LogOut,
+} from 'lucide-react';
 
 export default function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
   const { url } = usePage();
 
   const isActive = (path) => url.startsWith(path);
+
+  const menuItems = [
+    {
+      href: route('dokumentasi_kegiatan.index'),
+      icon: <FileText className="w-5 h-5" />,
+      label: 'Dokumentasi Kegiatan Saya',
+      active: isActive('/dokumentasi_kegiatan'),
+    },
+    {
+      href: '/kegiatan-saya',
+      icon: <Info className="w-5 h-5" />,
+      label: 'Kegiatan Saya',
+      active: isActive('/kegiatan-saya'),
+    },
+    {
+      href: route('undangan_kegiatan.create'),
+      icon: <PlusSquare className="w-5 h-5" />,
+      label: 'Buat Undangan Kegiatan',
+      active: isActive('/undangan_kegiatan/create'),
+    },
+    {
+      href: route('undangan_kegiatan.index'),
+      icon: <Clock className="w-5 h-5" />,
+      label: 'Status Pengajuan Undangan',
+      active: isActive('/undangan_kegiatan') && !url.includes('/create'),
+    },
+  ];
 
   return (
     <>
@@ -34,77 +69,48 @@ export default function Sidebar() {
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
         md:translate-x-0 md:block`}
       >
+        {/* Header */}
         <div className="mb-6 mt-2 md:mt-0">
           <h2 className="font-bold text-lg hidden md:block">Dashboard Pegawai</h2>
-          <p className="text-sm text-gray-500 hidden md:block">menu</p>
+          <p className="text-sm text-gray-500 hidden md:block">Menu</p>
         </div>
 
+        {/* Main Menu */}
         <nav>
-          <ul className="space-y-2">
-            <li>
-              <Link
-                href={route('dokumentasi_kegiatan.index')}
-                className={`flex items-center p-2 rounded ${
-                  isActive('/dokumentasi_kegiatan')
-                    ? 'bg-blue-100 text-black font-semibold'
-                    : 'hover:bg-gray-100 text-gray-700'
-                }`}
-              >
-                📝 Dokumentasi Kegiatan Saya
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="/kegiatan-saya"
-                className={`flex items-center p-2 rounded ${
-                  isActive('/kegiatan-saya')
-                    ? 'bg-blue-100 text-black font-semibold'
-                    : 'hover:bg-gray-100 text-gray-700'
-                }`}
-              >
-                ℹ️ Kegiatan Saya
-              </Link>
-            </li>
-            <li>
-              <Link
-                href={route('undangan_kegiatan.create')}
-                className={`flex items-center p-2 rounded ${
-                  isActive('/undangan_kegiatan/create')
-                    ? 'bg-blue-100 text-black font-semibold'
-                    : 'hover:bg-gray-100 text-gray-700'
-                }`}
-              >
-                📋 Buat Undangan Kegiatan
-              </Link>
-            </li>
-            <li>
-              <Link
-                href={route('undangan_kegiatan.index')}
-                className={`flex items-center p-2 rounded ${
-                  isActive('/undangan_kegiatan') && !url.includes('/create')
-                    ? 'bg-blue-100 text-black font-semibold'
-                    : 'hover:bg-gray-100 text-gray-700'
-                }`}
-              >
-                ⏳ Status Pengajuan Undangan Kegiatan
-              </Link>
-            </li>
+          <ul className="space-y-1">
+            {menuItems.map((item, idx) => (
+              <li key={idx}>
+                <Link
+                  href={item.href}
+                  className={`flex items-center gap-3 p-2 rounded-lg transition ${
+                    item.active
+                      ? 'bg-blue-100 text-black-700 font-semibold'
+                      : 'hover:bg-gray-100 text-gray-700'
+                  }`}
+                >
+                  {item.icon}
+                  <span>{item.label}</span>
+                </Link>
+              </li>
+            ))}
           </ul>
         </nav>
 
-        <div className="mt-20 border-t pt-4">
-          <p className="text-sm text-gray-400">Pusat Akun</p>
-          <ul className="space-y-2 mt-2">
+        {/* Account Section */}
+        <div className="mt-10 border-t pt-4">
+          <p className="text-sm text-gray-400 mb-2">Pusat Akun</p>
+          <ul className="space-y-1">
             <li>
               <Link
                 href="/profile"
-                className={`flex items-center p-2 rounded ${
+                className={`flex items-center gap-3 p-2 rounded-lg transition ${
                   isActive('/profile')
-                    ? 'bg-blue-100 text-blue-600 font-semibold'
+                    ? 'bg-emerald-100 text-emerald-700 font-semibold'
                     : 'hover:bg-gray-100 text-gray-700'
                 }`}
               >
-                ⚙️ Akun
+                <Settings className="w-5 h-5" />
+                <span>Pengaturan Akun</span>
               </Link>
             </li>
             <li>
@@ -112,9 +118,10 @@ export default function Sidebar() {
                 href="/logout"
                 method="post"
                 as="button"
-                className="flex items-center p-2 hover:bg-gray-100 text-red-600 rounded"
+                className="flex items-center gap-3 p-2 rounded-lg text-red-600 hover:bg-red-50 transition"
               >
-                🚪 Logout
+                <LogOut className="w-5 h-5" />
+                <span>Keluar</span>
               </Link>
             </li>
           </ul>

@@ -15,16 +15,25 @@ class AdminController extends Controller
     
     // Menggunakan query builder untuk mencari user berdasarkan nama
     $users = User::when($search, function ($query, $search) {
-            return $query->where('name', 'like', '%' . $search . '%');
+            return $query->where('name', 'like', '%' . $search . '%')
+                        ->orWhere('email', 'like', '%' . $search . '%');
         })
         ->paginate(8)  // Menambahkan pagination
         ->withQueryString();  // Menjaga query string saat pagination
+        // Add total counts from database
+    $totalSupervisor = User::where('role', 'supervisor')->count();
+    $totalPemantau = User::where('role', 'pemantau')->count();
+
+        
 
     return Inertia::render('Admin/DataPegawai', [
         'users' => $users,
         'filters' => [
             'search' => $search,
-        ]
+        ],
+        'totalSupervisor' => $totalSupervisor,
+        'totalPemantau' => $totalPemantau,
+        
     ]);
     }
 

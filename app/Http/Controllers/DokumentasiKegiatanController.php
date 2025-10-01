@@ -40,12 +40,17 @@ class DokumentasiKegiatanController extends Controller
             ->paginate(5)
             ->withQueryString();
 
+            $totalUndangan = UndanganKegiatan::count(); // atau sesuai nama model undangan
+    $totalFoto = FotoDokumentasi::count();
+
         return Inertia::render('Pegawai/DataDokumentasi', [
             'dokumentasis' => $dokumentasis,
             'filters' => [
                 'search' => $search,
                 'created_at' => $createdAt,
             ],
+            'totalUndangan' => $totalUndangan,
+        'totalFoto' => $totalFoto,
         ]);
     }
 

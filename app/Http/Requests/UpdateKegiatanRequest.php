@@ -29,3 +29,4 @@ class UpdateKegiatanRequest extends FormRequest
         ];
     }
 }
+    
