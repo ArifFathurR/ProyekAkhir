@@ -83,21 +83,43 @@ class DokumentasiKegiatanController extends Controller
     }
 
     public function store(StoreDokumentasiKegiatanRequest $request)
-    {
-        $data = $request->validated();
+{
+    $data = $request->validated();
+    $userId = Auth::id();
 
-        $dokumentasi = DokumentasiKegiatan::create([
-            'kegiatan_id' => $data['kegiatan_id'],
-            'undangan_id' => $data['undangan_id'],
-            'notulensi'   => $data['notulensi'],
-            'link_zoom'   => $data['link_zoom'],
-            'link_materi' => $data['link_materi'],
-        ]);
+    // Ambil undangan yang diterima oleh user (agar tidak bisa buat dokumentasi untuk undangan orang lain)
+    $undanganIds = PenerimaUndangan::where('user_id', $userId)->pluck('undangan_id');
 
-        $this->handleFotoUpload($request, $dokumentasi->id);
-
-        return redirect()->route('dokumentasi_kegiatan.index')->with('success', 'Dokumentasi berhasil ditambahkan.');
+    // Validasi apakah undangan tersebut termasuk undangan yang diterima user
+    if (! $undanganIds->contains($data['undangan_id'])) {
+        return back()->with('error', 'Anda tidak berhak membuat dokumentasi untuk undangan ini.');
     }
+
+    // ✅ Cek apakah user sudah pernah membuat dokumentasi untuk undangan ini
+    $sudahAda = DokumentasiKegiatan::where('undangan_id', $data['undangan_id'])
+        ->whereHas('undangan.penerimaUndangan', function ($q) use ($userId) {
+            $q->where('user_id', $userId);
+        })
+        ->exists();
+
+    if ($sudahAda) {
+        return back()->with('error', 'Anda sudah pernah membuat dokumentasi untuk kegiatan ini.');
+    }
+
+    // Jika lolos validasi, buat dokumentasi baru
+    $dokumentasi = DokumentasiKegiatan::create([
+        'kegiatan_id' => $data['kegiatan_id'],
+        'undangan_id' => $data['undangan_id'],
+        'notulensi'   => $data['notulensi'],
+        'link_zoom'   => $data['link_zoom'],
+        'link_materi' => $data['link_materi'],
+    ]);
+
+    $this->handleFotoUpload($request, $dokumentasi->id);
+
+    return redirect()->route('dokumentasi_kegiatan.index')->with('success', 'Dokumentasi berhasil ditambahkan.');
+}
+
 
     public function edit(DokumentasiKegiatan $dokumentasi_kegiatan)
     {
