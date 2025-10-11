@@ -31,7 +31,7 @@ export default function EditDokumentasi({ dokumentasi, kegiatanOptions, undangan
             }
         }
 
-        router.post(`/dokumentasi_kegiatan/${dokumentasi.id}`, formData, {
+        router.post(`/dokumentasisupervisor/${dokumentasi.id}`, formData, {
             forceFormData: true,
             preserveScroll: true,
             method: 'post',

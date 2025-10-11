@@ -35,6 +35,7 @@ class DokumentasiApiController extends Controller
             'undangan_id' => 'required|integer',
             'link_zoom' => 'nullable|string',
             'link_materi' => 'nullable|string',
+            'notulensi' => 'nullable|string',
             'foto_dokumentasi' => 'nullable', // bisa single atau multiple
         ]);
 

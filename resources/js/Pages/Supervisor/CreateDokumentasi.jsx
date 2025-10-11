@@ -55,7 +55,7 @@ export default function CreateDokumentasi({ kegiatanOptions = [], undanganOption
       });
     }
 
-    router.post('/dokumentasi_kegiatan', form, {
+    router.post('/dokumentasisupervisor', form, {
       forceFormData: true,
       preserveScroll: true,
     });

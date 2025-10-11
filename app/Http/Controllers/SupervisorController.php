@@ -27,8 +27,15 @@ class SupervisorController extends Controller
         ->latest()
         ->get();
 
+    $historyUndangans = UndanganKegiatan::with(['user', 'kegiatan'])
+        ->latest()
+        ->get();
+
+    
+
     return Inertia::render('Supervisor/KonfirmasiUndangan', [
         'undangans' => $undangans,
+        'historyUndangans' => $historyUndangans,
     ]);
     }
 

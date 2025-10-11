@@ -37,7 +37,7 @@ export default function DataDokumentasi({ dokumentasis, filters = {}, totalUndan
             {/* Page Header */}
             <div className="mb-6">
               <h1 className="text-2xl font-bold text-gray-900">Manajemen Dokumentasi</h1>
-              <p className="text-gray-600 mt-1">Kelola dokumentasi kegiatan perusahaan</p>
+              <p className="text-gray-600 mt-1">Kelola dokumentasi kegiatan Saya</p>
             </div>
 
             {/* Stats Cards */}

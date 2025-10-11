@@ -17,31 +17,40 @@ use Intervention\Image\Drivers\Gd\Driver as GdDriver;
 class DokumentasiKegiatanSupervisorController extends Controller
 {
     public function index(Request $request)
-    {
-        $search = $request->search;
-        $createdAt = $request->created_at;
+{
+    $search = $request->search;
+    $createdAt = $request->created_at;
 
-        $dokumentasis = DokumentasiKegiatan::with(['kegiatan:id,nama_kegiatan', 'undangan:id,judul', 'fotoDokumentasi'])
-            ->when($search, fn ($query) =>
-                $query->whereHas('kegiatan', fn ($q) =>
-                    $q->where('nama_kegiatan', 'like', '%' . $search . '%')
-                )
+    $dokumentasis = DokumentasiKegiatan::with([
+            'kegiatan:id,nama_kegiatan',
+            'undangan:id,judul',
+            'fotoDokumentasi'
+        ])
+        ->when($search, fn ($query) =>
+            $query->whereHas('kegiatan', fn ($q) =>
+                $q->where('nama_kegiatan', 'like', '%' . $search . '%')
             )
-            ->when($createdAt, fn ($query) =>
-                $query->whereDate('created_at', $createdAt)
-            )
-            ->latest()
-            ->paginate(5)
-            ->withQueryString();
+        )
+        ->when($createdAt, fn ($query) =>
+            $query->whereDate('created_at', $createdAt)
+        )
+        ->latest()
+        ->paginate(5)
+        ->withQueryString();
 
-        return Inertia::render('Supervisor/DataDokumentasi', [
-            'dokumentasis' => $dokumentasis,
-            'filters' => [
-                'search' => $search,
-                'created_at' => $createdAt,
-            ],
-        ]);
-    }
+    $totalUndangan = UndanganKegiatan::count();
+    $totalFoto = FotoDokumentasi::count();
+
+    return Inertia::render('Supervisor/DataDokumentasi', [
+        'dokumentasis' => $dokumentasis,
+        'filters' => [
+            'search' => $search,
+            'created_at' => $createdAt,
+        ],
+        'totalUndangan' => $totalUndangan,
+        'totalFoto' => $totalFoto,
+    ]);
+}
 
     public function create()
     {
@@ -71,15 +80,15 @@ class DokumentasiKegiatanSupervisorController extends Controller
         return redirect()->route('dokumentasisupervisor.index')->with('success', 'Dokumentasi berhasil ditambahkan.');
     }
 
-    public function edit(DokumentasiKegiatan $dokumentasi_kegiatan)
+    public function edit(DokumentasiKegiatan $dokumentasisupervisor)
     {
         $kegiatan = Kegiatan::select('id', 'nama_kegiatan')->get();
         $undangan = UndanganKegiatan::select('id', 'judul')->get();
 
-        $dokumentasi_kegiatan->load('fotoDokumentasi');
+        $dokumentasisupervisor->load('fotoDokumentasi');
 
         return Inertia::render('Supervisor/EditDokumentasi', [
-            'dokumentasi' => $dokumentasi_kegiatan,
+            'dokumentasi' => $dokumentasisupervisor,
             'kegiatanOptions' => $kegiatan,
             'undanganOptions' => $undangan,
         ]);

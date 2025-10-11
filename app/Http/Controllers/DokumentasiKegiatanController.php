@@ -19,40 +19,49 @@ use Intervention\Image\Drivers\Gd\Driver as GdDriver;
 class DokumentasiKegiatanController extends Controller
 {
     public function index(Request $request)
-    {
-        $search = $request->search;
-        $createdAt = $request->created_at;
-        $userId = Auth::id();
+{
+    $search = $request->search;
+    $createdAt = $request->created_at;
+    $userId = Auth::id();
 
-        $undanganIds = PenerimaUndangan::where('user_id', $userId)->pluck('undangan_id');
+    // Ambil semua undangan yang diterima user
+    $undanganIds = PenerimaUndangan::where('user_id', $userId)->pluck('undangan_id');
 
-        $dokumentasis = DokumentasiKegiatan::with(['kegiatan:id,nama_kegiatan', 'undangan:id,judul', 'fotoDokumentasi'])
-            ->whereIn('undangan_id', $undanganIds)
-            ->when($search, fn ($query) =>
-                $query->whereHas('kegiatan', fn ($q) =>
-                    $q->where('nama_kegiatan', 'like', '%' . $search . '%')
-                )
+    // Ambil dokumentasi yang hanya terkait dengan undangan user
+    $dokumentasis = DokumentasiKegiatan::with(['kegiatan:id,nama_kegiatan', 'undangan:id,judul', 'fotoDokumentasi'])
+        ->whereIn('undangan_id', $undanganIds)
+        ->when($search, fn ($query) =>
+            $query->whereHas('kegiatan', fn ($q) =>
+                $q->where('nama_kegiatan', 'like', '%' . $search . '%')
             )
-            ->when($createdAt, fn ($query) =>
-                $query->whereDate('created_at', $createdAt)
-            )
-            ->latest()
-            ->paginate(5)
-            ->withQueryString();
+        )
+        ->when($createdAt, fn ($query) =>
+            $query->whereDate('created_at', $createdAt)
+        )
+        ->latest()
+        ->paginate(5)
+        ->withQueryString();
 
-            $totalUndangan = UndanganKegiatan::count(); // atau sesuai nama model undangan
-    $totalFoto = FotoDokumentasi::count();
+    // Hitung total undangan yang dimiliki user
+    $totalUndangan = UndanganKegiatan::whereIn('id', $undanganIds)->count();
 
-        return Inertia::render('Pegawai/DataDokumentasi', [
-            'dokumentasis' => $dokumentasis,
-            'filters' => [
-                'search' => $search,
-                'created_at' => $createdAt,
-            ],
-            'totalUndangan' => $totalUndangan,
+    // Ambil semua dokumentasi dari undangan user
+    $dokumentasiIds = DokumentasiKegiatan::whereIn('undangan_id', $undanganIds)->pluck('id');
+
+    // Hitung total foto dokumentasi milik user
+    $totalFoto = FotoDokumentasi::whereIn('dokumentasi_id', $dokumentasiIds)->count();
+
+    return Inertia::render('Pegawai/DataDokumentasi', [
+        'dokumentasis' => $dokumentasis,
+        'filters' => [
+            'search' => $search,
+            'created_at' => $createdAt,
+        ],
+        'totalUndangan' => $totalUndangan,
         'totalFoto' => $totalFoto,
-        ]);
-    }
+    ]);
+}
+
 
     public function create()
     {
