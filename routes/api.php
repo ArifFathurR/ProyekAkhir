@@ -24,10 +24,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('users', UserApiController::class);
     Route::get('/dokumentasi', [DokumentasiApiController::class, 'index']);
     Route::post('/dokumentasi_store', [DokumentasiApiController::class, 'store']);
-    Route::get('/dokumentasi/{id}', [DokumentasiApiController::class, 'show']);
+    // Route::get('/dokumentasi/{id}', [DokumentasiApiController::class, 'show']);
     Route::post('/dokumentasi/{id}', [DokumentasiApiController::class, 'update']);
     Route::delete('/dokumentasi/{id}', [DokumentasiApiController::class, 'destroy']);
-
+    Route::get('/dokumentasi/selesai', [DokumentasiApiController::class, 'selesai']);
     //pegawai
     Route::get('/pegawai/kegiatan', [PegawaiApiController::class, 'show']);
     Route::get('/pegawai/kegiatan/sedang', [PegawaiApiController::class, 'sedang']);

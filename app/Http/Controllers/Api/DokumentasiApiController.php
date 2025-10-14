@@ -28,6 +28,42 @@ class DokumentasiApiController extends Controller
         ]);
     }
 
+    public function selesai()
+{
+    $userId = Auth::id();
+
+    $dokumentasi = DokumentasiKegiatan::with(['fotoDokumentasi', 'undangan.kegiatan'])
+        ->whereHas('undangan', function ($query) use ($userId) {
+            $query->where('status_pelaksanaan', 'Selesai')
+                ->whereHas('penerimaUndangan', function ($q) use ($userId) {
+                    $q->where('user_id', $userId);
+                });
+        })
+        ->get()
+        ->groupBy('undangan_id') // hanya 1 dokumentasi per undangan
+        ->map(function ($group) {
+            $item = $group->first();
+            return [
+                'id' => $item->id,
+                'nama_kegiatan' => $item->undangan->kegiatan->nama_kegiatan ?? '-',
+                'sub_kegiatan' => $item->undangan->judul ?? '-',
+                'tanggal' => $item->undangan->tanggal ?? '-',
+                'status_pelaksanaan' => $item->undangan->status_pelaksanaan ?? '-',
+                'notulensi' => $item->notulensi ?? '-',
+                'link_zoom' => $item->link_zoom ?? '-',
+                'link_materi' => $item->link_materi ?? '-',
+                'foto_dokumentasi' => $item->fotoDokumentasi->map(fn($f) => asset('storage/' . $f->foto)),
+            ];
+        })
+        ->values();
+
+    return response()->json(['dokumentasi' => $dokumentasi]);
+}
+
+
+
+
+
     public function store(Request $request)
     {
         $request->validate([
@@ -89,7 +125,8 @@ class DokumentasiApiController extends Controller
         'notulensi'   => 'nullable|string',
         'link_zoom'   => 'nullable|string',
         'link_materi' => 'nullable|string',
-        'foto_dokumentasi' => 'nullable', // single atau multiple
+        'foto_dokumentasi' => 'nullable',
+        'deleted_foto_ids' => 'nullable|string', // tambahkan ini
     ]);
 
     $dokumentasi = DokumentasiKegiatan::findOrFail($id);
@@ -114,7 +151,20 @@ class DokumentasiApiController extends Controller
         'link_materi' => $request->link_materi,
     ]);
 
-    // kalau ada file baru diupload
+    // 🔥 Hapus foto yang ditandai dihapus
+    if ($request->filled('deleted_foto_ids')) {
+        $ids = explode(',', $request->deleted_foto_ids);
+        $fotos = FotoDokumentasi::whereIn('id', $ids)->get();
+
+        foreach ($fotos as $foto) {
+            if (Storage::disk('public')->exists($foto->foto)) {
+                Storage::disk('public')->delete($foto->foto);
+            }
+            $foto->delete();
+        }
+    }
+
+    // ✅ Upload file baru jika ada
     if ($request->hasFile('foto_dokumentasi')) {
         $files = $request->file('foto_dokumentasi');
 
@@ -125,9 +175,8 @@ class DokumentasiApiController extends Controller
         foreach ($files as $file) {
             if ($file->isValid()) {
                 $path = $file->store('dokumentasi', 'public');
-
                 FotoDokumentasi::create([
-                    'dokumentasi_id' => $dokumentasi->id, // pakai dokumentasi_id
+                    'dokumentasi_id' => $dokumentasi->id,
                     'foto' => $path,
                 ]);
             }
@@ -140,6 +189,7 @@ class DokumentasiApiController extends Controller
         'data' => $dokumentasi->load('fotoDokumentasi')
     ]);
 }
+
 
 
     public function destroy($id)
