@@ -55,7 +55,7 @@ Route::middleware(['web', 'auth'])->group(function () {
         Route::post('/pegawai/konfirmasi/{id}/toggle', [PegawaiController::class, 'toggleKonfirmasi'])->name('pegawai.konfirmasi.toggle');
         Route::post('/presensi/store', [PegawaiController::class, 'storePresensi']);
         Route::post('/ttd/store', [PegawaiController::class, 'storeTtd'])->name('ttd.store');
-         Route::get('/kalender', [PegawaiController::class, 'kalender'])->name('pegawai.kalender');
+        Route::get('/kalender', [PegawaiController::class, 'kalender'])->name('pegawai.kalender');
         Route::delete('/foto_dokumentasi/{id}', [DokumentasiKegiatanController::class, 'deleteFoto'])->name('foto_dokumentasi.destroy');
         Route::get('/get-dokumentasi/{penerima_id}', [PegawaiController::class, 'getByPenerimaId']);
 });

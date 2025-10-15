@@ -100,22 +100,61 @@ class PegawaiApiController extends Controller
     }
 
     public function storeTtd(Request $request)
-    {
-        $request->validate([
+{
+    try {
+        $validated = $request->validate([
             'penerima_id' => 'required|exists:penerima_undangans,id',
-            'ttd' => 'required|string',
+            'ttd'         => 'required|string', // base64 image
+            'latitude'    => 'nullable|numeric',
+            'longitude'   => 'nullable|numeric',
         ]);
 
-        $penerima = PenerimaUndangan::findOrFail($request->penerima_id);
+        $penerima = PenerimaUndangan::with('undangan')->findOrFail($validated['penerima_id']);
 
+        // Pastikan folder penyimpanan ada
+        $folderPath = storage_path('app/public/ttd');
+        if (!file_exists($folderPath)) {
+            mkdir($folderPath, 0777, true);
+        }
+
+        // Proses decode base64
+        $image = $validated['ttd'];
+        $image = str_replace('data:image/png;base64,', '', $image);
+        $image = str_replace(' ', '+', $image);
+        $imageData = base64_decode($image);
+
+        // Simpan file ke folder
+        $fileName = 'ttd_' . $penerima->id . '_' . time() . '.png';
+        file_put_contents($folderPath . '/' . $fileName, $imageData);
+
+        // Simpan path file (bukan base64 string)
         $penerima->update([
-            'ttd' => $request->ttd,
+            'ttd' => 'storage/ttd/' . $fileName,
+            'latitude' => $validated['latitude'] ?? null,
+            'longitude' => $validated['longitude'] ?? null,
             'status_kehadiran' => 'hadir',
-            'waktu_presensi' => Carbon::now(),
+            'waktu_presensi' => now(),
         ]);
 
-        return response()->json(['message' => 'TTD dan presensi berhasil disimpan.']);
+        return response()->json([
+            'success' => true,
+            'message' => 'TTD berhasil disimpan',
+            'data' => [
+                'penerima_id' => $penerima->id,
+                'file_ttd' => asset('storage/ttd/' . $fileName),
+            ],
+        ], 200);
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Terjadi kesalahan saat menyimpan TTD dan presensi.',
+            'error' => $e->getMessage(),
+        ], 500);
     }
+}
+
+
 
     public function getByPenerimaId($penerima_id)
     {
