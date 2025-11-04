@@ -68,7 +68,7 @@ export default function Sidebar() {
             </li>
             <li>
               <Link
-                href="/kegiatan-saya-supervisor"
+                href={route('supervisor.show')}
                 className={`flex items-center gap-2 p-2 rounded ${
                   isActive('/kegiatan-saya-supervisor')
                     ? 'bg-blue-100 text-black font-semibold'

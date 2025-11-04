@@ -37,8 +37,6 @@ Route::middleware(['web', 'auth'])->group(function () {
         
     ->names('admin.pegawai')
     ->parameters(['pegawai' => 'user']);
-    
-      
     });
        
 

@@ -25,7 +25,12 @@
         "@fullcalendar/interaction": "^6.1.18",
         "@fullcalendar/react": "^6.1.18",
         "@heroicons/react": "^2.2.0",
+        "@radix-ui/react-label": "^2.1.7",
+        "@radix-ui/react-select": "^2.2.6",
+        "@radix-ui/react-slot": "^1.2.3",
         "@tippyjs/react": "^4.2.6",
+        "class-variance-authority": "^0.7.1",
+        "clsx": "^2.1.1",
         "dayjs": "^1.11.13",
         "lucide-react": "^0.507.0",
         "react-calendar": "^6.0.0",
@@ -33,6 +38,8 @@
         "react-select": "^5.10.1",
         "react-signature-canvas": "^1.1.0-alpha.2",
         "react-tooltip": "^5.29.1",
-        "sweetalert2": "^11.19.1"
+        "sweetalert2": "^11.19.1",
+        "tailwind-merge": "^3.3.1",
+        "tailwindcss-animate": "^1.0.7"
     }
 }

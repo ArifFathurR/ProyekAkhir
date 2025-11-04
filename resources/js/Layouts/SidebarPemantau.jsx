@@ -67,7 +67,7 @@ export default function Sidebar() {
             </li>
             <li>
               <Link
-                href="/data-pegawai"
+                href={route('pemantau.datapegawai')}
                 className={`flex items-center gap-2 p-2 rounded ${
                   isActive('/data-pegawai')
                     ? 'bg-blue-100 text-black font-semibold'

@@ -1,6 +1,9 @@
 import Header from '@/Components/Header';
 import Sidebar from '@/Layouts/Sidebar';
 import { useForm } from '@inertiajs/react';
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 
 export default function CreateTim() {
   const { data, setData, post, processing, errors } = useForm({
@@ -22,8 +25,8 @@ export default function CreateTim() {
             <h2 className="text-2xl font-semibold text-center mb-6">Formulir Tambah Tim</h2>
             <form onSubmit={handleSubmit} className="space-y-5">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Nama Tim</label>
-                <input
+                <Label className="block text-sm font-medium text-gray-700 mb-1">Nama Tim</Label>
+                <Input
                   type="text"
                   value={data.nama_tim}
                   onChange={(e) => setData('nama_tim', e.target.value)}
@@ -34,13 +37,13 @@ export default function CreateTim() {
                 )}
               </div>
 
-              <button
+              <Button
                 type="submit"
                 disabled={processing}
-                className="w-full bg-sky-500 text-white py-2 rounded hover:bg-sky-600 transition"
+                className="w-full bg-sky-600 hover:bg-sky-700 text-white font-semibold py-2 rounded-md transition-transform duration-200 hover:scale-[1.02]"
               >
-                {processing ? 'Menyimpan...' : 'SIMPAN TIM'}
-              </button>
+                {processing ? 'Menyimpan...' : 'UPDATE TIM'}
+              </Button>
             </form>
           </div>
         </main>

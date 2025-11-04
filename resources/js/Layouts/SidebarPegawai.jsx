@@ -23,7 +23,7 @@ export default function Sidebar() {
       active: isActive('/dokumentasi_kegiatan'),
     },
     {
-      href: '/kegiatan-saya',
+      href: route('pegawai.show'),
       icon: <Info className="w-5 h-5" />,
       label: 'Kegiatan Saya',
       active: isActive('/kegiatan-saya'),

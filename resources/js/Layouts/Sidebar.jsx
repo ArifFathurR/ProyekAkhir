@@ -13,7 +13,12 @@ export default function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
   const { url } = usePage();
 
-  const isActive = (path) => url.startsWith(path);
+  // ✅ Update hanya bagian ini:
+  const baseUrl = import.meta.env.VITE_APP_URL || '';
+  const isActive = (path) => {
+    const currentPath = url.replace(baseUrl, ''); // Hilangkan base url (misal /laravel)
+    return currentPath.startsWith(path);
+  };
 
   return (
     <>
@@ -51,7 +56,7 @@ export default function Sidebar() {
           <ul className="space-y-2">
             <li>
               <Link
-                href="/dashboard-admin"
+                href={route('admin.index')}
                 className={`flex items-center gap-2 p-2 rounded ${
                   isActive('/dashboard-admin')
                     ? 'bg-blue-100 font-semibold'
