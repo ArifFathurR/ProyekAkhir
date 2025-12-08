@@ -55,7 +55,8 @@ class PegawaiController extends Controller
     $kegiatan = PenerimaUndangan::with(['undangan.kegiatan'])
         ->where('user_id', $userId)
         ->whereHas('undangan', function ($query) {
-            $query->where('status', 'Diterima'); // 🔍 Cek status di tabel undangan_kegiatans
+            $query->where('status', 'Diterima')
+            ->where('status_pelaksanaan', 'Sedang Dilaksanakan'); // 🔍 Cek status di tabel undangan_kegiatans
         })
         ->get()
         ->map(function ($item) {
