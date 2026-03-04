@@ -34,13 +34,21 @@ class AuthenticatedSessionController extends Controller
         $request->session()->regenerate();
 
         $user = Auth::user();
-        if ($user->role == 'admin') {
+        
+        if (count($user->roles) > 1) {
+            return redirect()->route('role.select');
+        }
+
+        $activeRole = $user->roles[0];
+        session(['active_role' => $activeRole]);
+
+        if ($activeRole == 'admin') {
             return redirect()->route('admin.index');
-        } elseif ($user->role == 'pegawai') {
+        } elseif ($activeRole == 'pegawai') {
             return redirect()->route('dokumentasi_kegiatan.index');
-        } elseif ($user->role == 'supervisor') {
+        } elseif ($activeRole == 'supervisor') {
             return redirect()->route('supervisor.index');
-        }elseif ($user->role == 'pemantau') {
+        } elseif ($activeRole == 'pemantau') {
             return redirect()->route('pemantau.index');
         }
         

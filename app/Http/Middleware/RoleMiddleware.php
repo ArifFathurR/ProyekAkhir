@@ -10,8 +10,23 @@ class RoleMiddleware
 {
     public function handle(Request $request, Closure $next, string $role): Response
     {
-        if ($request->user()->role !== $role) {
-            abort(403, 'Unauthorized');
+        $user = $request->user();
+        
+        // Single role scenario fallback or active session check
+        $activeRole = session('active_role');
+        
+        if (!$activeRole) {
+             // If they only have one role, we can just use that
+             if (count($user->roles) === 1) {
+                 $activeRole = $user->roles[0];
+                 session(['active_role' => $activeRole]);
+             } else {
+                 return redirect()->route('role.select');
+             }
+        }
+
+        if ($activeRole !== $role) {
+            abort(403, "Akses ditolak. Anda sedang menggunakan peran: {$activeRole}, sedangkan halaman ini membutuhkan peran: {$role}.");
         }
 
         return $next($request);

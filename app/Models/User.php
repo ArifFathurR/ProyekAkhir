@@ -26,6 +26,16 @@ class User extends Authenticatable
     ];
 
     /**
+     * Get the user's roles as an array.
+     *
+     * @return array
+     */
+    public function getRolesAttribute()
+    {
+        return array_map('trim', explode(',', $this->role));
+    }
+
+    /**
      * The attributes that should be hidden for serialization.
      *
      * @var array<int, string>

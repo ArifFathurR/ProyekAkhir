@@ -17,14 +17,7 @@ use Inertia\Inertia;
 use App\Http\Controllers\PegawaiController;
 use App\Http\Middleware\RoleMiddleware;
 
-Route::get('/', function () {
-    return Inertia::render('Welcome', [
-        'canLogin' => Route::has('login'),
-        'canRegister' => Route::has('register'),
-        'laravelVersion' => Application::VERSION,
-        'phpVersion' => PHP_VERSION,
-    ]);
-});
+Route::redirect('/', '/login');
 
 Route::middleware(['web', 'auth'])->group(function () {
     // Untuk admin
@@ -71,6 +64,9 @@ Route::middleware([RoleMiddleware::class . ':supervisor'])->group(function () {
         Route::get('/anggota-tim', [SupervisorController::class, 'AnggotaTim'])->name('supervisor.anggota_tim');
         Route::get('/kalender-supervisor', [SupervisorController::class, 'kalender'])->name('supervisor.kalender');
     });
+
+    Route::get('select-role', [App\Http\Controllers\Auth\RoleSelectionController::class, 'create'])->name('role.select');
+    Route::post('select-role', [App\Http\Controllers\Auth\RoleSelectionController::class, 'store'])->name('role.select.store');
 });
 
 Route::middleware([RoleMiddleware::class . ':pemantau'])->group(function () {
