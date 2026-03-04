@@ -1,13 +1,23 @@
 import Header from '@/Components/Header';
 import Sidebar from '@/Layouts/Sidebar';
-import { router, usePage } from '@inertiajs/react';
+import { router, usePage, useForm } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 import FlashPopup from '@/Components/FlashPopup';
+import Modal from '@/Components/Modal';
+import EditTim from './EditTim';
+import TambahTim from './TambahTim';
+import Swal from 'sweetalert2';
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 
 export default function DataTim({ tims, filters }) {
   const [search, setSearch] = useState(filters.search || '');
   const { props } = usePage();
   const [flashMessage, setFlashMessage] = useState('');
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedTim, setSelectedTim] = useState(null);
 
   useEffect(() => {
     if (props.flash?.success) {
@@ -18,9 +28,28 @@ export default function DataTim({ tims, filters }) {
   }, [props.flash]);
 
   const handleDelete = (id) => {
-    if (confirm('Yakin ingin menghapus data ini?')) {
-      router.delete(route('tim.destroy', id));
-    }
+    Swal.fire({
+      title: 'Hapus Tim?',
+      text: "Data tim yang terhapus tidak dapat dikembalikan!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Ya, hapus!',
+      cancelButtonText: 'Batal'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        router.delete(route('tim.destroy', id), {
+          onSuccess: () => {
+            Swal.fire(
+              'Terhapus!',
+              'Data tim telah berhasil dihapus.',
+              'success'
+            )
+          }
+        });
+      }
+    });
   };
 
   const handleSearch = (e) => {
@@ -45,7 +74,7 @@ export default function DataTim({ tims, filters }) {
       <div className="flex-1 bg-[#F5F7FA] min-h-screen md:ml-64">
         <Header />
         <FlashPopup />
-        
+
         <main className="pt-28 px-4">
           <div className="w-full">
             {/* Page Header */}
@@ -55,7 +84,7 @@ export default function DataTim({ tims, filters }) {
             </div>
 
             {/* Stats Cards */}
-            
+
 
             {/* Main Content Card */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200">
@@ -66,12 +95,12 @@ export default function DataTim({ tims, filters }) {
                     <h2 className="text-lg font-semibold text-gray-900">Data Tim</h2>
                     <p className="text-sm text-gray-500 mt-1">Daftar seluruh tim perusahaan</p>
                   </div>
-                  
+
                   {/* Action Buttons */}
                   <div className="flex gap-3">
                     <button
                       type="button"
-                      onClick={() => router.get(route('tim.create'))}
+                      onClick={() => setIsAddModalOpen(true)}
                       className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium rounded-lg shadow-sm transition-all duration-200 transform hover:scale-105"
                     >
                       <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -143,7 +172,10 @@ export default function DataTim({ tims, filters }) {
                           <td className="px-6 py-4 whitespace-nowrap text-center">
                             <div className="flex items-center justify-center space-x-3">
                               <button
-                                onClick={() => router.get(route('tim.edit', tim.id))}
+                                onClick={() => {
+                                  setSelectedTim(tim);
+                                  setIsEditModalOpen(true);
+                                }}
                                 className="inline-flex items-center px-3 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 text-xs font-medium rounded-md transition-colors duration-200"
                               >
                                 <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -197,13 +229,12 @@ export default function DataTim({ tims, filters }) {
                         <a
                           key={index}
                           href={link.url}
-                          className={`px-3 py-2 text-sm font-medium rounded-md transition-colors duration-200 ${
-                            link.active
-                              ? 'bg-blue-600 text-white shadow-sm'
-                              : link.url
+                          className={`px-3 py-2 text-sm font-medium rounded-md transition-colors duration-200 ${link.active
+                            ? 'bg-blue-600 text-white shadow-sm'
+                            : link.url
                               ? 'text-gray-700 hover:bg-gray-100 border border-gray-300'
                               : 'text-gray-400 cursor-not-allowed'
-                          }`}
+                            }`}
                           dangerouslySetInnerHTML={{ __html: link.label }}
                         />
                       ))}
@@ -214,6 +245,21 @@ export default function DataTim({ tims, filters }) {
             </div>
           </div>
         </main>
+
+        <TambahTim
+          show={isAddModalOpen}
+          onClose={() => setIsAddModalOpen(false)}
+        />
+
+        {/* Modal Edit Tim */}
+        <EditTim
+          show={isEditModalOpen}
+          onClose={() => {
+            setIsEditModalOpen(false);
+            setTimeout(() => setSelectedTim(null), 300); // clear after animation
+          }}
+          tim={selectedTim}
+        />
       </div>
     </div>
   );

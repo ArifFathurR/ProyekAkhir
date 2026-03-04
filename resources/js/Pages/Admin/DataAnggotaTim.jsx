@@ -3,6 +3,7 @@ import Sidebar from '@/Layouts/Sidebar';
 import { router, usePage } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 import FlashPopup from '@/Components/FlashPopup';
+import Swal from 'sweetalert2';
 
 export default function DataAnggotaTim({ anggota_tims, filters = {}, tims = [] }) {
   const { props } = usePage();
@@ -19,9 +20,28 @@ export default function DataAnggotaTim({ anggota_tims, filters = {}, tims = [] }
   }, [props.flash]);
 
   const handleDelete = (id) => {
-    if (confirm('Yakin ingin menghapus data ini?')) {
-      router.delete(route('anggota_tim.destroy', id));
-    }
+    Swal.fire({
+      title: 'Hapus Anggota Tim?',
+      text: "Data anggota tim yang terhapus tidak dapat dikembalikan!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Ya, hapus!',
+      cancelButtonText: 'Batal'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        router.delete(route('anggota_tim.destroy', id), {
+          onSuccess: () => {
+            Swal.fire(
+              'Terhapus!',
+              'Data anggota tim telah berhasil dihapus.',
+              'success'
+            )
+          }
+        });
+      }
+    });
   };
 
   const handleFilter = () => {
@@ -43,7 +63,7 @@ export default function DataAnggotaTim({ anggota_tims, filters = {}, tims = [] }
       <div className="flex-1 bg-[#F5F7FA] min-h-screen md:ml-64">
         <Header />
         <FlashPopup />
-        
+
         <main className="pt-28 px-4">
           <div className="w-full">
             {/* Page Header */}
@@ -61,7 +81,7 @@ export default function DataAnggotaTim({ anggota_tims, filters = {}, tims = [] }
                     <h2 className="text-lg font-semibold text-gray-900">Data Anggota Tim</h2>
                     <p className="text-sm text-gray-500 mt-1">Daftar seluruh anggota tim perusahaan</p>
                   </div>
-                  
+
                   {/* Action Buttons */}
                   <div className="flex gap-3">
                     <button
@@ -155,13 +175,12 @@ export default function DataAnggotaTim({ anggota_tims, filters = {}, tims = [] }
                             <div className="text-sm font-medium text-gray-900">{anggota_tim.user?.name || '-'}</div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <span className={`inline-flex px-3 py-1 rounded-full text-xs font-semibold ${
-                              anggota_tim.role === 'leader' 
-                                ? 'bg-yellow-100 text-yellow-800' 
+                            <span className={`inline-flex px-3 py-1 rounded-full text-xs font-semibold ${anggota_tim.role === 'leader'
+                                ? 'bg-yellow-100 text-yellow-800'
                                 : anggota_tim.role === 'member'
-                                ? 'bg-blue-100 text-blue-800'
-                                : 'bg-gray-100 text-gray-800'
-                            }`}>
+                                  ? 'bg-blue-100 text-blue-800'
+                                  : 'bg-gray-100 text-gray-800'
+                              }`}>
                               {anggota_tim.role}
                             </span>
                           </td>
@@ -226,13 +245,12 @@ export default function DataAnggotaTim({ anggota_tims, filters = {}, tims = [] }
                           key={index}
                           onClick={() => router.get(link.url)}
                           disabled={!link.url}
-                          className={`px-3 py-2 text-sm font-medium rounded-md transition-colors duration-200 ${
-                            link.active
+                          className={`px-3 py-2 text-sm font-medium rounded-md transition-colors duration-200 ${link.active
                               ? 'bg-blue-600 text-white shadow-sm'
                               : link.url
-                              ? 'text-gray-700 hover:bg-gray-100 border border-gray-300'
-                              : 'text-gray-400 cursor-not-allowed'
-                          }`}
+                                ? 'text-gray-700 hover:bg-gray-100 border border-gray-300'
+                                : 'text-gray-400 cursor-not-allowed'
+                            }`}
                           dangerouslySetInnerHTML={{ __html: link.label }}
                         />
                       ))}

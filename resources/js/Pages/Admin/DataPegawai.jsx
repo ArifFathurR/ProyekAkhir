@@ -4,14 +4,34 @@ import { router } from '@inertiajs/react';
 import TabelPegawaiHeader from '@/Components/TabelPegawaiHeader';
 import FlashPopup from '@/Components/FlashPopup';
 import { useState } from 'react';
+import Swal from 'sweetalert2';
 
 export default function DataPegawai({ users, filters, totalSupervisor, totalPemantau }) {
   const [search, setSearch] = useState(filters.search || '');
 
   const handleDelete = (id) => {
-    if (confirm('Yakin ingin menghapus data ini?')) {
-      router.delete(route('admin.pegawai.destroy', id));
-    }
+    Swal.fire({
+      title: 'Hapus Pegawai?',
+      text: "Data pegawai yang terhapus tidak dapat dikembalikan!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Ya, hapus!',
+      cancelButtonText: 'Batal'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        router.delete(route('admin.pegawai.destroy', id), {
+          onSuccess: () => {
+            Swal.fire(
+              'Terhapus!',
+              'Data pegawai telah berhasil dihapus.',
+              'success'
+            )
+          }
+        });
+      }
+    });
   };
 
   const handleSearch = (e) => {
@@ -175,17 +195,16 @@ export default function DataPegawai({ users, filters, totalSupervisor, totalPema
                             <div className="text-sm text-gray-900">{user.no_hp || '-'}</div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <span className={`inline-flex px-3 py-1 rounded-full text-xs font-semibold ${
-                              user.role === 'admin'
+                            <span className={`inline-flex px-3 py-1 rounded-full text-xs font-semibold ${user.role === 'admin'
                                 ? 'bg-red-100 text-red-800'
                                 : user.role === 'manager'
-                                ? 'bg-blue-100 text-blue-800'
-                                : user.role === 'supervisor'
-                                ? 'bg-green-100 text-green-800'
-                                : user.role === 'pemantau'
-                                ? 'bg-purple-100 text-purple-800'
-                                : 'bg-gray-100 text-gray-800'
-                            }`}>
+                                  ? 'bg-blue-100 text-blue-800'
+                                  : user.role === 'supervisor'
+                                    ? 'bg-green-100 text-green-800'
+                                    : user.role === 'pemantau'
+                                      ? 'bg-purple-100 text-purple-800'
+                                      : 'bg-gray-100 text-gray-800'
+                              }`}>
                               {user.role}
                             </span>
                           </td>
@@ -246,13 +265,12 @@ export default function DataPegawai({ users, filters, totalSupervisor, totalPema
                         <a
                           key={index}
                           href={link.url}
-                          className={`px-3 py-2 text-sm font-medium rounded-md transition-colors duration-200 ${
-                            link.active
+                          className={`px-3 py-2 text-sm font-medium rounded-md transition-colors duration-200 ${link.active
                               ? 'bg-blue-600 text-white shadow-sm'
                               : link.url
-                              ? 'text-gray-700 hover:bg-gray-100 border border-gray-300'
-                              : 'text-gray-400 cursor-not-allowed'
-                          }`}
+                                ? 'text-gray-700 hover:bg-gray-100 border border-gray-300'
+                                : 'text-gray-400 cursor-not-allowed'
+                            }`}
                           dangerouslySetInnerHTML={{ __html: link.label }}
                         />
                       ))}

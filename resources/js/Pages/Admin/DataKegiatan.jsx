@@ -3,6 +3,8 @@ import Sidebar from '@/Layouts/Sidebar';
 import { router, usePage } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 import FlashPopup from '@/Components/FlashPopup';
+import Swal from 'sweetalert2';
+
 
 export default function DataKegiatan({ kegiatans, filters, tims }) {
   const { props } = usePage();
@@ -30,10 +32,29 @@ export default function DataKegiatan({ kegiatans, filters, tims }) {
   }, [props.flash]);
 
   const handleDelete = (id) => {
-    if (confirm('Yakin ingin menghapus data ini?')) {
-      router.delete(route('kegiatan.destroy', id));
-    }
-  };
+      Swal.fire({
+        title: 'Hapus Kegiatan?',
+        text: "Data kegiatan yang terhapus tidak dapat dikembalikan!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Ya, hapus!',
+        cancelButtonText: 'Batal'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          router.delete(route('kegiatan.destroy', id), {
+            onSuccess: () => {
+              Swal.fire(
+                'Terhapus!',
+                'Data kegiatan telah berhasil dihapus.',
+                'success'
+              )
+            }
+          });
+        }
+      });
+    };
 
   return (
     <div className="flex justify-start">
