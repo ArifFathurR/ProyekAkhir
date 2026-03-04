@@ -6,10 +6,24 @@ import FlashPopup from '@/Components/FlashPopup';
 import StatsCard from '@/Components/StatsCard';
 import TableCard from '@/Components/TableCard';
 import Pagination from '@/Components/Pagination';
+import PopupDokumentasi from '@/Components/PopupDokumentasi';
 
 export default function DataDokumentasi({ dokumentasis, filters = {}, totalUndangan, totalFoto }) {
   const [search, setSearch] = useState(filters.search || '');
   const [createdAt, setCreatedAt] = useState(filters.created_at || '');
+
+  const [showModal, setShowModal] = useState(false);
+  const [selectedDokumentasi, setSelectedDokumentasi] = useState(null);
+
+  const handleShowDetail = (item) => {
+    setSelectedDokumentasi({
+      ...item,
+      foto: item.foto_dokumentasi?.map((f) => ({
+        file_foto: f.foto,
+      })) || [],
+    });
+    setShowModal(true);
+  };
 
   const handleFilter = (e) => {
     e.preventDefault();
@@ -38,7 +52,7 @@ export default function DataDokumentasi({ dokumentasis, filters = {}, totalUndan
       iconBgColor: 'blue-400',
       icon: (
         <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-          <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd"/>
+          <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
         </svg>
       )
     },
@@ -50,7 +64,7 @@ export default function DataDokumentasi({ dokumentasis, filters = {}, totalUndan
       iconBgColor: 'green-400',
       icon: (
         <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-          <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd"/>
+          <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
         </svg>
       )
     },
@@ -62,7 +76,7 @@ export default function DataDokumentasi({ dokumentasis, filters = {}, totalUndan
       iconBgColor: 'yellow-400',
       icon: (
         <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-          <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd"/>
+          <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
         </svg>
       )
     }
@@ -138,7 +152,7 @@ export default function DataDokumentasi({ dokumentasis, filters = {}, totalUndan
       <div className="flex-1 bg-[#F5F7FA] min-h-screen md:ml-64">
         <Header />
         <FlashPopup />
-        
+
         <main className="pt-28 px-4">
           <div className="w-full">
             <div className="mb-6">
@@ -190,9 +204,9 @@ export default function DataDokumentasi({ dokumentasis, filters = {}, totalUndan
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           {item.link_zoom ? (
-                            <a 
-                              href={item.link_zoom} 
-                              target="_blank" 
+                            <a
+                              href={item.link_zoom}
+                              target="_blank"
                               rel="noopener noreferrer"
                               className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 hover:bg-blue-200 transition-colors duration-200"
                             >
@@ -207,9 +221,9 @@ export default function DataDokumentasi({ dokumentasis, filters = {}, totalUndan
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           {item.link_materi ? (
-                            <a 
-                              href={item.link_materi} 
-                              target="_blank" 
+                            <a
+                              href={item.link_materi}
+                              target="_blank"
                               rel="noopener noreferrer"
                               className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800 hover:bg-purple-200 transition-colors duration-200"
                             >
@@ -246,6 +260,16 @@ export default function DataDokumentasi({ dokumentasis, filters = {}, totalUndan
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-center">
                           <div className="flex items-center justify-center space-x-3">
+                            <button
+                              onClick={() => handleShowDetail(item)}
+                              className="inline-flex items-center px-3 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 text-xs font-medium rounded-md transition-colors duration-200"
+                            >
+                              <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                              </svg>
+                              Detail
+                            </button>
                             <button
                               onClick={() => router.get(route('dokumentasi_kegiatan.edit', item.id))}
                               className="inline-flex items-center px-3 py-1.5 bg-yellow-100 hover:bg-yellow-200 text-yellow-700 text-xs font-medium rounded-md transition-colors duration-200"
@@ -293,6 +317,12 @@ export default function DataDokumentasi({ dokumentasis, filters = {}, totalUndan
           </div>
         </main>
       </div>
+
+      <PopupDokumentasi
+        show={showModal}
+        onClose={() => setShowModal(false)}
+        dokumentasi={selectedDokumentasi}
+      />
     </div>
   );
 }

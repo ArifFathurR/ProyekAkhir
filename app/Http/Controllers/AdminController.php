@@ -66,6 +66,10 @@ class AdminController extends Controller
     public function update(UpdateUserRequest $request, User $user)
     {
         $validated = $request->validated();
+        if (isset($validated['role']) && is_array($validated['role'])) {
+            $validated['role'] = implode(',', $validated['role']);
+        }
+        
         $user->update($validated);
 
         return redirect()->route('admin.index')->with('success', 'Data berhasil diperbarui.');

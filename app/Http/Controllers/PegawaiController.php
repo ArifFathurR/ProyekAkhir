@@ -56,7 +56,7 @@ class PegawaiController extends Controller
         ->where('user_id', $userId)
         ->whereHas('undangan', function ($query) {
             $query->where('status', 'Diterima')
-            ->where('status_pelaksanaan', 'Sedang Dilaksanakan'); // 🔍 Cek status di tabel undangan_kegiatans
+            ->where('status_pelaksanaan', 'Belum Dilaksanakan'); // 🔍 Cek status di tabel undangan_kegiatans
         })
         ->get()
         ->map(function ($item) {
@@ -65,6 +65,10 @@ class PegawaiController extends Controller
                 'nama_kegiatan' => $item->undangan->kegiatan->nama_kegiatan ?? '-',
                 'sub_kegiatan' => $item->undangan->judul ?? '-',
                 'tanggal' => $item->undangan->tanggal ?? '-',
+                'tanggal_lengkap' => $item->undangan->tanggal ? \Carbon\Carbon::parse($item->undangan->tanggal)->translatedFormat('l, d F Y') : '-',
+                'waktu' => $item->undangan->waktu ?? '-',
+                'tempat' => $item->undangan->tempat ?? '-',
+                'agenda' => $item->undangan->agenda ?? '-',
                 'file_undangan' => route('undangan_kegiatan.preview', $item->undangan_id),
                 'status_penerima' => $item->status_penerima,
             ];
@@ -137,8 +141,14 @@ public function Sedang(Pegawai $pegawai)
                 'nama_kegiatan' => $item->undangan->kegiatan->nama_kegiatan ?? '-',
                 'sub_kegiatan' => $item->undangan->judul ?? '-',
                 'tanggal' => $item->undangan->tanggal ?? '-',
+                'tanggal_lengkap' => $item->undangan->tanggal ? \Carbon\Carbon::parse($item->undangan->tanggal)->translatedFormat('l, d F Y') : '-',
+                'waktu' => $item->undangan->waktu ?? '-',
+                'tempat' => $item->undangan->tempat ?? '-',
+                'agenda' => $item->undangan->agenda ?? '-',
                 'file_undangan' => route('undangan_kegiatan.preview', $item->undangan_id),
                 'status_penerima' => $item->status_penerima,
+                'tim_id' => $item->tim_id ?? null,
+                'undangan_id' => $item->undangan_id
             ];
         });
 

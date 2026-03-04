@@ -75,7 +75,7 @@
 
         <p class="ml">
             Hari/Tanggal : {{ \Carbon\Carbon::parse($undangan->tanggal)->translatedFormat('l, d F Y') }}<br>
-            Pukul&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: {{ $undangan->waktu_mulai }} - {{ $undangan->waktu_selesai }} WIB<br>
+            Pukul&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: {{ $undangan->waktu }} WIB<br>
             Tempat&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: {{ $undangan->tempat }}<br>
             Agenda&nbsp;&nbsp;&nbsp;: {{ $undangan->agenda }}
         </p>

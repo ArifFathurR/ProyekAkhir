@@ -61,7 +61,7 @@ Route::middleware([RoleMiddleware::class . ':supervisor'])->group(function () {
         Route::get('/kegiatan-Selesai-supervisor', [SupervisorController::class, 'selesai'])->name('supervisor.selesai');
         Route::resource('dokumentasisupervisor', DokumentasiKegiatanSupervisorController::class);
         Route::resource('penerima', PenerimaUndanganController::class);
-        Route::get('/anggota-tim', [SupervisorController::class, 'AnggotaTim'])->name('supervisor.anggota_tim');
+        Route::get('/anggota-tim-supervisor', [SupervisorController::class, 'AnggotaTim'])->name('supervisor.anggota_tim');
         Route::get('/kalender-supervisor', [SupervisorController::class, 'kalender'])->name('supervisor.kalender');
     });
 

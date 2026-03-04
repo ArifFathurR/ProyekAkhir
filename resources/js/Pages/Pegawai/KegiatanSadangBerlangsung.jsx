@@ -5,12 +5,20 @@ import { FaFilePdf } from 'react-icons/fa';
 import MenuKegiatan from '@/Components/MenuKegiatan';
 import FlashPopup from '@/Components/FlashPopup';
 import InputTtd from '@/Components/InputTtd';
+import ModalDetailUndangan from '@/Components/ModalDetailUndangan';
 import StatsCard from '@/Components/StatsCard';
 import TableCard from '@/Components/TableCard';
 
 export default function KegiatanSedangBerlangsung({ kegiatan = [], auth }) {
   const [showPopup, setShowPopup] = useState(false);
   const [dataPresensi, setDataPresensi] = useState({});
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedData, setSelectedData] = useState(null);
+
+  const handleOpenModal = (data) => {
+    setSelectedData(data);
+    setIsModalOpen(true);
+  };
 
   // Stats data
   const statsData = [
@@ -22,7 +30,7 @@ export default function KegiatanSedangBerlangsung({ kegiatan = [], auth }) {
       iconBgColor: 'blue-400',
       icon: (
         <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-          <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd"/>
+          <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
         </svg>
       )
     },
@@ -34,7 +42,7 @@ export default function KegiatanSedangBerlangsung({ kegiatan = [], auth }) {
       iconBgColor: 'orange-400',
       icon: (
         <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd"/>
+          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
         </svg>
       )
     },
@@ -46,7 +54,7 @@ export default function KegiatanSedangBerlangsung({ kegiatan = [], auth }) {
       iconBgColor: 'green-400',
       icon: (
         <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-          <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
       )
     }
@@ -58,7 +66,7 @@ export default function KegiatanSedangBerlangsung({ kegiatan = [], auth }) {
       <div className="flex-1 bg-[#F5F7FA] min-h-screen md:ml-64">
         <Header />
         <FlashPopup />
-        
+
         <main className="pt-28 px-4">
           <div className="w-full">
             {/* Page Header */}
@@ -88,6 +96,7 @@ export default function KegiatanSedangBerlangsung({ kegiatan = [], auth }) {
                     <th className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider">Sub-Kegiatan</th>
                     <th className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider">Tanggal</th>
                     <th className="px-6 py-4 text-center text-xs font-medium uppercase tracking-wider">Undangan</th>
+                    <th className="px-6 py-4 text-center text-xs font-medium uppercase tracking-wider">Aksi</th>
                     <th className="px-6 py-4 text-center text-xs font-medium uppercase tracking-wider">Presensi</th>
                   </tr>
                 </thead>
@@ -120,6 +129,14 @@ export default function KegiatanSedangBerlangsung({ kegiatan = [], auth }) {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-center">
                           <button
+                            onClick={() => handleOpenModal(item)}
+                            className="inline-flex items-center px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-xs font-medium rounded-md transition-colors duration-200"
+                          >
+                            Tampil Data
+                          </button>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-center">
+                          <button
                             onClick={() => {
                               setDataPresensi({
                                 penerimaId: item.id,
@@ -141,7 +158,7 @@ export default function KegiatanSedangBerlangsung({ kegiatan = [], auth }) {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan="6" className="px-6 py-12 text-center">
+                      <td colSpan="7" className="px-6 py-12 text-center">
                         <div className="flex flex-col items-center">
                           <svg className="w-12 h-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -183,6 +200,12 @@ export default function KegiatanSedangBerlangsung({ kegiatan = [], auth }) {
           </div>
         </div>
       )}
+
+      <ModalDetailUndangan
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        data={selectedData}
+      />
     </div>
   );
 }
