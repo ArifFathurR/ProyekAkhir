@@ -105,7 +105,7 @@ export default function Sidebar() {
                 Lihat Presensi
               </Link>
             </li>
-            <li>
+            {/* <li>
               <Link
                 href={route('undangan_kegiatan.index')}
                 className={`flex items-center gap-2 p-2 rounded ${
@@ -117,7 +117,7 @@ export default function Sidebar() {
                 <FileText size={18} />
                 Status Pelaksanaan
               </Link>
-            </li>
+            </li> */}
             <li>
               <Link
                 href={route('supervisor.anggota_tim')}

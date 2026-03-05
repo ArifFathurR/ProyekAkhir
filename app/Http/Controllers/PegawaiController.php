@@ -188,7 +188,7 @@ public function kalender(Pegawai $pegawai)
 {
     $userId = auth()->id();
 
-    $kegiatan = PenerimaUndangan::with('undangan')
+    $kegiatan = PenerimaUndangan::with(['undangan.kegiatan'])
         ->where('user_id', $userId)
         ->whereHas('undangan', fn($q) => $q->where('status', 'Diterima'))
         ->get()
@@ -197,6 +197,13 @@ public function kalender(Pegawai $pegawai)
                 'title' => $item->undangan->judul,
                 'date' => $item->undangan->tanggal,
                 'waktu' => $item->undangan->waktu, // ⏰ Tambahkan waktu di sini
+                // Data untuk ModalDetailUndangan
+                'nama_kegiatan' => $item->undangan->kegiatan->nama_kegiatan ?? '-',
+                'sub_kegiatan' => $item->undangan->judul ?? '-',
+                'tanggal_lengkap' => $item->undangan->tanggal ? \Carbon\Carbon::parse($item->undangan->tanggal)->translatedFormat('l, d F Y') : '-',
+                'tempat' => $item->undangan->tempat ?? '-',
+                'agenda' => $item->undangan->agenda ?? '-',
+                'file_undangan' => route('undangan_kegiatan.preview', $item->undangan_id),
             ];
         });
 

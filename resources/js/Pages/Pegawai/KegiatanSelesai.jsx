@@ -57,7 +57,7 @@ export default function KegiatanSelesai({ kegiatan = [], auth }) {
       title: 'Tanpa Dokumentasi',
       value: kegiatanTanpaDokumentasi,
       gradientFrom: 'yellow-500',
-      gradientTo: 'orange-600',
+      gradientTo: 'yellow-600',
       iconBgColor: 'yellow-400',
       icon: (
         <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
