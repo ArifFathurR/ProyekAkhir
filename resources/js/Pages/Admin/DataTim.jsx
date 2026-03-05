@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import FlashPopup from '@/Components/FlashPopup';
 import Modal from '@/Components/Modal';
 import EditTim from './EditTim';
-import TambahTim from './TambahTim';
+import CreateTim from './CreateTim';
 import Swal from 'sweetalert2';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -246,7 +246,7 @@ export default function DataTim({ tims, filters }) {
           </div>
         </main>
 
-        <TambahTim
+        <CreateTim
           show={isAddModalOpen}
           onClose={() => setIsAddModalOpen(false)}
         />

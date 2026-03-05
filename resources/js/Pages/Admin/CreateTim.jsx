@@ -4,7 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import Modal from '@/Components/Modal';
 
-export default function TambahTim({ show, onClose }) {
+export default function CreateTim({ show, onClose }) {
   const { data, setData, post, processing, errors, reset } = useForm({
     nama_tim: '',
   });
