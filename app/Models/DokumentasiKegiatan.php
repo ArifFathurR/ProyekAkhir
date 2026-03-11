@@ -14,6 +14,7 @@ class DokumentasiKegiatan extends Model
     protected $fillable = [
         'kegiatan_id',
         'undangan_id',
+        'penerima_id',
         'notulensi',
         'link_zoom',
         'link_materi',
@@ -35,5 +36,10 @@ class DokumentasiKegiatan extends Model
     public function fotoDokumentasi()
     {
         return $this->hasMany(FotoDokumentasi::class, 'dokumentasi_id');
+    }
+
+    public function penerima()
+    {
+        return $this->belongsTo(PenerimaUndangan::class, 'penerima_id');
     }
 }

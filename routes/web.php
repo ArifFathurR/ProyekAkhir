@@ -49,6 +49,7 @@ Route::middleware(['web', 'auth'])->group(function () {
         Route::get('/kalender', [PegawaiController::class, 'kalender'])->name('pegawai.kalender');
         Route::delete('/foto_dokumentasi/{id}', [DokumentasiKegiatanController::class, 'deleteFoto'])->name('foto_dokumentasi.destroy');
         Route::get('/get-dokumentasi/{penerima_id}', [PegawaiController::class, 'getByPenerimaId']);
+        Route::get('/get-all-dokumentasi/{undangan_id}', [PegawaiController::class, 'getAllDokumentasiByUndanganId']);
 });
 
 Route::middleware([RoleMiddleware::class . ':supervisor'])->group(function () {

@@ -176,6 +176,7 @@ public function Selesai(Pegawai $pegawai)
                 'tanggal' => $item->undangan->tanggal ?? '-',
                 'file_undangan' => route('undangan_kegiatan.preview', $item->undangan_id),
                 'status_penerima' => $item->status_penerima,
+                'undangan_id' => $item->undangan_id,
             ];
         });
 
@@ -248,46 +249,73 @@ public function storeTtd(Request $request)
 
 
 
-public function getByPenerimaId($penerima_id)
-{
-    // 1. Cari data penerima undangan
-    $penerima = PenerimaUndangan::find($penerima_id);
+    public function getByPenerimaId($penerima_id)
+    {
+        // 1. Cari data penerima undangan
+        $penerima = PenerimaUndangan::find($penerima_id);
 
-    if (!$penerima) {
-        return response()->json(['message' => 'Penerima tidak ditemukan'], 404);
-    }
+        if (!$penerima) {
+            return response()->json(['message' => 'Penerima tidak ditemukan'], 404);
+        }
 
-    // 2. Ambil undangan_id dari penerima
-    $undanganId = $penerima->undangan_id;
+        // 2. Ambil undangan_id dari penerima
+        $undanganId = $penerima->undangan_id;
 
-    // 3. Cari dokumentasi berdasarkan undangan_id
-    $dokumentasi = DokumentasiKegiatan::with('fotoDokumentasi')
-        ->where('undangan_id', $undanganId)
-        ->first();
+        // 3. Cari dokumentasi berdasarkan undangan_id
+        $dokumentasi = DokumentasiKegiatan::with('fotoDokumentasi')
+            ->where('undangan_id', $undanganId)
+            ->first();
 
-    // 4. Jika dokumentasi tidak ditemukan, beri respons kosong
-    if (!$dokumentasi) {
+        // 4. Jika dokumentasi tidak ditemukan, beri respons kosong
+        if (!$dokumentasi) {
+            return response()->json([
+                'notulensi' => '-',
+                'link_zoom' => '-',
+                'link_materi' => '-',
+                'foto' => [],
+            ]);
+        }
+
+        // 5. Kembalikan semua data dokumentasi & foto terkait
         return response()->json([
-            'notulensi' => '-',
-            'link_zoom' => '-',
-            'link_materi' => '-',
-            'foto' => [],
+            'notulensi' => $dokumentasi->notulensi,
+            'link_zoom' => $dokumentasi->link_zoom,
+            'link_materi' => $dokumentasi->link_materi,
+            'foto' => $dokumentasi->fotoDokumentasi->map(function ($foto) {
+                return [
+                    'file_foto' => $foto->foto, // ← kolom foto dari tabel foto_dokumentasis
+                    'id' => $foto->id,
+                    'created_at' => $foto->created_at,
+                ];
+            }),
         ]);
     }
 
-    // 5. Kembalikan semua data dokumentasi & foto terkait
-    return response()->json([
-        'notulensi' => $dokumentasi->notulensi,
-        'link_zoom' => $dokumentasi->link_zoom,
-        'link_materi' => $dokumentasi->link_materi,
-        'foto' => $dokumentasi->fotoDokumentasi->map(function ($foto) {
-            return [
-                'file_foto' => $foto->foto, // ← kolom foto dari tabel foto_dokumentasis
-                'id' => $foto->id,
-                'created_at' => $foto->created_at,
-            ];
-        }),
-    ]);
-}
+    public function getAllDokumentasiByUndanganId($undangan_id)
+    {
+        $dokumentasi = DokumentasiKegiatan::with(['fotoDokumentasi', 'penerima.user'])
+            ->where('undangan_id', $undangan_id)
+            ->get();
 
+        if ($dokumentasi->isEmpty()) {
+            return response()->json([]);
+        }
+
+        return response()->json($dokumentasi->map(function ($doc) {
+            return [
+                'id' => $doc->id,
+                'nama' => $doc->penerima->user->name ?? '-',
+                'link_zoom' => $doc->link_zoom,
+                'link_materi' => $doc->link_materi,
+                'notulensi' => $doc->notulensi,
+                'foto' => $doc->fotoDokumentasi->map(function ($foto) {
+                    return [
+                        'file_foto' => $foto->foto,
+                        'id' => $foto->id,
+                        'created_at' => $foto->created_at,
+                    ];
+                }),
+            ];
+        }));
+    }
 }

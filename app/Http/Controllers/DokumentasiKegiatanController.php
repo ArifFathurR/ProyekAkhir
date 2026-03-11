@@ -26,10 +26,13 @@ class DokumentasiKegiatanController extends Controller
 
     // Ambil semua undangan yang diterima user
     $undanganIds = PenerimaUndangan::where('user_id', $userId)->pluck('undangan_id');
+    
+    // Ambil data penerima user ini
+    $penerimaIds = PenerimaUndangan::where('user_id', $userId)->pluck('id');
 
-    // Ambil dokumentasi yang hanya terkait dengan undangan user
+    // Ambil dokumentasi yang hanya dibuat oleh user
     $dokumentasis = DokumentasiKegiatan::with(['kegiatan:id,nama_kegiatan', 'undangan:id,judul', 'fotoDokumentasi'])
-        ->whereIn('undangan_id', $undanganIds)
+        ->whereIn('penerima_id', $penerimaIds)
         ->when($search, fn ($query) =>
             $query->whereHas('kegiatan', fn ($q) =>
                 $q->where('nama_kegiatan', 'like', '%' . $search . '%')
@@ -45,8 +48,8 @@ class DokumentasiKegiatanController extends Controller
     // Hitung total undangan yang dimiliki user
     $totalUndangan = UndanganKegiatan::whereIn('id', $undanganIds)->count();
 
-    // Ambil semua dokumentasi dari undangan user
-    $dokumentasiIds = DokumentasiKegiatan::whereIn('undangan_id', $undanganIds)->pluck('id');
+    // Ambil semua dokumentasi milik user
+    $dokumentasiIds = DokumentasiKegiatan::whereIn('penerima_id', $penerimaIds)->pluck('id');
 
     // Hitung total foto dokumentasi milik user
     $totalFoto = FotoDokumentasi::whereIn('dokumentasi_id', $dokumentasiIds)->count();
@@ -87,19 +90,19 @@ class DokumentasiKegiatanController extends Controller
     $data = $request->validated();
     $userId = Auth::id();
 
-    // Ambil undangan yang diterima oleh user (agar tidak bisa buat dokumentasi untuk undangan orang lain)
-    $undanganIds = PenerimaUndangan::where('user_id', $userId)->pluck('undangan_id');
+    // Pastikan user ini adalah penerima undangan tersebut
+    $penerima = PenerimaUndangan::where('user_id', $userId)
+        ->where('undangan_id', $data['undangan_id'])
+        ->first();
 
     // Validasi apakah undangan tersebut termasuk undangan yang diterima user
-    if (! $undanganIds->contains($data['undangan_id'])) {
+    if (!$penerima) {
         return back()->with('error', 'Anda tidak berhak membuat dokumentasi untuk undangan ini.');
     }
 
     // ✅ Cek apakah user sudah pernah membuat dokumentasi untuk undangan ini
     $sudahAda = DokumentasiKegiatan::where('undangan_id', $data['undangan_id'])
-        ->whereHas('undangan.penerimaUndangan', function ($q) use ($userId) {
-            $q->where('user_id', $userId);
-        })
+        ->where('penerima_id', $penerima->id)
         ->exists();
 
     if ($sudahAda) {
@@ -110,6 +113,7 @@ class DokumentasiKegiatanController extends Controller
     $dokumentasi = DokumentasiKegiatan::create([
         'kegiatan_id' => $data['kegiatan_id'],
         'undangan_id' => $data['undangan_id'],
+        'penerima_id' => $penerima->id, // Menyimpan ID user yang terlibat dari penerima undangan
         'notulensi'   => $data['notulensi'],
         'link_zoom'   => $data['link_zoom'],
         'link_materi' => $data['link_materi'],
