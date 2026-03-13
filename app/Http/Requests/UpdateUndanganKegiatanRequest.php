@@ -30,6 +30,7 @@ class UpdateUndanganKegiatanRequest extends FormRequest
             'hari' => 'required|string|max:20',
             'tanggal' => 'required|date',
             'waktu' => 'required|date_format:H:i',
+            'waktu_selesai' => 'nullable|date_format:H:i',
             'tempat' => 'required|string|max:255',
             'agenda' => 'required|string|max:255',
             'status' => 'nullable|string|max:50',

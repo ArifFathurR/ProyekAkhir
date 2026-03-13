@@ -7,6 +7,7 @@ import StatsCard from '@/Components/StatsCard';
 import TableCard from '@/Components/TableCard';
 import Pagination from '@/Components/Pagination';
 import PopupDokumentasi from '@/Components/PopupDokumentasi';
+import Swal from 'sweetalert2';
 
 export default function DataDokumentasi({ dokumentasis, filters = {}, totalUndangan, totalFoto }) {
   const [search, setSearch] = useState(filters.search || '');
@@ -14,6 +15,31 @@ export default function DataDokumentasi({ dokumentasis, filters = {}, totalUndan
 
   const [showModal, setShowModal] = useState(false);
   const [selectedDokumentasi, setSelectedDokumentasi] = useState(null);
+
+  const handleDelete = (id) => {
+    Swal.fire({
+      title: 'Hapus Dokumentasi?',
+      text: "Data dokumentasi yang terhapus tidak dapat dikembalikan!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Ya, hapus!',
+      cancelButtonText: 'Batal'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        router.delete(route('dokumentasi_kegiatan.destroy', id), {
+          onSuccess: () => {
+            Swal.fire(
+              'Terhapus!',
+              'Data dokumentasi telah berhasil dihapus.',
+              'success'
+            )
+          }
+        });
+      }
+    });
+  };
 
   const handleShowDetail = (item) => {
     setSelectedDokumentasi({
@@ -280,11 +306,7 @@ export default function DataDokumentasi({ dokumentasis, filters = {}, totalUndan
                               Edit
                             </button>
                             <button
-                              onClick={() => {
-                                if (confirm('Apakah Anda yakin ingin menghapus dokumentasi ini?')) {
-                                  router.delete(route('dokumentasi_kegiatan.destroy', item.id));
-                                }
-                              }}
+                              onClick={() => handleDelete(item.id)}
                               className="inline-flex items-center px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 text-xs font-medium rounded-md transition-colors duration-200"
                             >
                               <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">

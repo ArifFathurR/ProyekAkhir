@@ -32,12 +32,12 @@ export default function PopupDokumentasi({ show, onClose, dokumentasi }) {
 
         <div className="mb-2">
           <strong className='text-blue-500'>Notulensi:</strong>
-          <p className="text-sm">{dokumentasi.notulensi || '-'}</p>
+          <div className="text-sm prose" dangerouslySetInnerHTML={{ __html: dokumentasi.notulensi || '-' }}></div>
         </div>
 
         <div className="mb-2">
           <strong className='text-blue-500'>Link Zoom:</strong>
-          <br/>
+          <br />
           {dokumentasi.link_zoom ? (
             <a href={dokumentasi.link_zoom} target="_blank" rel="noopener noreferrer" className="text-black-600 underline ml-1">
               {dokumentasi.link_zoom}

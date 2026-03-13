@@ -48,10 +48,12 @@ Route::middleware(['web', 'auth'])->group(function () {
         Route::post('/ttd/store', [PegawaiController::class, 'storeTtd'])->name('ttd.store');
         Route::get('/kalender', [PegawaiController::class, 'kalender'])->name('pegawai.kalender');
         Route::delete('/foto_dokumentasi/{id}', [DokumentasiKegiatanController::class, 'deleteFoto'])->name('foto_dokumentasi.destroy');
-        Route::get('/get-dokumentasi/{penerima_id}', [PegawaiController::class, 'getByPenerimaId']);
-        Route::get('/get-all-dokumentasi/{undangan_id}', [PegawaiController::class, 'getAllDokumentasiByUndanganId']);
 });
 
+Route::middleware(['auth'])->group(function () {
+    Route::get('/get-dokumentasi/{penerima_id}', [PegawaiController::class, 'getByPenerimaId']);
+    Route::get('/get-all-dokumentasi/{undangan_id}', [PegawaiController::class, 'getAllDokumentasiByUndanganId']);
+});
 Route::middleware([RoleMiddleware::class . ':supervisor'])->group(function () {
         Route::resource('supervisor', SupervisorController::class);
         Route::get('/supervisor/undangan/{id}/preview', [SupervisorController::class, 'preview'])->name('supervisor.undangan.preview');

@@ -31,12 +31,21 @@ class PemantauController extends Controller
     $sedang = $undangan->where('status_pelaksanaan', 'Sedang Dilaksanakan')->count();
     $selesai = $undangan->where('status_pelaksanaan', 'Selesai')->count();
 
-    // Data untuk kalender
+    // Data untuk kalender + detail modal
     $kegiatan = $undangan->map(function ($item) {
         return [
+            'id' => $item->id,
             'title' => $item->judul,
             'date' => $item->tanggal,
             'status' => $item->status_pelaksanaan,
+            'nama_kegiatan' => $item->kegiatan->nama_kegiatan ?? '-',
+            'sub_kegiatan' => $item->judul,
+            'tanggal' => $item->tanggal,
+            'tanggal_lengkap' => \Carbon\Carbon::parse($item->tanggal)->locale('id')->isoFormat('dddd, D MMMM Y'),
+            'waktu' => $item->waktu,
+            'tempat' => $item->tempat ?? '-',
+            'agenda' => $item->agenda ?? '-',
+            'file_undangan' => route('undangan_kegiatan.preview', $item->id),
         ];
     });
 
@@ -191,32 +200,46 @@ class PemantauController extends Controller
 
     public function DataDokumentasi(Request $request){
         $search = $request->search;
-    $createdAt = $request->created_at;
+        $createdAt = $request->created_at;
 
-    $dokumentasis = DokumentasiKegiatan::with([
-            'kegiatan:id,nama_kegiatan',
-            'undangan:id,judul',
-            'fotoDokumentasi',
-        ])
-        ->when($search, function ($query) use ($search) {
-            $query->whereHas('kegiatan', function ($q) use ($search) {
-                $q->where('nama_kegiatan', 'like', '%' . $search . '%');
+        // Fetch UndanganKegiatan that have documentation
+        $kegiatan = UndanganKegiatan::with(['kegiatan', 'dokumentasi'])
+            ->whereHas('dokumentasi')
+            ->when($search, function ($query) use ($search) {
+                $query->whereHas('kegiatan', function ($q) use ($search) {
+                    $q->where('nama_kegiatan', 'like', '%' . $search . '%');
+                });
+            })
+            ->when($createdAt, function ($query) use ($createdAt) {
+                $query->whereDate('tanggal', $createdAt);
+            })
+            ->latest()
+            ->paginate(10)
+            ->withQueryString()
+            ->through(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'undangan_id' => $item->id,
+                    'nama_kegiatan' => $item->kegiatan->nama_kegiatan ?? '-',
+                    'sub_kegiatan' => $item->judul ?? '-',
+                    'tanggal' => $item->tanggal ?? '-',
+                    'file_undangan' => route('undangan_kegiatan.preview', $item->id),
+
+                    'penerima_id' => $item->dokumentasi->first()->penerima_id ?? null,
+                ];
             });
-        })
-        ->when($createdAt, function ($query) use ($createdAt) {
-            $query->whereDate('created_at', $createdAt);
-        })
-        ->latest()
-        ->paginate(5)
-        ->withQueryString();
 
-    return Inertia::render('Pemantau/DataDokumentasi', [
-        'dokumentasis' => $dokumentasis,
-        'filters' => [
-            'search' => $search,
-            'created_at' => $createdAt,
-        ],
-    ]);
+        // Count total photos
+        $totalFoto = \App\Models\FotoDokumentasi::count();
+
+        return Inertia::render('Pemantau/DataDokumentasi', [
+            'kegiatan_data' => $kegiatan,
+            'total_foto' => $totalFoto,
+            'filters' => [
+                'search' => $search,
+                'created_at' => $createdAt,
+            ],
+        ]);
     }
     
 }

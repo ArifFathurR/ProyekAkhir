@@ -1,44 +1,53 @@
+import { useState } from 'react';
 import Header from '@/Components/Header';
 import SidebarSupervisor from '@/Layouts/SidebarSupervisor';
 import { FaFilePdf } from 'react-icons/fa';
-import MenuKegiatanSupervisor from '@/Components/MenuKegiatanSupervisor';
-import { router } from '@inertiajs/react';
-import { useState } from 'react';
-import ToggleStatus from '@/Components/ToggleStatus';
+import MenuKegiatan from '@/Components/MenuKegiatanSupervisor';
 import FlashPopup from '@/Components/FlashPopup';
-import ModalDetailUndangan from '@/Components/ModalDetailUndangan';
+import axios from 'axios';
+import PopupDokumentasi from '@/Components/PopupDokumentasi';
+import PopupSemuaDokumentasi from '@/Components/PopupSemuaDokumentasi';
 import StatsCard from '@/Components/StatsCard';
 import TableCard from '@/Components/TableCard';
 
-export default function KegiatanSaya({ kegiatan = [] }) {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedData, setSelectedData] = useState(null);
+export default function KegiatanSelesai({ kegiatan = [], auth }) {
+  const [showPopup, setShowPopup] = useState(false);
+  const [dokumentasi, setDokumentasi] = useState(null);
+  const [showSemuaPopup, setShowSemuaPopup] = useState(false);
+  const [semuaDokumentasi, setSemuaDokumentasi] = useState([]);
 
-  const handleOpenModal = (data) => {
-    setSelectedData(data);
-    setIsModalOpen(true);
+  const handleLihatDokumentasi = async (penerimaId) => {
+    try {
+      const response = await axios.get(`/get-dokumentasi/${penerimaId}`);
+      setDokumentasi(response.data);
+      setShowPopup(true);
+    } catch (error) {
+      console.error('Gagal mengambil dokumentasi:', error);
+    }
   };
+
+  const handleLihatSemuaDokumentasi = async (undanganId) => {
+    try {
+      const response = await axios.get(`/get-all-dokumentasi/${undanganId}`);
+      setSemuaDokumentasi(response.data);
+      setShowSemuaPopup(true);
+    } catch (error) {
+      console.error('Gagal mengambil semua dokumentasi:', error);
+    }
+  };
+
+  // Hitung kegiatan yang memiliki dokumentasi
+  const kegiatanDenganDokumentasi = kegiatan?.filter(item => item.has_dokumentasi).length || 0;
+  const kegiatanTanpaDokumentasi = (kegiatan?.length || 0) - kegiatanDenganDokumentasi;
 
   // Stats data
   const statsData = [
     {
-      title: 'Total Kegiatan',
+      title: 'Total Kegiatan Selesai',
       value: kegiatan?.length || 0,
       gradientFrom: 'blue-500',
       gradientTo: 'blue-600',
       iconBgColor: 'blue-400',
-      icon: (
-        <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-          <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
-        </svg>
-      )
-    },
-    {
-      title: 'Terkonfirmasi',
-      value: kegiatan?.filter(item => item.status_penerima === 'confirmed').length || 0,
-      gradientFrom: 'green-500',
-      gradientTo: 'green-600',
-      iconBgColor: 'green-400',
       icon: (
         <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
           <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
@@ -46,14 +55,26 @@ export default function KegiatanSaya({ kegiatan = [] }) {
       )
     },
     {
-      title: 'Menunggu',
-      value: kegiatan?.filter(item => item.status_penerima !== 'confirmed').length || 0,
+      title: 'Dengan Dokumentasi',
+      value: kegiatanDenganDokumentasi,
+      gradientFrom: 'green-500',
+      gradientTo: 'green-600',
+      iconBgColor: 'green-400',
+      icon: (
+        <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+          <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+        </svg>
+      )
+    },
+    {
+      title: 'Tanpa Dokumentasi',
+      value: kegiatanTanpaDokumentasi,
       gradientFrom: 'yellow-500',
       gradientTo: 'yellow-600',
       iconBgColor: 'yellow-400',
       icon: (
         <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+          <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
         </svg>
       )
     }
@@ -70,8 +91,8 @@ export default function KegiatanSaya({ kegiatan = [] }) {
           <div className="w-full">
             {/* Page Header */}
             <div className="mb-6">
-              <h1 className="text-2xl font-bold text-gray-900">Kegiatan Saya</h1>
-              <p className="text-gray-600 mt-1">Daftar kegiatan yang ditugaskan kepada Anda</p>
+              <h1 className="text-2xl font-bold text-gray-900">Kegiatan Selesai</h1>
+              <p className="text-gray-600 mt-1">Daftar kegiatan yang telah selesai dilaksanakan</p>
             </div>
 
             {/* Stats Cards */}
@@ -84,8 +105,8 @@ export default function KegiatanSaya({ kegiatan = [] }) {
             {/* Main Content Card */}
             <TableCard
               title="Pusat Informasi Kegiatan"
-              description="Kegiatan yang ditugaskan dan perlu konfirmasi"
-              filterForm={<MenuKegiatanSupervisor />}
+              description="Kegiatan yang telah selesai dan dokumentasinya"
+              filterForm={<MenuKegiatan />}
             >
               <table className="w-full">
                 <thead className="bg-[#0B2E74] text-white">
@@ -95,8 +116,8 @@ export default function KegiatanSaya({ kegiatan = [] }) {
                     <th className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider">Sub-Kegiatan</th>
                     <th className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider">Tanggal</th>
                     <th className="px-6 py-4 text-center text-xs font-medium uppercase tracking-wider">Undangan</th>
+                    <th className="px-6 py-4 text-center text-xs font-medium uppercase tracking-wider">Dokumentasi</th>
                     <th className="px-6 py-4 text-center text-xs font-medium uppercase tracking-wider">Aksi</th>
-                    <th className="px-6 py-4 text-center text-xs font-medium uppercase tracking-wider">Konfirmasi</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
@@ -128,20 +149,26 @@ export default function KegiatanSaya({ kegiatan = [] }) {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-center">
                           <button
-                            onClick={() => handleOpenModal(item)}
-                            className="inline-flex items-center px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-xs font-medium rounded-md transition-colors duration-200"
+                            onClick={() => handleLihatDokumentasi(item.id)}
+                            className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-md transition-colors duration-200 shadow-sm"
                           >
-                            Tampil Data
+                            <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                            Lihat Dokumentasi
                           </button>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-center">
-                          <div className="flex justify-center items-center">
-                            <ToggleStatus
-                              id={item.id}
-                              defaultStatus={item.status_penerima}
-                              routeName="pegawai.konfirmasi.toggle"
-                            />
-                          </div>
+                          <button
+                            onClick={() => handleLihatSemuaDokumentasi(item.undangan_id)}
+                            className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white text-xs font-medium rounded-md transition-colors duration-200 shadow-sm"
+                          >
+                            <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                            </svg>
+                            Lihat Semua Dokumentasi
+                          </button>
                         </td>
                       </tr>
                     ))
@@ -150,10 +177,10 @@ export default function KegiatanSaya({ kegiatan = [] }) {
                       <td colSpan="7" className="px-6 py-12 text-center">
                         <div className="flex flex-col items-center">
                           <svg className="w-12 h-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                           </svg>
-                          <h3 className="text-sm font-medium text-gray-900 mb-1">Tidak ada kegiatan</h3>
-                          <p className="text-sm text-gray-500">Saat ini tidak ada kegiatan yang ditugaskan kepada Anda.</p>
+                          <h3 className="text-sm font-medium text-gray-900 mb-1">Tidak ada kegiatan selesai</h3>
+                          <p className="text-sm text-gray-500">Saat ini belum ada kegiatan yang telah selesai.</p>
                         </div>
                       </td>
                     </tr>
@@ -165,10 +192,17 @@ export default function KegiatanSaya({ kegiatan = [] }) {
         </main>
       </div>
 
-      <ModalDetailUndangan
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        data={selectedData}
+      {/* Komponen Pop-up */}
+      <PopupDokumentasi
+        show={showPopup}
+        onClose={() => setShowPopup(false)}
+        dokumentasi={dokumentasi}
+      />
+
+      <PopupSemuaDokumentasi
+        show={showSemuaPopup}
+        onClose={() => setShowSemuaPopup(false)}
+        semuaDokumentasi={semuaDokumentasi}
       />
     </div>
   );

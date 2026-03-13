@@ -22,6 +22,7 @@ class UndanganKegiatan extends Model
         'hari',
         'tanggal',
         'waktu',
+        'waktu_selesai',
         'tempat',
         'agenda',
         'status',
@@ -54,9 +55,13 @@ public function supervisor()
 {
     return $this->belongsTo(User::class, 'id_supervisor');
 }
-public function penerimaUndangan()
-{
-    return $this->hasMany(PenerimaUndangan::class, 'undangan_id');
-}
+    public function penerimaUndangan()
+    {
+        return $this->hasMany(PenerimaUndangan::class, 'undangan_id');
+    }
 
+    public function dokumentasi()
+    {
+        return $this->hasMany(DokumentasiKegiatan::class, 'undangan_id');
+    }
 }

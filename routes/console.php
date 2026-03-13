@@ -30,5 +30,15 @@ Schedule::call(function () {
             'status_pelaksanaan' => 'Selesai'
         ]);
 
-    logger("Status pelaksanaan otomatis diperbarui: $now");
+    // Update status_kehadiran penerima dari 'belum' menjadi 'Tidak Hadir'
+    // jika waktu selesai kegiatan sudah terlewat
+    DB::table('penerima_undangans')
+        ->join('undangan_kegiatans', 'penerima_undangans.undangan_id', '=', 'undangan_kegiatans.id')
+        ->whereRaw("CONCAT(undangan_kegiatans.tanggal, ' ', undangan_kegiatans.waktu_selesai) < ?", [$now])
+        ->where('penerima_undangans.status_kehadiran', 'belum')
+        ->update([
+            'penerima_undangans.status_kehadiran' => 'Tidak Hadir'
+        ]);
+
+    logger("Status pelaksanaan & kehadiran otomatis diperbarui: $now");
 })->everyMinute();

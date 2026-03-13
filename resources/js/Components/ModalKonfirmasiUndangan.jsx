@@ -47,7 +47,7 @@ export default function ModalKonfirmasiUndangan({ isOpen, onClose, onSubmit }) {
                     >
                         <option value="">pilih status undangan</option>
                         <option value="Diterima">Terima</option>
-                        <option value="Ditolak">Revisi</option>
+                        <option value="Revisi">Revisi</option>
                     </select>
                 </div>
 

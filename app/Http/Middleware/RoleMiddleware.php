@@ -28,7 +28,9 @@ class RoleMiddleware
         // Jika halaman membutuhkan role pegawai, izinkan juga role supervisor untuk mengaksesnya
         if ($role === 'pegawai' && $activeRole === 'supervisor') {
             // Izinkan akses (bypass ke next request)
-        } elseif ($activeRole !== $role) {
+        }elseif ($role === 'supervisor' && $activeRole === 'pemantau') {
+        }
+         elseif ($activeRole !== $role) {
             abort(403, "Akses ditolak. Anda sedang menggunakan peran: {$activeRole}, sedangkan halaman ini membutuhkan peran: {$role}.");
         }
 

@@ -1,10 +1,12 @@
 import SidebarPemantau from '@/Layouts/SidebarPemantau';
 import Header from '@/Components/Header';
 import FlashPopup from '@/Components/FlashPopup';
+import ModalDetailUndangan from '@/Components/ModalDetailUndangan';
 import { useEffect, useState } from 'react';
 import { FaChartBar, FaCheckDouble } from 'react-icons/fa';
 import { MdOutlineAccessTime } from 'react-icons/md';
 import { HiOutlineCalendar, HiOutlineArrowRight } from 'react-icons/hi';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import dayjs from 'dayjs';
 import 'dayjs/locale/id';
 
@@ -16,6 +18,13 @@ const MONTH_NAMES = [
 ];
 
 export default function Dashboard({ statistik = {}, kegiatan = [] }) {
+  const currentYear = new Date().getFullYear();
+  const [selectedYear, setSelectedYear] = useState(currentYear);
+  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+
+  const years = Array.from(new Array(11), (val, index) => currentYear - 5 + index);
+
   const stats = [
     {
       icon: <FaChartBar size={32} className="text-blue-900" />,
@@ -54,15 +63,17 @@ export default function Dashboard({ statistik = {}, kegiatan = [] }) {
   const eventsByMonth = {};
   kegiatan.forEach(item => {
     const date = dayjs(item.date);
-    const month = date.month(); 
-    const day = date.date();
-    if (!eventsByMonth[month]) eventsByMonth[month] = {};
-    if (!eventsByMonth[month][day]) eventsByMonth[month][day] = [];
-    eventsByMonth[month][day].push(item);
+    if (date.year() === selectedYear) {
+      const month = date.month(); 
+      const day = date.date();
+      if (!eventsByMonth[month]) eventsByMonth[month] = {};
+      if (!eventsByMonth[month][day]) eventsByMonth[month][day] = [];
+      eventsByMonth[month][day].push(item);
+    }
   });
 
   const renderMonth = (monthIndex) => {
-    const start = dayjs().month(monthIndex).date(1);
+    const start = dayjs().year(selectedYear).month(monthIndex).date(1);
     const daysInMonth = start.daysInMonth();
     const startDay = start.day(); // 0: Sunday
 
@@ -80,8 +91,12 @@ export default function Dashboard({ statistik = {}, kegiatan = [] }) {
           {events.map((evt, idx) => (
             <div
               key={idx}
-              className={`mt-1 rounded px-1 text-[10px] truncate ${getStatusColor(evt.status)}`}
+              className={`mt-1 rounded px-1 text-[10px] truncate cursor-pointer hover:opacity-80 transition-opacity ${getStatusColor(evt.status)}`}
               title={evt.title}
+              onClick={() => {
+                setSelectedEvent(evt);
+                setShowModal(true);
+              }}
             >
               {evt.title}
             </div>
@@ -119,7 +134,26 @@ export default function Dashboard({ statistik = {}, kegiatan = [] }) {
         <Header />
         <FlashPopup />
         <main className="pt-28 px-6">
-          <h2 className="text-xl font-semibold text-center mb-6">Dashboard</h2>
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-semibold text-center">Dashboard</h2>
+            <div className="w-40">
+              <Select
+                value={String(selectedYear)}
+                onValueChange={(val) => setSelectedYear(Number(val))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Pilih Tahun" />
+                </SelectTrigger>
+                <SelectContent>
+                  {years.map(year => (
+                    <SelectItem key={year} value={String(year)}>
+                      Tahun {year}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
             {stats.map((item, idx) => (
@@ -138,6 +172,16 @@ export default function Dashboard({ statistik = {}, kegiatan = [] }) {
           </div>
         </main>
       </div>
+
+      {/* Modal Detail Undangan */}
+      <ModalDetailUndangan
+        isOpen={showModal}
+        onClose={() => {
+          setShowModal(false);
+          setSelectedEvent(null);
+        }}
+        data={selectedEvent}
+      />
     </div>
   );
 }

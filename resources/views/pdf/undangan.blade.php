@@ -70,7 +70,7 @@
         <p>Yth. Daftar Undangan Terlampir<br>di -<br><span class="ml">Tempat</span></p>
 
         <p>
-            Dalam rangka kegiatan {{ $undangan->judul }}, Bapak/Ibu diundang untuk mengikuti rapat yang akan dilaksanakan pada:
+            Dalam rangka kegiatan {{ $undangan->judul }}, Bapak/Ibu diundang untuk mengikuti {{ $undangan->deskripsi }} yang akan dilaksanakan pada:
         </p>
 
         <p class="ml">
@@ -89,6 +89,22 @@
                 <p>{{ $undangan->pejabat ?? 'Asep Riyadi, S.Si., M.M' }}</p>
             </div>
         </div>
+    </div>
+
+    <!-- Halaman Lampiran -->
+    <div style="page-break-before: always; margin: 30px;">
+        <h3 style="margin-bottom: 20px; font-size: 14px; font-weight: normal;">Daftar Peserta :</h3>
+        @if(isset($undangan->penerimaUndangan) && count($undangan->penerimaUndangan) > 0)
+            <ol style="margin-left: 0; padding-left: 20px; font-size: 13px;">
+                @foreach($undangan->penerimaUndangan as $penerima)
+                    @if(isset($penerima->user))
+                        <li style="margin-bottom: 5px; padding-left: 5px;">{{ $penerima->user->name }}{{ isset($penerima->user->gelar) ? ', ' . $penerima->user->gelar : '' }}</li>
+                    @endif
+                @endforeach
+            </ol>
+        @else
+            <p style="font-style: italic;">Tidak ada peserta yang terdaftar.</p>
+        @endif
     </div>
 </body>
 </html>

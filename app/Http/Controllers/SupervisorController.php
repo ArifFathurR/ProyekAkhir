@@ -82,6 +82,10 @@ public function konfirmasi(Request $request, $id)
 
     $kegiatan = PenerimaUndangan::with(['undangan.kegiatan'])
         ->where('user_id', $userId)
+        ->whereHas('undangan', function ($query) {
+            $query->where('status', 'Diterima')
+            ->where('status_pelaksanaan', 'Belum Dilaksanakan'); // 🔍 Cek status di tabel undangan_kegiatans
+        })
         ->get()
         ->map(function ($item) {
             return [
@@ -89,6 +93,10 @@ public function konfirmasi(Request $request, $id)
                 'nama_kegiatan' => $item->undangan->kegiatan->nama_kegiatan ?? '-',
                 'sub_kegiatan' => $item->undangan->judul ?? '-',
                 'tanggal' => $item->undangan->tanggal ?? '-',
+                'tanggal_lengkap' => $item->undangan->tanggal ? \Carbon\Carbon::parse($item->undangan->tanggal)->translatedFormat('l, d F Y') : '-',
+                'waktu' => $item->undangan->waktu ?? '-',
+                'tempat' => $item->undangan->tempat ?? '-',
+                'agenda' => $item->undangan->agenda ?? '-',
                 'file_undangan' => route('undangan_kegiatan.preview', $item->undangan_id),
                 'status_penerima' => $item->status_penerima,
             ];

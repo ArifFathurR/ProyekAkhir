@@ -151,15 +151,29 @@ export default function InputTtd({ penerimaId, onClose }) {
               <button
                 type="button"
                 onClick={handleAmbilLokasi}
-                className={`w-full px-4 py-2 rounded-lg text-white text-sm font-medium transition-colors duration-200 ${
-                  loadingLocation
+                className={`w-full px-4 py-2 rounded-lg text-white text-sm font-medium transition-colors duration-200 ${loadingLocation
                     ? 'bg-gray-400 cursor-not-allowed'
                     : 'bg-blue-500 hover:bg-blue-600'
-                }`}
+                  }`}
                 disabled={loadingLocation}
               >
                 {loadingLocation ? '⏳ Mengambil lokasi...' : '📍 Ambil Lokasi'}
               </button>
+
+              {coords.latitude && coords.longitude && (
+                <div className="mt-3 relative w-full h-48 rounded-lg overflow-hidden border border-gray-300">
+                  <iframe
+                    title="Peta Lokasi"
+                    width="100%"
+                    height="100%"
+                    frameBorder="0"
+                    scrolling="no"
+                    marginHeight="0"
+                    marginWidth="0"
+                    src={`https://www.openstreetmap.org/export/embed.html?bbox=${parseFloat(coords.longitude) - 0.005},${parseFloat(coords.latitude) - 0.005},${parseFloat(coords.longitude) + 0.005},${parseFloat(coords.latitude) + 0.005}&layer=mapnik&marker=${coords.latitude},${coords.longitude}`}
+                  ></iframe>
+                </div>
+              )}
             </div>
           </div>
 
@@ -174,11 +188,10 @@ export default function InputTtd({ penerimaId, onClose }) {
             </button>
             <button
               onClick={handleSubmit}
-              className={`px-6 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
-                loading
+              className={`px-6 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${loading
                   ? 'bg-gray-400 text-white cursor-not-allowed'
                   : 'bg-green-600 text-white hover:bg-green-700'
-              }`}
+                }`}
               disabled={loading}
             >
               {loading ? 'Menyimpan...' : '✓ Simpan TTD'}

@@ -77,10 +77,7 @@ class DokumentasiKegiatanController extends Controller
             ->select('id', 'judul', 'kegiatan_id')
             ->get();
 
-        $kegiatan = $undangan->pluck('kegiatan')->unique('id')->values();
-
         return Inertia::render('Pegawai/CreateDokumentasi', [
-            'kegiatanOptions' => $kegiatan,
             'undanganOptions' => $undangan,
         ]);
     }
@@ -89,6 +86,10 @@ class DokumentasiKegiatanController extends Controller
 {
     $data = $request->validated();
     $userId = Auth::id();
+
+    // Ambil kegiatan_id otomatis berdasarkan undangan_id
+    $undangan = UndanganKegiatan::findOrFail($data['undangan_id']);
+    $data['kegiatan_id'] = $undangan->kegiatan_id;
 
     // Pastikan user ini adalah penerima undangan tersebut
     $penerima = PenerimaUndangan::where('user_id', $userId)
@@ -127,14 +128,12 @@ class DokumentasiKegiatanController extends Controller
 
     public function edit(DokumentasiKegiatan $dokumentasi_kegiatan)
     {
-        $kegiatan = Kegiatan::select('id', 'nama_kegiatan')->get();
         $undangan = UndanganKegiatan::select('id', 'judul')->get();
 
         $dokumentasi_kegiatan->load('fotoDokumentasi');
 
         return Inertia::render('Pegawai/EditDokumentasi', [
             'dokumentasi' => $dokumentasi_kegiatan,
-            'kegiatanOptions' => $kegiatan,
             'undanganOptions' => $undangan,
         ]);
     }
@@ -142,7 +141,6 @@ class DokumentasiKegiatanController extends Controller
     public function update(Request $request, $id)
 {
     $request->validate([
-        'kegiatan_id' => 'required|exists:kegiatans,id',
         'undangan_id' => 'required|exists:undangan_kegiatans,id',
         'notulensi' => 'nullable|string',
         'link_zoom' => 'nullable|url',
@@ -152,9 +150,12 @@ class DokumentasiKegiatanController extends Controller
     ]);
 
     $dokumentasi = DokumentasiKegiatan::findOrFail($id);
+    
+    // Ambil kegiatan_id otomatis berdasarkan undangan_id
+    $undangan = UndanganKegiatan::findOrFail($request->undangan_id);
 
     $dokumentasi->update([
-        'kegiatan_id' => $request->kegiatan_id,
+        'kegiatan_id' => $undangan->kegiatan_id,
         'undangan_id' => $request->undangan_id,
         'notulensi' => $request->notulensi,
         'link_zoom' => $request->link_zoom,
