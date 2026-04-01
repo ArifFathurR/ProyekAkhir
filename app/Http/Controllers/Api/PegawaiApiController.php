@@ -68,7 +68,7 @@ class PegawaiApiController extends Controller
             ->get()
             ->map(function ($item) {
                 return [
-                    'id' => $item->id,
+                    'id' => $item->undangan_id,
                     'nama_kegiatan' => $item->undangan->kegiatan->nama_kegiatan ?? '-',
                     'sub_kegiatan' => $item->undangan->judul ?? '-',
                     'tanggal' => $item->undangan->tanggal ?? '-',

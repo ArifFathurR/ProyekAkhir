@@ -27,7 +27,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Route::get('/dokumentasi/{id}', [DokumentasiApiController::class, 'show']);
     Route::post('/dokumentasi/{id}', [DokumentasiApiController::class, 'update']);
     Route::delete('/dokumentasi/{id}', [DokumentasiApiController::class, 'destroy']);
-    Route::get('/dokumentasi/selesai', [DokumentasiApiController::class, 'selesai']);
+    Route::get('/dokumentasi/selesai/{id_undangan}', [DokumentasiApiController::class, 'selesai']);
     //pegawai
     Route::get('/pegawai/kegiatan', [PegawaiApiController::class, 'show']);
     Route::get('/pegawai/kegiatan/sedang', [PegawaiApiController::class, 'sedang']);

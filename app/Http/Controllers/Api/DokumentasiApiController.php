@@ -28,11 +28,12 @@ class DokumentasiApiController extends Controller
         ]);
     }
 
-    public function selesai()
+    public function selesai($id_undangan)
 {
     $userId = Auth::id();
 
-    $dokumentasi = DokumentasiKegiatan::with(['fotoDokumentasi', 'undangan.kegiatan'])
+    $dokumentasi = DokumentasiKegiatan::with(['fotoDokumentasi', 'undangan.kegiatan', 'penerima.user'])
+        ->where('undangan_id', $id_undangan)
         ->whereHas('undangan', function ($query) use ($userId) {
             $query->where('status_pelaksanaan', 'Selesai')
                 ->whereHas('penerimaUndangan', function ($q) use ($userId) {
@@ -40,11 +41,10 @@ class DokumentasiApiController extends Controller
                 });
         })
         ->get()
-        ->groupBy('undangan_id') // hanya 1 dokumentasi per undangan
-        ->map(function ($group) {
-            $item = $group->first();
+        ->map(function ($item) {
             return [
                 'id' => $item->id,
+                'nama_pengunggah' => $item->penerima->user->name ?? '-',
                 'nama_kegiatan' => $item->undangan->kegiatan->nama_kegiatan ?? '-',
                 'sub_kegiatan' => $item->undangan->judul ?? '-',
                 'tanggal' => $item->undangan->tanggal ?? '-',
@@ -60,10 +60,6 @@ class DokumentasiApiController extends Controller
     return response()->json(['dokumentasi' => $dokumentasi]);
 }
 
-
-
-
-
     public function store(Request $request)
     {
         $request->validate([
@@ -75,10 +71,38 @@ class DokumentasiApiController extends Controller
             'foto_dokumentasi' => 'nullable', // bisa single atau multiple
         ]);
 
+        $userId = Auth::id();
+
+        // Pastikan user ini adalah penerima undangan tersebut
+        $penerima = PenerimaUndangan::where('user_id', $userId)
+            ->where('undangan_id', $request->undangan_id)
+            ->first();
+
+        // Validasi apakah undangan tersebut termasuk undangan yang diterima user
+        if (!$penerima) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Anda tidak berhak membuat dokumentasi untuk undangan ini.'
+            ], 403);
+        }
+
+        // ✅ Cek apakah user sudah pernah membuat dokumentasi untuk undangan ini
+        $sudahAda = DokumentasiKegiatan::where('undangan_id', $request->undangan_id)
+            ->where('penerima_id', $penerima->id)
+            ->exists();
+
+        if ($sudahAda) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Anda sudah pernah membuat dokumentasi untuk kegiatan ini.'
+            ], 400);
+        }
+
         // simpan dokumentasi kegiatan
         $dokumentasi = DokumentasiKegiatan::create([
             'kegiatan_id' => $request->kegiatan_id,
             'undangan_id' => $request->undangan_id,
+            'penerima_id' => $penerima->id, // Menyimpan ID user yang terlibat dari penerima undangan
             'notulensi' => $request->notulensi,
             'link_zoom' => $request->link_zoom,
             'link_materi' => $request->link_materi,
