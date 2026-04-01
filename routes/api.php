@@ -37,6 +37,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/pegawai/dokumentasi/{penerima_id}', [PegawaiApiController::class, 'getByPenerimaId']);
 // Route
 Route::get('/pegawai/dropdown-dokumentasi', [PegawaiApiController::class, 'dropdownDokumentasi']);
+Route::get('/pegawai/semua-kegiatan', [PegawaiApiController::class, 'getAllKegiatanUser']);
+Route::get('/pegawai/riwayat-presensi', [PegawaiApiController::class, 'riwayatPresensi']);
 
 });
 

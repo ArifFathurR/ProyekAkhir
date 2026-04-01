@@ -7,6 +7,7 @@ import {
   Clock,
   Settings,
   LogOut,
+  History,
 } from 'lucide-react';
 
 export default function Sidebar() {
@@ -39,6 +40,12 @@ export default function Sidebar() {
       icon: <Clock className="w-5 h-5" />,
       label: 'Status Pengajuan Undangan',
       active: isActive('/undangan_kegiatan') && !url.includes('/create'),
+    },
+    {
+      href: route('pegawai.riwayat-presensi'),
+      icon: <History className="w-5 h-5" />,
+      label: 'Riwayat Presensi',
+      active: isActive('/riwayat-presensi'),
     },
   ];
 

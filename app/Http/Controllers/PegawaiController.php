@@ -213,6 +213,47 @@ public function kalender(Pegawai $pegawai)
     ]);
 }
 
+public function riwayatPresensi(Pegawai $pegawai)
+{
+    $userId = auth()->id();
+
+    $kegiatan = PenerimaUndangan::with(['undangan.kegiatan'])
+        ->where('user_id', $userId)
+        ->where(function ($query) {
+            $query->whereNotNull('waktu_presensi')
+                  ->orWhereHas('undangan', function ($q) {
+                      $q->where('status_pelaksanaan', 'Selesai');
+                  });
+        })
+        ->get()
+        ->sortByDesc(function ($item) {
+            return $item->undangan->tanggal . ' ' . $item->undangan->waktu;
+        })
+        ->values()
+        ->map(function ($item) {
+            $status_kehadiran = $item->status_kehadiran;
+            if (is_null($status_kehadiran) && is_null($item->waktu_presensi)) {
+                $status_kehadiran = 'Tidak Hadir';
+            }
+
+            return [
+                'id' => $item->id,
+                'nama_kegiatan' => $item->undangan->kegiatan->nama_kegiatan ?? '-',
+                'sub_kegiatan' => $item->undangan->judul ?? '-',
+                'tanggal' => $item->undangan->tanggal ? \Carbon\Carbon::parse($item->undangan->tanggal)->translatedFormat('l, d F Y') : '-',
+                'waktu_presensi' => $item->waktu_presensi ? \Carbon\Carbon::parse($item->waktu_presensi)->format('H:i') : '-',
+                'ttd' => $item->ttd,
+                'status_kehadiran' => $status_kehadiran,
+                'latitude' => $item->latitude,
+                'longitude' => $item->longitude,
+            ];
+        });
+
+    return Inertia::render('Pegawai/RiwayatPresensi', [
+        'presensi' => $kegiatan,
+    ]);
+}
+
 
 
 
@@ -236,8 +277,24 @@ public function storeTtd(Request $request)
         ? 'terlambat'
         : 'hadir';
 
+    // Pastikan folder penyimpanan ada
+    $folderPath = storage_path('app/public/ttd');
+    if (!file_exists($folderPath)) {
+        mkdir($folderPath, 0777, true);
+    }
+
+    // Proses decode base64
+    $image = $validated['ttd'];
+    $image = str_replace('data:image/png;base64,', '', $image);
+    $image = str_replace(' ', '+', $image);
+    $imageData = base64_decode($image);
+
+    // Simpan file ke folder
+    $fileName = 'ttd_' . $penerima->id . '_' . time() . '.png';
+    file_put_contents($folderPath . '/' . $fileName, $imageData);
+
     $penerima->update([
-        'ttd'              => $validated['ttd'],
+        'ttd'              => 'storage/ttd/' . $fileName,
         'latitude'         => $validated['latitude'] ?? null,
         'longitude'        => $validated['longitude'] ?? null,
         'status_kehadiran' => $statusKehadiran,

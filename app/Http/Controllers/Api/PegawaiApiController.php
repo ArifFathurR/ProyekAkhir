@@ -127,13 +127,21 @@ class PegawaiApiController extends Controller
         $fileName = 'ttd_' . $penerima->id . '_' . time() . '.png';
         file_put_contents($folderPath . '/' . $fileName, $imageData);
 
+        // Waktu kegiatan untuk cek keterlambatan
+        $waktuKegiatan = Carbon::parse($penerima->undangan->tanggal . ' ' . $penerima->undangan->waktu);
+        $waktuPresensi = Carbon::now();
+
+        $statusKehadiran = $waktuPresensi->greaterThan($waktuKegiatan->copy()->addMinutes(5))
+            ? 'terlambat'
+            : 'hadir';
+
         // Simpan path file (bukan base64 string)
         $penerima->update([
             'ttd' => 'storage/ttd/' . $fileName,
             'latitude' => $validated['latitude'] ?? null,
             'longitude' => $validated['longitude'] ?? null,
-            'status_kehadiran' => 'hadir',
-            'waktu_presensi' => now(),
+            'status_kehadiran' => $statusKehadiran,
+            'waktu_presensi' => $waktuPresensi,
         ]);
 
         return response()->json([
@@ -214,7 +222,70 @@ public function dropdownDokumentasi()
     ]);
 }
 
+    public function getAllKegiatanUser()
+    {
+        $userId = Auth::id();
 
+        $kegiatan = PenerimaUndangan::with(['undangan.kegiatan'])
+            ->where('user_id', $userId)
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'id_undangan' => $item->undangan->id ?? null,
+                    'id_penerima' => $item->id,
+                    'nama_undangan_kegiatan' => $item->undangan->judul ?? '-',
+                    'nama_kegiatan' => $item->undangan->kegiatan->nama_kegiatan ?? '-',
+                    'tanggal' => $item->undangan->tanggal ?? '-',
+                    'waktu' => $item->undangan->waktu ?? '-',
+                    'waktu_selesai' => $item->undangan->waktu_selesai ?? '-',
+                ];
+            });
 
+        return response()->json([
+            'success' => true,
+            'data' => $kegiatan
+        ], 200);
+    }
 
+    public function riwayatPresensi()
+    {
+        $userId = Auth::id();
+
+        $kegiatan = PenerimaUndangan::with(['undangan.kegiatan'])
+            ->where('user_id', $userId)
+            ->where(function ($query) {
+                $query->whereNotNull('waktu_presensi')
+                      ->orWhereHas('undangan', function ($q) {
+                          $q->where('status_pelaksanaan', 'Selesai');
+                      });
+            })
+            ->get()
+            ->sortByDesc(function ($item) {
+                return $item->undangan->tanggal . ' ' . $item->undangan->waktu;
+            })
+            ->values()
+            ->map(function ($item) {
+                $status_kehadiran = $item->status_kehadiran;
+                if (is_null($status_kehadiran) && is_null($item->waktu_presensi)) {
+                    $status_kehadiran = 'Tidak Hadir';
+                }
+
+                return [
+                    'id' => $item->id,
+                    'nama_kegiatan' => $item->undangan->kegiatan->nama_kegiatan ?? '-',
+                    'sub_kegiatan' => $item->undangan->judul ?? '-',
+                    'tanggal' => $item->undangan->tanggal ? \Carbon\Carbon::parse($item->undangan->tanggal)->translatedFormat('l, d F Y') : '-',
+                    'waktu_presensi' => $item->waktu_presensi ? \Carbon\Carbon::parse($item->waktu_presensi)->format('H:i') : '-',
+                    'ttd' => $item->ttd,
+                    'status_kehadiran' => $status_kehadiran,
+                    'latitude' => $item->latitude,
+                    'longitude' => $item->longitude,
+                ];
+            });
+
+        return response()->json([
+            'success' => true,
+            'data' => $kegiatan
+        ], 200);
+    }
 }
