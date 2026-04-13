@@ -1,14 +1,27 @@
 @component('mail::message')
-# Undangan Kegiatan
+# Undangan {{ $undangan->judul }}
 
 Yth. Bapak/Ibu,
 
-{!! nl2br(e($pesan)) !!}
+Dalam rangka kegiatan **{{ $undangan->judul }}**, Bapak/Ibu diundang untuk mengikuti {{ $undangan->deskripsi }} yang akan dilaksanakan pada:
+
+---
+
+**Hari/Tanggal** : {{ $tanggalFormatted }}
+**Pukul** : {{ $undangan->waktu }} WIB
+**Tempat** : {{ $undangan->tempat }}
+**Agenda** : {{ $undangan->agenda }}
+
+---
+
+Demikian untuk dipedomani. Atas perhatian dan kerjasamanya diucapkan terima kasih.
 
 @component('mail::button', ['url' => url('/')])
 Buka Sistem
 @endcomponent
 
-Terima kasih,  
+Hormat kami,
+**BADAN PUSAT STATISTIK PROVINSI RIAU**
+
 {{ config('app.name') }}
 @endcomponent

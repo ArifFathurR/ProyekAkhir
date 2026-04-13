@@ -222,48 +222,48 @@ public function update(UpdateUndanganKegiatanRequest $request, UndanganKegiatan 
     }
     public function kirim(Request $request, $id)
     {
-        $request->validate([
-            'subjek' => 'required|string',
-            'pesan' => 'required|string',
-            'pegawai' => 'required',
-            'file' => 'required|file|mimes:pdf,doc,docx',
-        ]);
-
         try {
-            \Log::info('🟢 Mulai kirim undangan', [
-                'subjek' => $request->subjek,
-                'pesan' => $request->pesan,
+            $undangan = UndanganKegiatan::with(['kegiatan', 'penerimaUndangan.user'])
+                ->findOrFail($id);
+
+            // Ambil semua email penerima undangan dari database
+            $emails = $undangan->penerimaUndangan
+                ->filter(fn($p) => $p->user && $p->user->email)
+                ->pluck('user.email')
+                ->unique()
+                ->values()
+                ->toArray();
+
+            if (empty($emails)) {
+                return back()->with('error', 'Tidak ada penerima undangan yang memiliki email.');
+            }
+
+            \Log::info("🟢 Mulai kirim undangan: {$undangan->judul}", [
+                'total_penerima' => count($emails),
             ]);
 
-            // Simpan file ke storage
-            $filePath = $request->file('file')->store('undangan', 'public');
-            $fullPath = storage_path('app/public/' . $filePath);
-            \Log::info('📎 File upload OK', ['filePath' => $filePath]);
+            // Kirim email ke semua penerima menggunakan queue
+            // Setiap email dikirim secara terpisah agar jika satu gagal tidak mempengaruhi yang lain
+            $berhasil = 0;
+            $gagal = 0;
 
-            // Ambil daftar email pegawai dari form
-            $pegawai = json_decode($request->pegawai);
-            \Log::info('📬 Email tujuan:', $pegawai);
-
-            // Kirim email satu per satu
-            foreach ($pegawai as $email) {
+            foreach ($emails as $email) {
                 try {
-                    Mail::raw("Yth. Bapak/Ibu,\n\n{$request->pesan}\n\nTerima kasih.\n\nSistem Undangan", function ($message) use ($email, $request, $fullPath) {
-                        $message->to($email)
-                            ->subject($request->subjek)
-                            ->from(config('mail.from.address'), config('mail.from.name'))
-                            ->attach($fullPath, [
-                                'as' => 'Undangan.pdf',
-                                'mime' => 'application/pdf',
-                            ]);
-                    });
-
+                    Mail::to($email)->send(new UndanganKegiatanMail($undangan));
+                    $berhasil++;
                     \Log::info("✅ Email berhasil dikirim ke: $email");
                 } catch (\Exception $e) {
-                    \Log::error("❌ Gagal kirim ke $email: " . $e->getMessage());
+                    $gagal++;
+                    \Log::error("❌ Gagal queue email ke $email: " . $e->getMessage());
                 }
             }
 
-            return back()->with('success', 'Undangan berhasil dikirim ke pegawai.');
+            $message = "Undangan berhasil dikirim ke {$berhasil} pegawai.";
+            if ($gagal > 0) {
+                $message .= " ({$gagal} gagal)";
+            }
+
+            return back()->with('success', $message);
         } catch (\Exception $e) {
             \Log::error("🔥 ERROR SAAT KIRIM: " . $e->getMessage());
             return back()->with('error', 'Gagal mengirim undangan. Silakan cek log.');

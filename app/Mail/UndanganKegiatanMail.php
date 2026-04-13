@@ -7,24 +7,24 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
-use Illuminate\Mail\Mailables\Attachment;
+use App\Models\UndanganKegiatan;
 
-class UndanganKegiatanMail extends Mailable implements ShouldQueue
+class UndanganKegiatanMail extends Mailable
 {
-    use Queueable, SerializesModels;
+    use SerializesModels;
 
-    public $subjek;
-    public $pesan;
-    public $filePath;
+    public $undangan;
+    public $tanggalFormatted;
 
     /**
      * Create a new message instance.
      */
-    public function __construct($subjek, $pesan, $filePath)
+    public function __construct(UndanganKegiatan $undangan)
     {
-        $this->subjek = $subjek;
-        $this->pesan = $pesan;
-        $this->filePath = $filePath;
+        $this->undangan = $undangan;
+        $this->tanggalFormatted = \Carbon\Carbon::parse($undangan->tanggal)
+            ->locale('id')
+            ->isoFormat('dddd, D MMMM Y');
     }
 
     /**
@@ -33,7 +33,7 @@ class UndanganKegiatanMail extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: $this->subjek,
+            subject: 'Undangan ' . $this->undangan->judul,
         );
     }
 
@@ -41,24 +41,21 @@ class UndanganKegiatanMail extends Mailable implements ShouldQueue
      * Set the email content and variables.
      */
     public function content(): Content
-{
-    return new Content(
-        markdown: 'emails.undangan',
-        with: [
-            'pesan' => $this->pesan,
-        ]
-    );
-}
+    {
+        return new Content(
+            markdown: 'emails.undangan',
+            with: [
+                'undangan' => $this->undangan,
+                'tanggalFormatted' => $this->tanggalFormatted,
+            ]
+        );
+    }
 
     /**
-     * Attach the file.
+     * No attachments needed.
      */
     public function attachments(): array
     {
-        return [
-            Attachment::fromStorageDisk('public', $this->filePath)
-                ->as('Undangan.pdf')
-                ->withMime('application/pdf')
-        ];
+        return [];
     }
 }

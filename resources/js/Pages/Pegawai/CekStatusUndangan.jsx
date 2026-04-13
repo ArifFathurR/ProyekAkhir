@@ -3,16 +3,15 @@ import SidebarPegawai from '@/Layouts/SidebarPegawai';
 import { router } from '@inertiajs/react';
 import FlashPopup from '@/Components/FlashPopup';
 import { useState } from 'react';
-import ModalKirimUndangan from '@/Components/ModalKirimUndangan';
+import Swal from 'sweetalert2';
 import StatsCard from '@/Components/StatsCard';
 import TableCard from '@/Components/TableCard';
 import Pagination from '@/Components/Pagination';
 
-export default function CekStatusUndangan({ undangans, filters, pegawaiList }) {
+export default function CekStatusUndangan({ undangans, filters }) {
     const [search, setSearch] = useState(filters?.search || '');
     const [status, setStatus] = useState(filters?.status || '');
-    const [showKirimModal, setShowKirimModal] = useState(false);
-    const [selectedUndanganId, setSelectedUndanganId] = useState(null);
+    const [loadingKirim, setLoadingKirim] = useState(null);
 
     const handleSearch = (e) => {
         e.preventDefault();
@@ -29,9 +28,40 @@ export default function CekStatusUndangan({ undangans, filters, pegawaiList }) {
     };
 
     const handleKirim = (id) => {
-        if (confirm('Yakin ingin mengirim undangan ini?')) {
-            router.post(route('pegawai.undangan.kirim', id));
-        }
+        Swal.fire({
+            title: 'Kirim Undangan?',
+            text: 'Undangan akan dikirim ke email semua penerima yang terdaftar.',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#16a34a',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'Ya, Kirim!',
+            cancelButtonText: 'Batal',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                setLoadingKirim(id);
+                router.post(route('pegawai.undangan.kirim', id), {}, {
+                    onSuccess: () => {
+                        setLoadingKirim(null);
+                        Swal.fire({
+                            title: 'Berhasil!',
+                            text: 'Undangan sedang dikirim ke email penerima.',
+                            icon: 'success',
+                            timer: 2000,
+                            showConfirmButton: false,
+                        });
+                    },
+                    onError: () => {
+                        setLoadingKirim(null);
+                        Swal.fire({
+                            title: 'Gagal!',
+                            text: 'Terjadi kesalahan saat mengirim email.',
+                            icon: 'error',
+                        });
+                    },
+                });
+            }
+        });
     };
 
     const handleEdit = (id) => {
@@ -249,16 +279,18 @@ export default function CekStatusUndangan({ undangans, filters, pegawaiList }) {
 
                                                         {undangan.status === 'Diterima' && (
                                                             <button
-                                                                onClick={() => {
-                                                                    setSelectedUndanganId(undangan.id);
-                                                                    setShowKirimModal(true);
-                                                                }}
-                                                                className="inline-flex items-center px-3 py-1.5 bg-green-100 hover:bg-green-200 text-green-700 text-xs font-medium rounded-md transition-colors duration-200"
+                                                                onClick={() => handleKirim(undangan.id)}
+                                                                disabled={loadingKirim === undangan.id}
+                                                                className={`inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md transition-colors duration-200 ${
+                                                                    loadingKirim === undangan.id
+                                                                        ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                                                                        : 'bg-green-100 hover:bg-green-200 text-green-700'
+                                                                }`}
                                                             >
                                                                 <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                                                                 </svg>
-                                                                Kirim
+                                                                {loadingKirim === undangan.id ? 'Mengirim...' : 'Kirim'}
                                                             </button>
                                                         )}
 
@@ -298,18 +330,6 @@ export default function CekStatusUndangan({ undangans, filters, pegawaiList }) {
                     </div>
                 </main>
 
-                {/* Modal Kirim Undangan */}
-                <ModalKirimUndangan
-                    isOpen={showKirimModal}
-                    onClose={() => setShowKirimModal(false)}
-                    onSubmit={(formData) => {
-                        router.post(route('pegawai.undangan.kirim', selectedUndanganId), formData, {
-                            forceFormData: true,
-                            onSuccess: () => setShowKirimModal(false),
-                        });
-                    }}
-                    pegawaiList={pegawaiList}
-                />
             </div>
         </div>
     );
