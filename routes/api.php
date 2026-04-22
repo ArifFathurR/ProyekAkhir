@@ -29,7 +29,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/dokumentasi/{id}', [DokumentasiApiController::class, 'destroy']);
     Route::get('/dokumentasi/selesai/{id_undangan}', [DokumentasiApiController::class, 'selesai']);
     //pegawai
-    Route::get('/pegawai/kegiatan', [PegawaiApiController::class, 'show']);
+    Route::get('/pegawai/kegiatan', [PegawaiApiController::class, 'index']);
     Route::get('/pegawai/kegiatan/sedang', [PegawaiApiController::class, 'sedang']);
     Route::get('/pegawai/kegiatan/selesai', [PegawaiApiController::class, 'selesai']);
     Route::get('/pegawai/kegiatan/kalender', [PegawaiApiController::class, 'kalender']);
