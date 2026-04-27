@@ -13,13 +13,28 @@ Artisan::command('inspire', function () {
 Schedule::call(function () {
     $now = Carbon::now()->format('Y-m-d H:i');
 
-    // Update ke Sedang Dilaksanakan jika tanggal + waktu = sekarang
-    DB::table('undangan_kegiatans')
+    // Update ke Sedang Dilaksanakan jika tanggal + waktu = sekarang dan kirim notifikasi
+    $kegiatanSekarang = \App\Models\UndanganKegiatan::with('penerimaUndangan.user')
         ->whereRaw("DATE_FORMAT(CONCAT(tanggal, ' ', waktu), '%Y-%m-%d %H:%i') = ?", [$now])
         ->where('status', 'Diterima')
-        ->update([
+        ->get();
+
+    foreach ($kegiatanSekarang as $undangan) {
+        $undangan->update([
             'status_pelaksanaan' => 'Sedang Dilaksanakan'
         ]);
+
+        $emails = $undangan->penerimaUndangan
+            ->filter(fn($p) => $p->user && $p->user->email)
+            ->pluck('user.email')
+            ->unique();
+
+        foreach ($emails as $email) {
+            \Illuminate\Support\Facades\Mail::to($email)->send(new \App\Mail\NotifikasiKegiatanMail($undangan));
+        }
+
+        logger("Notifikasi kegiatan {$undangan->judul} telah diantrekan ke " . count($emails) . " penerima.");
+    }
 
     // Update ke Selesai jika tanggal sekarang sudah lebih dari tanggal pada undangan kegiatan
     $today = Carbon::now()->format('Y-m-d');

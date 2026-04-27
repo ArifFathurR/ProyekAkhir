@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Mail;
 
 use Illuminate\Bus\Queueable;
@@ -9,7 +10,7 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use App\Models\UndanganKegiatan;
 
-class UndanganKegiatanMail extends Mailable implements ShouldQueue
+class NotifikasiKegiatanMail extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
@@ -33,7 +34,7 @@ class UndanganKegiatanMail extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Undangan ' . $this->undangan->judul,
+            subject: 'Pengingat Kegiatan: ' . $this->undangan->judul,
         );
     }
 
@@ -43,7 +44,7 @@ class UndanganKegiatanMail extends Mailable implements ShouldQueue
     public function content(): Content
     {
         return new Content(
-            markdown: 'emails.undangan',
+            markdown: 'emails.notifikasi_kegiatan',
             with: [
                 'undangan' => $this->undangan,
                 'tanggalFormatted' => $this->tanggalFormatted,

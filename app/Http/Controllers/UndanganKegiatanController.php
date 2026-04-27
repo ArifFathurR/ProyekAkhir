@@ -243,25 +243,12 @@ public function update(UpdateUndanganKegiatanRequest $request, UndanganKegiatan 
             ]);
 
             // Kirim email ke semua penerima menggunakan queue
-            // Setiap email dikirim secara terpisah agar jika satu gagal tidak mempengaruhi yang lain
-            $berhasil = 0;
-            $gagal = 0;
-
+            // Setiap email dikirim secara terpisah agar jika satu gagal tidak mempengaruhi yang lain di antrean
             foreach ($emails as $email) {
-                try {
-                    Mail::to($email)->send(new UndanganKegiatanMail($undangan));
-                    $berhasil++;
-                    \Log::info("✅ Email berhasil dikirim ke: $email");
-                } catch (\Exception $e) {
-                    $gagal++;
-                    \Log::error("❌ Gagal queue email ke $email: " . $e->getMessage());
-                }
+                Mail::to($email)->send(new UndanganKegiatanMail($undangan));
             }
 
-            $message = "Undangan berhasil dikirim ke {$berhasil} pegawai.";
-            if ($gagal > 0) {
-                $message .= " ({$gagal} gagal)";
-            }
+            $message = "Undangan sedang diproses untuk dikirim ke " . count($emails) . " pegawai melalui antrean.";
 
             return back()->with('success', $message);
         } catch (\Exception $e) {

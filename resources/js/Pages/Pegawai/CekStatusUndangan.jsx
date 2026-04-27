@@ -2,7 +2,7 @@ import Header from '@/Components/Header';
 import SidebarPegawai from '@/Layouts/SidebarPegawai';
 import { router } from '@inertiajs/react';
 import FlashPopup from '@/Components/FlashPopup';
-import { useState } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import Swal from 'sweetalert2';
 import StatsCard from '@/Components/StatsCard';
 import TableCard from '@/Components/TableCard';
@@ -13,21 +13,21 @@ export default function CekStatusUndangan({ undangans, filters }) {
     const [status, setStatus] = useState(filters?.status || '');
     const [loadingKirim, setLoadingKirim] = useState(null);
 
-    const handleSearch = (e) => {
-        e.preventDefault();
+    const handleSearch = useCallback((e) => {
+        if (e) e.preventDefault();
         router.get(route('undangan_kegiatan.index'), { search, status }, {
             preserveState: true,
             replace: true,
         });
-    };
+    }, [search, status]);
 
-    const handleClearFilter = () => {
+    const handleClearFilter = useCallback(() => {
         setSearch('');
         setStatus('');
         router.get(route('undangan_kegiatan.index'));
-    };
+    }, []);
 
-    const handleKirim = (id) => {
+    const handleKirim = useCallback((id) => {
         Swal.fire({
             title: 'Kirim Undangan?',
             text: 'Undangan akan dikirim ke email semua penerima yang terdaftar.',
@@ -44,8 +44,8 @@ export default function CekStatusUndangan({ undangans, filters }) {
                     onSuccess: () => {
                         setLoadingKirim(null);
                         Swal.fire({
-                            title: 'Berhasil!',
-                            text: 'Undangan sedang dikirim ke email penerima.',
+                            title: 'Sedang Diproses!',
+                            text: 'Undangan sedang masuk dalam antrean pengiriman email.',
                             icon: 'success',
                             timer: 2000,
                             showConfirmButton: false,
@@ -55,27 +55,32 @@ export default function CekStatusUndangan({ undangans, filters }) {
                         setLoadingKirim(null);
                         Swal.fire({
                             title: 'Gagal!',
-                            text: 'Terjadi kesalahan saat mengirim email.',
+                            text: 'Terjadi kesalahan saat memproses antrean email.',
                             icon: 'error',
                         });
                     },
                 });
             }
         });
-    };
+    }, []);
 
-    const handleEdit = (id) => {
+    const handleEdit = useCallback((id) => {
         router.get(route('undangan_kegiatan.edit', id));
-    };
+    }, []);
 
-    // Hitung statistik berdasarkan status
-    const totalUndangan = undangans?.total || 0;
-    const undanganDiterima = undangans?.data?.filter(u => u.status === 'Diterima').length || 0;
-    const undanganMenunggu = undangans?.data?.filter(u => u.status === 'Menunggu').length || 0;
-    const undanganDitolak = undangans?.data?.filter(u => u.status === 'Ditolak').length || 0;
+    // Hitung statistik berdasarkan status (di-memo-isasi agar tidak re-calculate setiap render)
+    const { totalUndangan, undanganDiterima, undanganMenunggu, undanganDitolak } = useMemo(() => {
+        const data = undangans?.data || [];
+        return {
+            totalUndangan: undangans?.total || 0,
+            undanganDiterima: data.filter(u => u.status === 'Diterima').length,
+            undanganMenunggu: data.filter(u => u.status === 'Menunggu').length,
+            undanganDitolak: data.filter(u => u.status === 'Ditolak').length,
+        };
+    }, [undangans]);
 
-    // Stats data
-    const statsData = [
+    // Stats data di-memo-isasi
+    const statsData = useMemo(() => [
         {
             title: 'Total Undangan',
             value: totalUndangan,
@@ -125,7 +130,7 @@ export default function CekStatusUndangan({ undangans, filters }) {
                 </svg>
             )
         }
-    ];
+    ], [totalUndangan, undanganDiterima, undanganMenunggu, undanganDitolak]);
 
     // Filter form component
     const filterForm = (
