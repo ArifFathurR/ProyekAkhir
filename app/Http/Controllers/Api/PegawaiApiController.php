@@ -36,6 +36,29 @@ class PegawaiApiController extends Controller
 
         return response()->json(['kegiatan' => $kegiatan]);
     }
+    
+    public function akanDatang()
+    {
+        $userId = Auth::id();
+
+        $kegiatan = PenerimaUndangan::with(['undangan.kegiatan'])
+            ->where('user_id', $userId)
+            ->whereHas('undangan', fn($q) => $q->where('status_pelaksanaan', 'Belum Dilaksanakan'))
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'nama_kegiatan' => $item->undangan->kegiatan->nama_kegiatan ?? '-',
+                    'sub_kegiatan' => $item->undangan->judul ?? '-',
+                    'waktu' => $item->undangan->waktu ?? '-',
+                    'tanggal' => $item->undangan->tanggal ?? '-',
+                    'file_undangan' => route('undangan_kegiatan.preview', $item->undangan_id),
+                    'status_penerima' => $item->status_penerima,
+                ];
+            });
+
+        return response()->json(['kegiatan' => $kegiatan]);
+    }
 
     public function sedang()
     {
