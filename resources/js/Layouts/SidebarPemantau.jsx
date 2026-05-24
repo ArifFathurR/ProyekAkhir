@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   LayoutDashboard,
   Users,
@@ -14,23 +14,29 @@ import {
 
 export default function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
-  const { url } = usePage();
+  const { url, props } = usePage();
+  const { ongoing_activities = 0 } = props;
+
+  // Toggle sidebar via global window event from Header
+  useEffect(() => {
+    const handleToggleSidebar = () => {
+      setIsOpen(prev => !prev);
+    };
+    window.addEventListener('toggle-sidebar', handleToggleSidebar);
+    return () => {
+      window.removeEventListener('toggle-sidebar', handleToggleSidebar);
+    };
+  }, []);
+
+  // Auto close on page transition
+  useEffect(() => {
+    setIsOpen(false);
+  }, [url]);
 
   const isActive = (path) => url.startsWith(path);
 
   return (
     <>
-      {/* Mobile Toggle Header */}
-      <div className="md:hidden bg-white p-4 shadow flex justify-between items-center fixed top-0 left-0 right-0 z-50">
-        <h2 className="font-bold text-lg">Dashboard Pemantau</h2>
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          className="text-xl transition-all duration-200"
-        >
-          ☰
-        </button>
-      </div>
-
       {/* Sidebar Overlay on Mobile */}
       {isOpen && (
         <div
@@ -41,11 +47,11 @@ export default function Sidebar() {
 
       {/* Sidebar */}
       <aside
-        className={`bg-white w-64 h-screen shadow-lg p-4 fixed top-20 left-0 z-40 transform transition-transform duration-300 ease-in-out
+        className={`bg-white w-64 h-[calc(100vh-3.5rem)] md:h-[calc(100vh-5rem)] shadow-lg p-4 fixed top-14 md:top-20 left-0 z-40 transform transition-transform duration-300 ease-in-out
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
         md:translate-x-0 md:block`}
       >
-        <div className="mb-6">
+        <div className="mb-6 mt-2 md:mt-0">
           <h2 className="font-bold text-lg hidden md:block">Dashboard Pemantau</h2>
           <p className="text-sm text-gray-500 hidden md:block">menu</p>
         </div>
@@ -114,7 +120,12 @@ export default function Sidebar() {
                 }`}
               >
                 <ClipboardList size={18} />
-                Lihat Presensi
+                <span className="flex-1">Lihat Presensi</span>
+                {ongoing_activities > 0 && (
+                  <span className="flex-shrink-0 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full font-bold min-w-[20px] text-center animate-pulse">
+                    {ongoing_activities}
+                  </span>
+                )}
               </Link>
             </li>
             <li>

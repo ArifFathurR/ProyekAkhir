@@ -9,7 +9,7 @@ export default function TableCard({
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200">
       {/* Card Header */}
-      <div className="border-b border-gray-200 p-6">
+      <div className="border-b border-gray-200 p-4 sm:p-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
@@ -18,7 +18,7 @@ export default function TableCard({
           
           {/* Action Buttons */}
           {headerActions && (
-            <div className="flex gap-3">
+            <div className="flex flex-wrap gap-2 sm:gap-3">
               {headerActions}
             </div>
           )}

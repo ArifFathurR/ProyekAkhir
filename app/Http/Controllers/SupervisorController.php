@@ -134,6 +134,16 @@ public function konfirmasi(Request $request, $id)
 {
     $undangan = UndanganKegiatan::with(['user', 'kegiatan'])->findOrFail($id);
 
+    if ($undangan->file_undangan) {
+        $filePath = storage_path('app/public/' . $undangan->file_undangan);
+        if (file_exists($filePath)) {
+            return response()->file($filePath, [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => 'inline; filename="' . basename($filePath) . '"'
+            ]);
+        }
+    }
+
     $pdf = Pdf::loadView('pdf.undangan', compact('undangan'))->setPaper('A4', 'portrait');
 
     return $pdf->stream("Undangan_{$undangan->judul}.pdf");

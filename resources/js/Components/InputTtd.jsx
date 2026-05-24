@@ -1,12 +1,69 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import SignatureCanvas from 'react-signature-canvas';
-import { router } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
+import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+
+// Custom icons using standard CSS classes (foolproof & supports Tailwind animations)
+const officeIcon = L.divIcon({
+  html: `<div style="background-color: #3b82f6; width: 16px; height: 16px; border-radius: 9999px; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>`,
+  className: 'custom-office-marker',
+  iconSize: [16, 16],
+  iconAnchor: [8, 8]
+});
+
+const userIcon = L.divIcon({
+  html: `
+    <div style="position: relative; width: 16px; height: 16px;">
+      <div class="animate-ping" style="position: absolute; background-color: #ef4444; opacity: 0.75; width: 16px; height: 16px; border-radius: 9999px;"></div>
+      <div style="position: relative; background-color: #ef4444; width: 16px; height: 16px; border-radius: 9999px; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>
+    </div>
+  `,
+  className: 'custom-user-marker',
+  iconSize: [16, 16],
+  iconAnchor: [8, 8]
+});
+
+// Helper component to update map view when coordinates change
+function ChangeView({ center }) {
+  const map = useMap();
+  useEffect(() => {
+    if (center && center[0] && center[1]) {
+      map.setView(center, 17);
+    }
+  }, [center]);
+  return null;
+}
 
 export default function InputTtd({ penerimaId, onClose }) {
   const canvasRef = useRef(null);
+  const containerRef = useRef(null);
+  const [canvasWidth, setCanvasWidth] = useState(300);
   const [loading, setLoading] = useState(false);
   const [coords, setCoords] = useState({ latitude: '', longitude: '' });
   const [loadingLocation, setLoadingLocation] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (containerRef.current) {
+        const width = containerRef.current.clientWidth - 20;
+        setCanvasWidth(width > 0 ? width : 300);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    const timer = setTimeout(handleResize, 100);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      clearTimeout(timer);
+    };
+  }, []);
+
+  const { props } = usePage();
+  const { absensi_config } = props;
+  const officeLat = absensi_config?.office_latitude || 0.568721;
+  const officeLon = absensi_config?.office_longitude || 101.4264105;
+  const radius = absensi_config?.radius_meters || 75;
 
   // Ambil lokasi user
   const handleAmbilLokasi = () => {
@@ -69,6 +126,11 @@ export default function InputTtd({ penerimaId, onClose }) {
   // Hapus tanda tangan di canvas
   const handleClear = () => canvasRef.current.clear();
 
+  // Coordinates to show on initial load (defaults to office location before user takes location)
+  const mapCenter = coords.latitude && coords.longitude
+    ? [parseFloat(coords.latitude), parseFloat(coords.longitude)]
+    : [officeLat, officeLon];
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white shadow-lg rounded-lg max-w-md w-full mx-4 relative">
@@ -102,12 +164,12 @@ export default function InputTtd({ penerimaId, onClose }) {
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Area Tanda Tangan
             </label>
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-2 bg-gray-50">
+            <div ref={containerRef} className="border-2 border-dashed border-gray-300 rounded-lg p-2 bg-gray-50">
               <SignatureCanvas
                 ref={canvasRef}
                 penColor="black"
                 canvasProps={{
-                  width: 360,
+                  width: canvasWidth,
                   height: 180,
                   className: 'bg-white rounded border mx-auto block'
                 }}
@@ -160,20 +222,37 @@ export default function InputTtd({ penerimaId, onClose }) {
                 {loadingLocation ? '⏳ Mengambil lokasi...' : '📍 Ambil Lokasi'}
               </button>
 
-              {coords.latitude && coords.longitude && (
-                <div className="mt-3 relative w-full h-48 rounded-lg overflow-hidden border border-gray-300">
-                  <iframe
-                    title="Peta Lokasi"
-                    width="100%"
-                    height="100%"
-                    frameBorder="0"
-                    scrolling="no"
-                    marginHeight="0"
-                    marginWidth="0"
-                    src={`https://www.openstreetmap.org/export/embed.html?bbox=${parseFloat(coords.longitude) - 0.005},${parseFloat(coords.latitude) - 0.005},${parseFloat(coords.longitude) + 0.005},${parseFloat(coords.latitude) + 0.005}&layer=mapnik&marker=${coords.latitude},${coords.longitude}`}
-                  ></iframe>
-                </div>
-              )}
+              {/* Leaflet Map rendering */}
+              <div className="mt-3 relative w-full h-48 rounded-lg overflow-hidden border border-gray-300 z-10">
+                <MapContainer
+                  center={mapCenter}
+                  zoom={16}
+                  style={{ height: '100%', width: '100%' }}
+                >
+                  <TileLayer
+                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                  />
+                  <ChangeView center={mapCenter} />
+
+                  {/* Office acuan marker and radius circle */}
+                  <Marker position={[officeLat, officeLon]} icon={officeIcon}>
+                    <Popup>Kantor Acuan</Popup>
+                  </Marker>
+                  <Circle
+                    center={[officeLat, officeLon]}
+                    radius={radius}
+                    pathOptions={{ color: '#3b82f6', fillColor: '#3b82f6', fillOpacity: 0.15 }}
+                  />
+
+                  {/* User marker if taken */}
+                  {coords.latitude && coords.longitude && (
+                    <Marker position={[parseFloat(coords.latitude), parseFloat(coords.longitude)]} icon={userIcon}>
+                      <Popup>Lokasi Anda</Popup>
+                    </Marker>
+                  )}
+                </MapContainer>
+              </div>
             </div>
           </div>
 

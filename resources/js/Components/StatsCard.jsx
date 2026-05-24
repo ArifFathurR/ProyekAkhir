@@ -1,6 +1,6 @@
 export default function StatsCard({ title, value, icon, gradientFrom, gradientTo, iconBgColor }) {
   return (
-    <div className={`bg-gradient-to-r from-${gradientFrom} to-${gradientTo} rounded-xl p-6 text-white shadow-lg`}>
+    <div className={`bg-gradient-to-r from-${gradientFrom} to-${gradientTo} rounded-xl p-4 md:p-6 text-white shadow-lg`}>
       <div className="flex items-center justify-between">
         <div>
           <p className={`text-${gradientFrom.split('-')[0]}-100 text-sm font-medium`}>{title}</p>

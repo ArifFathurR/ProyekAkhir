@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   FileText,
   Info,
@@ -12,9 +12,78 @@ import {
 
 export default function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
-  const { url } = usePage();
+  const { url, props } = usePage();
+  const { user_undangans = [] } = props;
+
+  const [seenIds, setSeenIds] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('seen_undangans') || '[]');
+    } catch {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    let currentTab = null;
+    if (url.startsWith('/kegiatan-saya')) {
+      currentTab = 'saya';
+    } else if (url.startsWith('/kegiatan-SedangBerlangsung')) {
+      currentTab = 'sedang';
+    } else if (url.startsWith('/kegiatan-Selesai')) {
+      currentTab = 'selesai';
+    }
+
+    if (currentTab) {
+      const tabIds = user_undangans
+        .filter(item => item.tab === currentTab)
+        .map(item => item.id);
+
+      if (tabIds.length > 0) {
+        const hasUnseen = tabIds.some(id => !seenIds.includes(id));
+        if (hasUnseen) {
+          const newSeenIds = Array.from(new Set([...seenIds, ...tabIds]));
+          localStorage.setItem('seen_undangans', JSON.stringify(newSeenIds));
+          setSeenIds(newSeenIds);
+          window.dispatchEvent(new Event('seen_updated'));
+        }
+      }
+    }
+  }, [url, user_undangans]);
+
+  useEffect(() => {
+    const handleStorageChange = () => {
+      try {
+        setSeenIds(JSON.parse(localStorage.getItem('seen_undangans') || '[]'));
+      } catch {}
+    };
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('seen_updated', handleStorageChange);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('seen_updated', handleStorageChange);
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleToggleSidebar = () => {
+      setIsOpen(prev => !prev);
+    };
+    window.addEventListener('toggle-sidebar', handleToggleSidebar);
+    return () => {
+      window.removeEventListener('toggle-sidebar', handleToggleSidebar);
+    };
+  }, []);
+
+  // Tutup sidebar otomatis ketika berpindah halaman di mobile
+  useEffect(() => {
+    setIsOpen(false);
+  }, [url]);
 
   const isActive = (path) => url.startsWith(path);
+
+  // Hitung jumlah undangan belum dibaca
+  const unreadItems = user_undangans.filter(item => !seenIds.includes(item.id));
+  const totalUnread = unreadItems.length;
 
   const menuItems = [
     {
@@ -51,17 +120,6 @@ export default function Sidebar() {
 
   return (
     <>
-      {/* Mobile Toggle Header */}
-      <div className="md:hidden bg-white p-4 shadow flex justify-between items-center fixed top-0 left-0 right-0 z-50">
-        <h2 className="font-bold text-lg">Dashboard Pegawai</h2>
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          className="text-xl transition-all duration-200"
-        >
-          ☰
-        </button>
-      </div>
-
       {/* Sidebar Overlay on Mobile */}
       {isOpen && (
         <div
@@ -72,7 +130,7 @@ export default function Sidebar() {
 
       {/* Sidebar */}
       <aside
-        className={`bg-white w-64 h-screen shadow-lg p-4 fixed top-20 left-0 z-40 transform transition-transform duration-300 ease-in-out
+        className={`bg-white w-64 h-[calc(100vh-3.5rem)] md:h-[calc(100vh-5rem)] shadow-lg p-4 fixed top-14 md:top-20 left-0 z-40 transform transition-transform duration-300 ease-in-out
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
         md:translate-x-0 md:block`}
       >
@@ -96,7 +154,12 @@ export default function Sidebar() {
                   }`}
                 >
                   {item.icon}
-                  <span>{item.label}</span>
+                  <span className="flex-1">{item.label}</span>
+                  {item.label === 'Kegiatan Saya' && totalUnread > 0 && (
+                    <span className="flex-shrink-0 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full font-bold min-w-[20px] text-center animate-pulse">
+                      {totalUnread}
+                    </span>
+                  )}
                 </Link>
               </li>
             ))}

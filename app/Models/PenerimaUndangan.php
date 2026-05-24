@@ -25,6 +25,17 @@ class PenerimaUndangan extends Model
         'alasan_berhalangan',
     ];
 
+    public function getTtdAttribute($value)
+    {
+        if (!$value) {
+            return null;
+        }
+        if (str_starts_with($value, 'http') || str_starts_with($value, '/') || str_starts_with($value, 'data:')) {
+            return $value;
+        }
+        return '/' . $value;
+    }
+
     public function tim()
 {
     return $this->belongsTo(Tim::class);

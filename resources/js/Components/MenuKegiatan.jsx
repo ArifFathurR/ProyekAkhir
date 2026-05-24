@@ -1,16 +1,46 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { FaListUl, FaCalendarAlt } from 'react-icons/fa';
 import { router, usePage } from '@inertiajs/react';
 
 const MenuKegiatan = () => {
-  const { url } = usePage();
+  const { url, props } = usePage();
+  const { user_undangans = [] } = props;
   const currentRoute = route().current();
+
+  const [seenIds, setSeenIds] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('seen_undangans') || '[]');
+    } catch {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    const handleStorageChange = () => {
+      try {
+        setSeenIds(JSON.parse(localStorage.getItem('seen_undangans') || '[]'));
+      } catch {}
+    };
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('seen_updated', handleStorageChange);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('seen_updated', handleStorageChange);
+    };
+  }, []);
+
+  const getUnreadCount = (tabValue) => {
+    if (tabValue === 'kalender') return 0;
+    return user_undangans.filter(
+      item => item.tab === tabValue && !seenIds.includes(item.id)
+    ).length;
+  };
 
   const tabs = [
     {
       label: 'Acara akan datang',
       icon: <FaListUl />,
-      value: 'akan',
+      value: 'saya',
       route: 'pegawai.show',
     },
     {
@@ -38,9 +68,10 @@ const MenuKegiatan = () => {
   };
 
   return (
-    <div className="flex justify-start gap-3 mb-6 mt-14">
+    <div className="flex justify-start gap-3 mb-6 mt-2 overflow-x-auto pb-2 whitespace-nowrap scrollbar-none">
       {tabs.map((tab) => {
         const isActive = currentRoute === tab.route;
+        const unreadCount = getUnreadCount(tab.value);
         return (
           <button
             key={tab.value}
@@ -51,7 +82,13 @@ const MenuKegiatan = () => {
                 : 'bg-white text-gray-800 border-gray-300 hover:bg-gray-100'
               }`}
           >
-            {tab.icon} {tab.label}
+            {tab.icon} 
+            <span>{tab.label}</span>
+            {unreadCount > 0 && (
+              <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full font-bold animate-pulse">
+                {unreadCount}
+              </span>
+            )}
           </button>
         );
       })}

@@ -148,12 +148,12 @@ export default function KalenderKegiatan({ kegiatan = [] }) {
   };
 
   return (
-    <div className="flex justify-start">
+    <div className="flex justify-start min-h-screen w-full overflow-x-hidden">
       <SidebarPegawai />
-      <div className="flex-1 bg-[#F5F7FA] min-h-screen md:ml-64">
+      <div className="flex-1 min-w-0 bg-[#F5F7FA] min-h-screen md:ml-64">
         <Header />
 
-        <main className="pt-28 px-4">
+        <main className="pt-20 md:pt-28 px-4">
           <div className="w-full">
             {/* Page Header */}
             <div className="mb-6">
@@ -214,6 +214,16 @@ export default function KalenderKegiatan({ kegiatan = [] }) {
                   .fc-day-today .fc-daygrid-day-number {
                     color: #0284c7 !important; /* blue text for number */
                     font-weight: bold;
+                  }
+                  
+                  @media (max-width: 768px) {
+                    .fc .fc-toolbar {
+                      flex-direction: column !important;
+                      gap: 8px !important;
+                    }
+                    .fc .fc-toolbar-title {
+                      font-size: 1.25rem !important;
+                    }
                   }
                 `}} />
                 <FullCalendar

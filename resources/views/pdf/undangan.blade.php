@@ -52,17 +52,29 @@
     <!-- Isi Surat -->
     <div class="content">
         <div class="nomor">
-            <table style="width:100%;">
+            <table style="width: 100%; border-collapse: collapse;">
                 <tr>
-                    <td style="width:80%;">
-                        Nomor&nbsp;&nbsp;: {{ $undangan->nomor_surat ?? '123/XXX/2024' }} <br>
-                        Sifat&nbsp;&nbsp;&nbsp;&nbsp;: {{ $undangan->sifat ?? 'Biasa' }} <br>
-                        Lampiran: 1 (satu) lembar <br>
-                        Hal&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: Undangan {{ $undangan->judul }}
-                    </td>
-                    <td style="text-align:right; width:20%;">
+                    <td style="width: 80px; padding: 0; vertical-align: top;">Nomor</td>
+                    <td style="width: 15px; padding: 0; vertical-align: top;">:</td>
+                    <td style="padding: 0; vertical-align: top;">{{ $undangan->nomor_surat ?? '123/XXX/2024' }}</td>
+                    <td style="text-align: right; width: 40%; padding: 0; vertical-align: top;">
                         Pekanbaru, {{ \Carbon\Carbon::now()->translatedFormat('d F Y') }}
                     </td>
+                </tr>
+                <tr>
+                    <td style="padding: 0; vertical-align: top;">Sifat</td>
+                    <td style="padding: 0; vertical-align: top;">:</td>
+                    <td style="padding: 0; vertical-align: top;">{{ $undangan->sifat ?? 'Biasa' }}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 0; vertical-align: top;">Lampiran</td>
+                    <td style="padding: 0; vertical-align: top;">:</td>
+                    <td style="padding: 0; vertical-align: top;">1 (satu) lembar</td>
+                </tr>
+                <tr>
+                    <td style="padding: 0; vertical-align: top;">Hal</td>
+                    <td style="padding: 0; vertical-align: top;">:</td>
+                    <td style="padding: 0; vertical-align: top;">Undangan {{ $undangan->judul }}</td>
                 </tr>
             </table>
         </div>
@@ -73,12 +85,28 @@
             Dalam rangka kegiatan {{ $undangan->judul }}, Bapak/Ibu diundang untuk mengikuti {{ $undangan->deskripsi }} yang akan dilaksanakan pada:
         </p>
 
-        <p class="ml">
-            Hari/Tanggal : {{ \Carbon\Carbon::parse($undangan->tanggal)->translatedFormat('l, d F Y') }}<br>
-            Pukul&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: {{ $undangan->waktu }} WIB<br>
-            Tempat&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: {{ $undangan->tempat }}<br>
-            Agenda&nbsp;&nbsp;&nbsp;: {{ $undangan->agenda }}
-        </p>
+        <table style="border-collapse: collapse; margin-left: 40px; margin-bottom: 15px;">
+            <tr>
+                <td style="width: 100px; padding: 2px 0; vertical-align: top;">Hari/Tanggal</td>
+                <td style="width: 15px; padding: 2px 0; vertical-align: top;">:</td>
+                <td style="padding: 2px 0; vertical-align: top;">{{ $undangan->hari }}, {{ \Carbon\Carbon::parse($undangan->tanggal)->translatedFormat('d F Y') }}</td>
+            </tr>
+            <tr>
+                <td style="padding: 2px 0; vertical-align: top;">Pukul</td>
+                <td style="padding: 2px 0; vertical-align: top;">:</td>
+                <td style="padding: 2px 0; vertical-align: top;">{{ $undangan->waktu }} WIB</td>
+            </tr>
+            <tr>
+                <td style="padding: 2px 0; vertical-align: top;">Tempat</td>
+                <td style="padding: 2px 0; vertical-align: top;">:</td>
+                <td style="padding: 2px 0; vertical-align: top;">{{ $undangan->tempat }}</td>
+            </tr>
+            <tr>
+                <td style="padding: 2px 0; vertical-align: top;">Agenda</td>
+                <td style="padding: 2px 0; vertical-align: top;">:</td>
+                <td style="padding: 2px 0; vertical-align: top;">{{ $undangan->agenda }}</td>
+            </tr>
+        </table>
 
         <p>Demikian untuk dipedomani. Atas perhatian dan kerjasamanya diucapkan terima kasih.</p>
 

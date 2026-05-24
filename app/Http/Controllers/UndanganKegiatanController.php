@@ -92,13 +92,22 @@ public function create()
 
     // Simpan ke tabel penerima_undangan (hanya isi undangan_id, user_id, tim_id)
     if ($request->has('user_ids') && is_array($request->user_ids)) {
+        $selectedTimIds = $request->input('tim_ids', []);
         foreach ($request->user_ids as $userId) {
-            $timId = AnggotaTim::where('user_id', $userId)->value('tim_id');
+            // Cari tim_id user yang ada dalam daftar selectedTimIds
+            $timId = AnggotaTim::where('user_id', $userId)
+                ->whereIn('tim_id', $selectedTimIds)
+                ->value('tim_id');
+
+            // Jika tidak ditemukan, fallback ke tim mana saja yang diikuti user tersebut
+            if (!$timId) {
+                $timId = AnggotaTim::where('user_id', $userId)->value('tim_id');
+            }
 
             PenerimaUndangan::create([
                 'undangan_id' => $undangan->id,
                 'user_id' => $userId,
-                'tim_id' => $timId ?? $data['tim_id'] ?? null,
+                'tim_id' => $timId,
                 'status_penerima' => 'terima',
                 'status_kehadiran' => 'belum',
             ]);
@@ -181,10 +190,19 @@ public function update(UpdateUndanganKegiatanRequest $request, UndanganKegiatan 
         // Hapus semua penerima lama yang terkait dengan undangan ini
         PenerimaUndangan::where('undangan_id', $undanganKegiatan->id)->delete();
 
+        $selectedTimIds = $request->input('tim_ids', []);
+
         // Masukkan ulang user_id yang baru
         foreach ($request->user_ids as $userId) {
-            // Ambil tim_id dari tabel anggota_tim (jika ada)
-            $timId = AnggotaTim::where('user_id', $userId)->value('tim_id');
+            // Cari tim_id user yang ada dalam daftar selectedTimIds
+            $timId = AnggotaTim::where('user_id', $userId)
+                ->whereIn('tim_id', $selectedTimIds)
+                ->value('tim_id');
+
+            // Jika tidak ditemukan, fallback ke tim mana saja yang diikuti user tersebut
+            if (!$timId) {
+                $timId = AnggotaTim::where('user_id', $userId)->value('tim_id');
+            }
 
             // Buat penerima undangan baru
             PenerimaUndangan::create([
@@ -222,9 +240,23 @@ public function update(UpdateUndanganKegiatanRequest $request, UndanganKegiatan 
     }
     public function kirim(Request $request, $id)
     {
+        $request->validate([
+            'file_undangan' => 'required|file|mimes:pdf|max:2048',
+        ]);
+
         try {
             $undangan = UndanganKegiatan::with(['kegiatan', 'penerimaUndangan.user'])
                 ->findOrFail($id);
+
+            if ($request->hasFile('file_undangan')) {
+                // Hapus file lama jika ada
+                if ($undangan->file_undangan && Storage::disk('public')->exists($undangan->file_undangan)) {
+                    Storage::disk('public')->delete($undangan->file_undangan);
+                }
+
+                $path = $request->file('file_undangan')->store('surat_undangan', 'public');
+                $undangan->update(['file_undangan' => $path]);
+            }
 
             // Ambil semua email penerima undangan dari database
             $emails = $undangan->penerimaUndangan

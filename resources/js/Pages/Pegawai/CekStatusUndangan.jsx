@@ -29,18 +29,27 @@ export default function CekStatusUndangan({ undangans, filters }) {
 
     const handleKirim = useCallback((id) => {
         Swal.fire({
-            title: 'Kirim Undangan?',
-            text: 'Undangan akan dikirim ke email semua penerima yang terdaftar.',
-            icon: 'question',
+            title: 'Kirim Undangan',
+            text: 'Silakan unggah berkas surat undangan (PDF) terlebih dahulu sebelum mengirim.',
+            input: 'file',
+            inputAttributes: {
+                accept: 'application/pdf',
+                required: 'required'
+            },
             showCancelButton: true,
             confirmButtonColor: '#16a34a',
             cancelButtonColor: '#6b7280',
-            confirmButtonText: 'Ya, Kirim!',
+            confirmButtonText: 'Kirim Undangan',
             cancelButtonText: 'Batal',
+            validationMessage: 'Berkas surat undangan PDF wajib diunggah!'
         }).then((result) => {
-            if (result.isConfirmed) {
+            if (result.isConfirmed && result.value) {
+                const file = result.value;
+                const formData = new FormData();
+                formData.append('file_undangan', file);
+
                 setLoadingKirim(id);
-                router.post(route('pegawai.undangan.kirim', id), {}, {
+                router.post(route('pegawai.undangan.kirim', id), formData, {
                     onSuccess: () => {
                         setLoadingKirim(null);
                         Swal.fire({
@@ -51,11 +60,12 @@ export default function CekStatusUndangan({ undangans, filters }) {
                             showConfirmButton: false,
                         });
                     },
-                    onError: () => {
+                    onError: (errors) => {
                         setLoadingKirim(null);
+                        const errorMsg = errors?.file_undangan || 'Terjadi kesalahan saat memproses antrean email.';
                         Swal.fire({
                             title: 'Gagal!',
-                            text: 'Terjadi kesalahan saat memproses antrean email.',
+                            text: errorMsg,
                             icon: 'error',
                         });
                     },
@@ -134,7 +144,7 @@ export default function CekStatusUndangan({ undangans, filters }) {
 
     // Filter form component
     const filterForm = (
-        <div onSubmit={handleSearch}>
+        <form onSubmit={handleSearch}>
             <div className="flex flex-col lg:flex-row gap-3">
                 {/* Search Input */}
                 <div className="relative flex-1">
@@ -169,8 +179,7 @@ export default function CekStatusUndangan({ undangans, filters }) {
                 {/* Action Buttons */}
                 <div className="flex gap-2">
                     <button
-                        type="button"
-                        onClick={handleSearch}
+                        type="submit"
                         className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm transition-colors duration-200"
                     >
                         Filter
@@ -186,17 +195,17 @@ export default function CekStatusUndangan({ undangans, filters }) {
                     )}
                 </div>
             </div>
-        </div>
+        </form>
     );
 
     return (
-        <div className="flex justify-start">
+        <div className="flex justify-start min-h-screen w-full overflow-x-hidden">
             <SidebarPegawai />
-            <div className="flex-1 bg-[#F5F7FA] min-h-screen md:ml-64">
+            <div className="flex-1 min-w-0 bg-[#F5F7FA] min-h-screen md:ml-64">
                 <Header />
                 <FlashPopup />
 
-                <main className="pt-28 px-4">
+                <main className="pt-20 md:pt-28 px-4">
                     <div className="w-full">
                         {/* Page Header */}
                         <div className="mb-6">

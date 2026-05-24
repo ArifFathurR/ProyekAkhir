@@ -81,13 +81,13 @@ export default function KegiatanSelesai({ kegiatan = [], auth }) {
   ];
 
   return (
-    <div className="flex justify-start">
+    <div className="flex justify-start min-h-screen w-full overflow-x-hidden">
       <SidebarPegawai />
-      <div className="flex-1 bg-[#F5F7FA] min-h-screen md:ml-64">
+      <div className="flex-1 min-w-0 bg-[#F5F7FA] min-h-screen md:ml-64">
         <Header />
         <FlashPopup />
 
-        <main className="pt-28 px-4">
+        <main className="pt-20 md:pt-28 px-4">
           <div className="w-full">
             {/* Page Header */}
             <div className="mb-6">

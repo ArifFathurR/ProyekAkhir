@@ -36,6 +36,8 @@ class UpdateUndanganKegiatanRequest extends FormRequest
             'status' => 'nullable|string|max:50',
             'status_pelaksanaan' => 'nullable|string|max:50',
             'komentar' => 'nullable|string|max:500',
+            'tim_ids' => 'nullable|array',
+            'tim_ids.*' => 'exists:tims,id',
         ];
     }
 }

@@ -42,12 +42,12 @@ export default function EditUndangan({ undangan, kegiatans = [], tims = [], pega
   };
 
   return (
-    <div className="flex justify-start">
+    <div className="flex justify-start min-h-screen w-full overflow-x-hidden">
       <SidebarPegawai />
-      <div className="flex-1 bg-[#F5F7FA] min-h-screen md:ml-64">
+      <div className="flex-1 min-w-0 bg-[#F5F7FA] min-h-screen md:ml-64">
         <Header />
-        <main className="pt-28 px-6">
-          <div className="bg-white shadow rounded p-8 mx-auto">
+        <main className="pt-20 md:pt-28 px-4 md:px-6">
+          <div className="bg-white shadow rounded p-4 md:p-8 mx-auto">
             <h2 className="text-xl font-semibold text-center mb-8">Edit Undangan Kegiatan</h2>
             <form className="space-y-6" onSubmit={handleSubmit}>
               {/* Kegiatan */}
@@ -72,7 +72,7 @@ export default function EditUndangan({ undangan, kegiatans = [], tims = [], pega
               </div>
 
               {/* Nomor & Sifat */}
-              <div className="grid grid-cols-2 gap-x-6 gap-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6">
                 <div className="space-y-2">
                   <Label>Nomor Surat</Label>
                   <Input
@@ -94,7 +94,7 @@ export default function EditUndangan({ undangan, kegiatans = [], tims = [], pega
               </div>
 
               {/* Hari / Tanggal / Waktu */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-6">
                 <div className="space-y-2">
                   <Label>Hari</Label>
                   <Input
@@ -134,7 +134,7 @@ export default function EditUndangan({ undangan, kegiatans = [], tims = [], pega
               </div>
 
               {/* Tempat & Agenda */}
-              <div className="grid grid-cols-2 gap-x-6 gap-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6">
                 <div className="space-y-2">
                   <Label>Tempat</Label>
                   <Input

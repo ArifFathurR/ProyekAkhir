@@ -124,7 +124,7 @@ export default function DataDokumentasi({ dokumentasis, filters = {}, totalUndan
 
   // Filter form
   const filterForm = (
-    <div onSubmit={handleFilter}>
+    <form onSubmit={handleFilter}>
       <div className="flex flex-col lg:flex-row gap-3">
         <div className="relative flex-1">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -152,8 +152,7 @@ export default function DataDokumentasi({ dokumentasis, filters = {}, totalUndan
 
         <div className="flex gap-2">
           <button
-            type="button"
-            onClick={handleFilter}
+            type="submit"
             className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm transition-colors duration-200"
           >
             Filter
@@ -169,17 +168,17 @@ export default function DataDokumentasi({ dokumentasis, filters = {}, totalUndan
           )}
         </div>
       </div>
-    </div>
+    </form>
   );
 
   return (
-    <div className="flex justify-start">
+    <div className="flex justify-start min-h-screen w-full overflow-x-hidden">
       <SidebarPegawai />
-      <div className="flex-1 bg-[#F5F7FA] min-h-screen md:ml-64">
+      <div className="flex-1 min-w-0 bg-[#F5F7FA] min-h-screen md:ml-64">
         <Header />
         <FlashPopup />
 
-        <main className="pt-28 px-4">
+        <main className="pt-20 md:pt-28 px-4">
           <div className="w-full">
             <div className="mb-6">
               <h1 className="text-2xl font-bold text-gray-900">Manajemen Dokumentasi</h1>

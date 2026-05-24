@@ -82,13 +82,13 @@ export default function CreateDokumentasi({ undanganOptions = [] }) {
   };
 
   return (
-    <div className="flex justify-start">
+    <div className="flex justify-start min-h-screen w-full overflow-x-hidden">
       <SidebarPegawai />
-      <div className="flex-1 bg-[#F5F7FA] min-h-screen md:ml-64">
+      <div className="flex-1 min-w-0 bg-[#F5F7FA] min-h-screen md:ml-64">
         <Header />
-        <main className="pt-28 px-6">
+        <main className="pt-20 md:pt-28 px-4 md:px-6">
           <FlashPopup flash={flash} />
-          <div className="max-w-full mx-auto p-6 bg-white shadow rounded">
+          <div className="max-w-full mx-auto p-4 sm:p-6 bg-white shadow rounded">
             <h1 className="text-2xl font-bold mb-6 text-center text-gray-800">Tambah Dokumentasi Kegiatan</h1>
             <form onSubmit={handleSubmit} encType="multipart/form-data" className="space-y-6">
 

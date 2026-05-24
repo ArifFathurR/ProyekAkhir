@@ -103,13 +103,13 @@ export default function RiwayatPresensi({ presensi }) {
     );
 
     return (
-        <div className="flex justify-start">
+        <div className="flex justify-start min-h-screen w-full overflow-x-hidden">
             <SidebarPegawai />
-            <div className="flex-1 bg-[#F5F7FA] min-h-screen md:ml-64">
+            <div className="flex-1 min-w-0 bg-[#F5F7FA] min-h-screen md:ml-64">
                 <Header />
                 <FlashPopup />
 
-                <main className="pt-28 px-4">
+                <main className="pt-20 md:pt-28 px-4">
                     <div className="w-full">
                         <div className="mb-6">
                             <h1 className="text-2xl font-bold text-gray-900">Riwayat Presensi</h1>
@@ -204,7 +204,7 @@ export default function RiwayatPresensi({ presensi }) {
                                             ))
                                         ) : (
                                             <tr>
-                                                <td colSpan="7" className="px-6 py-12 text-center">
+                                                <td colSpan="8" className="px-6 py-12 text-center">
                                                     <div className="flex flex-col items-center">
                                                         <svg className="w-12 h-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />

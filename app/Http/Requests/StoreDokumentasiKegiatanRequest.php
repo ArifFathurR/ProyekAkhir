@@ -25,8 +25,8 @@ class StoreDokumentasiKegiatanRequest extends FormRequest
             'undangan_id'   => 'nullable|exists:undangan_kegiatans,id',
             'kegiatan_id'   => 'nullable|exists:kegiatans,id',
             'notulensi'     => 'required|string|max:255|string',
-            'link_zoom'     => 'required|string|max:255|url',
-            'link_materi'   => 'required|string|max:255|url',
+            'link_zoom'     => 'nullable|string|max:255|url',
+            'link_materi'   => 'nullable|string|max:255|url',
         ];
     }
 }

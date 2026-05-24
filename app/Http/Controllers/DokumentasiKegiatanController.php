@@ -206,7 +206,7 @@ class DokumentasiKegiatanController extends Controller
                 $quality = 75;
                 $encodedImage = $image->toJpeg($quality);
 
-                while (strlen((string) $encodedImage) > 30 * 1024 && $quality > 10) {
+                while (strlen((string) $encodedImage) > 300 * 1024 && $quality > 10) {
                     $quality -= 5;
                     $encodedImage = $image->toJpeg($quality);
                 }

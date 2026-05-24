@@ -26,11 +26,18 @@ export default function CreateUndangan({ kegiatans = [], tims = [], pegawaiList 
     komentar: '',
     judul: '',
     deskripsi: '',
-    tim_id: '',
+    tim_ids: [],
     user_ids: [],
   });
 
   const [selectedPegawai, setSelectedPegawai] = useState([]);
+  const [selectedTims, setSelectedTims] = useState([]);
+
+  const timOptions = useMemo(() =>
+    tims.map(t => ({
+      value: String(t.id),
+      label: t.nama_tim
+    })), [tims]);
 
   const pegawaiOptions = useMemo(() =>
     pegawaiList.map(p => ({
@@ -43,14 +50,17 @@ export default function CreateUndangan({ kegiatans = [], tims = [], pegawaiList 
   }, [selectedPegawai]);
 
   useEffect(() => {
-    if (data.tim_id) {
+    if (data.tim_ids && data.tim_ids.length > 0) {
       const anggota = anggotaTim
-        .filter(a => a.tim_id == data.tim_id)
+        .filter(a => data.tim_ids.includes(String(a.tim_id)))
         .map(a => String(a.user_id));
-      const matched = pegawaiOptions.filter(p => anggota.includes(p.value));
+      const uniqueUserIds = Array.from(new Set(anggota));
+      const matched = pegawaiOptions.filter(p => uniqueUserIds.includes(p.value));
       setSelectedPegawai(matched);
+    } else if (data.tim_ids && data.tim_ids.length === 0) {
+      setSelectedPegawai([]);
     }
-  }, [data.tim_id]);
+  }, [data.tim_ids, pegawaiOptions, anggotaTim]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -58,12 +68,12 @@ export default function CreateUndangan({ kegiatans = [], tims = [], pegawaiList 
   };
 
   return (
-    <div className="flex justify-start">
+    <div className="flex justify-start min-h-screen w-full overflow-x-hidden">
       <SidebarPegawai />
-      <div className="flex-1 bg-[#F5F7FA] min-h-screen md:ml-64">
+      <div className="flex-1 min-w-0 bg-[#F5F7FA] min-h-screen md:ml-64">
         <Header />
-        <main className="pt-28 px-6">
-          <div className="bg-white shadow rounded p-8 mx-auto">
+        <main className="pt-20 md:pt-28 px-4 md:px-6">
+          <div className="bg-white shadow rounded p-4 md:p-8 mx-auto">
             <h2 className="text-xl font-semibold text-center mb-8">Buat Undangan Kegiatan</h2>
             <form className="space-y-6" onSubmit={handleSubmit}>
               {/* Kegiatan */}
@@ -88,7 +98,7 @@ export default function CreateUndangan({ kegiatans = [], tims = [], pegawaiList 
               </div>
 
               {/* Nomor & Sifat */}
-              <div className="grid grid-cols-2 gap-x-6 gap-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6">
                 <div className="space-y-2">
                   <Label>Nomor Surat</Label>
                   <Input
@@ -110,7 +120,7 @@ export default function CreateUndangan({ kegiatans = [], tims = [], pegawaiList 
               </div>
 
               {/* Hari / Tanggal / Waktu */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-6">
                 <div className="space-y-2">
                   <Label>Hari</Label>
                   <Input
@@ -150,7 +160,7 @@ export default function CreateUndangan({ kegiatans = [], tims = [], pegawaiList 
               </div>
 
               {/* Tempat & Agenda */}
-              <div className="grid grid-cols-2 gap-x-6 gap-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6">
                 <div className="space-y-2">
                   <Label>Tempat</Label>
                   <Input
@@ -204,21 +214,18 @@ export default function CreateUndangan({ kegiatans = [], tims = [], pegawaiList 
               {/* Tim */}
               <div className="space-y-2">
                 <Label>Pilih Tim (opsional)</Label>
-                <Select
-                  value={String(data.tim_id)}
-                  onValueChange={(value) => setData('tim_id', value)}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Pilih Tim" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {tims.map((tim) => (
-                      <SelectItem key={tim.id} value={String(tim.id)}>
-                        {tim.nama_tim}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <ReactSelect
+                  isMulti
+                  options={timOptions}
+                  value={selectedTims}
+                  onChange={(val) => {
+                    setSelectedTims(val || []);
+                    setData('tim_ids', (val || []).map(v => v.value));
+                  }}
+                  placeholder="Pilih Tim..."
+                  className="react-select-container"
+                  classNamePrefix="react-select"
+                />
               </div>
 
               {/* Penerima */}

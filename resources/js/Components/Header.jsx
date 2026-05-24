@@ -16,16 +16,26 @@ export default function Header() {
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.addEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
   return (
-    <header className="hidden md:flex fixed top-0 left-0 w-full z-50 bg-[#0B2E74] text-white justify-between items-center px-4 md:px-6 py-5 shadow">
+    <header className="flex fixed top-0 left-0 w-full h-14 md:h-20 z-50 bg-[#0B2E74] text-white justify-between items-center px-4 md:px-6 shadow">
       <div className="flex items-center gap-2">
-        <img src="/storage/logo_bps.png" alt="Logo" className="w-15 h-10" />
+        <button
+          onClick={() => window.dispatchEvent(new Event('toggle-sidebar'))}
+          className="p-1 -ml-1 mr-1 hover:bg-[#082054] rounded transition md:hidden focus:outline-none"
+          title="Toggle Sidebar"
+        >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+        <img src="/storage/logo_bps.png" alt="Logo" className="w-10 h-7 md:w-14 md:h-10 object-contain" />
         <div className="text-sm md:text-lg font-bold">
-          BADAN PUSAT STATISTIK PROVINSI RIAU
+          <span className="inline sm:hidden">BPS Provinsi Riau</span>
+          <span className="hidden sm:inline">BADAN PUSAT STATISTIK PROVINSI RIAU</span>
         </div>
       </div>
       <div className="flex items-center gap-4 text-md">

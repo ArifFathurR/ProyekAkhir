@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   FolderKanban,
   ClipboardList,
@@ -13,23 +13,81 @@ import {
 
 export default function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
-  const { url } = usePage();
+  const { url, props } = usePage();
+  const { user_undangans = [], pending_approvals = 0 } = props;
+
+  const [seenIds, setSeenIds] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('seen_undangans') || '[]');
+    } catch {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    let currentTab = null;
+    if (url.startsWith('/kegiatan-saya-supervisor')) {
+      currentTab = 'saya';
+    } else if (url.startsWith('/kegiatan-SedangBerlangsung-supervisor')) {
+      currentTab = 'sedang';
+    } else if (url.startsWith('/kegiatan-Selesai-supervisor')) {
+      currentTab = 'selesai';
+    }
+
+    if (currentTab) {
+      const tabIds = user_undangans
+        .filter(item => item.tab === currentTab)
+        .map(item => item.id);
+
+      if (tabIds.length > 0) {
+        const hasUnseen = tabIds.some(id => !seenIds.includes(id));
+        if (hasUnseen) {
+          const newSeenIds = Array.from(new Set([...seenIds, ...tabIds]));
+          localStorage.setItem('seen_undangans', JSON.stringify(newSeenIds));
+          setSeenIds(newSeenIds);
+          window.dispatchEvent(new Event('seen_updated'));
+        }
+      }
+    }
+  }, [url, user_undangans]);
+
+  useEffect(() => {
+    const handleStorageChange = () => {
+      try {
+        setSeenIds(JSON.parse(localStorage.getItem('seen_undangans') || '[]'));
+      } catch {}
+    };
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('seen_updated', handleStorageChange);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('seen_updated', handleStorageChange);
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleToggleSidebar = () => {
+      setIsOpen(prev => !prev);
+    };
+    window.addEventListener('toggle-sidebar', handleToggleSidebar);
+    return () => {
+      window.removeEventListener('toggle-sidebar', handleToggleSidebar);
+    };
+  }, []);
+
+  // Auto close on page transition
+  useEffect(() => {
+    setIsOpen(false);
+  }, [url]);
 
   const isActive = (path) => url.startsWith(path);
 
+  // Hitung jumlah undangan belum dibaca
+  const unreadItems = user_undangans.filter(item => !seenIds.includes(item.id));
+  const totalUnread = unreadItems.length;
+
   return (
     <>
-      {/* Mobile Toggle Header */}
-      <div className="md:hidden bg-white p-4 shadow flex justify-between items-center fixed top-0 left-0 right-0 z-50">
-        <h2 className="font-bold text-lg">Dashboard Supervisor</h2>
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          className="text-xl transition-all duration-200"
-        >
-          ☰
-        </button>
-      </div>
-
       {/* Overlay Mobile */}
       {isOpen && (
         <div
@@ -40,12 +98,12 @@ export default function Sidebar() {
 
       {/* Sidebar */}
       <aside
-        className={`bg-white w-64 h-screen shadow-lg p-4 fixed top-20 left-0 z-40 transform transition-transform duration-300 ease-in-out
+        className={`bg-white w-64 h-[calc(100vh-3.5rem)] md:h-[calc(100vh-5rem)] shadow-lg p-4 fixed top-14 md:top-20 left-0 z-40 transform transition-transform duration-300 ease-in-out
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
         md:translate-x-0 md:block`}
       >
         {/* Header */}
-        <div className="mb-6">
+        <div className="mb-6 mt-2 md:mt-0">
           <h2 className="font-bold text-lg hidden md:block">Dashboard Supervisor</h2>
           <p className="text-sm text-gray-500 hidden md:block">Menu</p>
         </div>
@@ -63,7 +121,7 @@ export default function Sidebar() {
                 }`}
               >
                 <FolderKanban size={18} />
-                Semua Kegiatan
+                <span className="flex-1">Semua Kegiatan</span>
               </Link>
             </li>
             <li>
@@ -76,20 +134,30 @@ export default function Sidebar() {
                 }`}
               >
                 <ClipboardList size={18} />
-                Kegiatan Saya
+                <span className="flex-1">Kegiatan Saya</span>
+                {totalUnread > 0 && (
+                  <span className="flex-shrink-0 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full font-bold min-w-[20px] text-center animate-pulse">
+                    {totalUnread}
+                  </span>
+                )}
               </Link>
             </li>
             <li>
               <Link
                 href={route('supervisor.index')}
                 className={`flex items-center gap-2 p-2 rounded ${
-                  isActive('/supervisor')
+                  isActive('/supervisor') && !url.includes('/kegiatan-saya-supervisor') && !url.includes('/kegiatan-SedangBerlangsung-supervisor') && !url.includes('/kegiatan-Selesai-supervisor')
                     ? 'bg-blue-100 text-black font-semibold'
                     : 'hover:bg-gray-100 text-gray-700'
                 }`}
               >
                 <MailCheck size={18} />
-                Konfirmasi Undangan
+                <span className="flex-1">Konfirmasi Undangan</span>
+                {pending_approvals > 0 && (
+                  <span className="flex-shrink-0 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full font-bold min-w-[20px] text-center animate-pulse">
+                    {pending_approvals}
+                  </span>
+                )}
               </Link>
             </li>
             <li>

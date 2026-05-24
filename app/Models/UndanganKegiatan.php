@@ -27,8 +27,8 @@ class UndanganKegiatan extends Model
         'agenda',
         'status',
         'status_pelaksanaan',
-        'komentar'
-
+        'komentar',
+        'file_undangan'
     ];
 
     public function user()

@@ -61,13 +61,13 @@ export default function KegiatanSedangBerlangsung({ kegiatan = [], auth }) {
   ];
 
   return (
-    <div className="flex justify-start">
+    <div className="flex justify-start min-h-screen w-full overflow-x-hidden">
       <SidebarPegawai />
-      <div className="flex-1 bg-[#F5F7FA] min-h-screen md:ml-64">
+      <div className="flex-1 min-w-0 bg-[#F5F7FA] min-h-screen md:ml-64">
         <Header />
         <FlashPopup />
 
-        <main className="pt-28 px-4">
+        <main className="pt-20 md:pt-28 px-4">
           <div className="w-full">
             {/* Page Header */}
             <div className="mb-6">
@@ -178,27 +178,10 @@ export default function KegiatanSedangBerlangsung({ kegiatan = [], auth }) {
 
       {/* Pop-up untuk Input TTD */}
       {showPopup && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-xl relative w-full max-w-lg mx-4">
-            <div className="flex items-center justify-between p-6 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900">Input Presensi</h3>
-              <button
-                onClick={() => setShowPopup(false)}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            <div className="p-6">
-              <InputTtd
-                penerimaId={dataPresensi.penerimaId}
-                onClose={() => setShowPopup(false)}
-              />
-            </div>
-          </div>
-        </div>
+        <InputTtd
+          penerimaId={dataPresensi.penerimaId}
+          onClose={() => setShowPopup(false)}
+        />
       )}
 
       <ModalDetailUndangan

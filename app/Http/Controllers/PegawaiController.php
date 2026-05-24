@@ -108,6 +108,16 @@ class PegawaiController extends Controller
 {
     $undangan = UndanganKegiatan::with(['user', 'kegiatan'])->findOrFail($id);
 
+    if ($undangan->file_undangan) {
+        $filePath = storage_path('app/public/' . $undangan->file_undangan);
+        if (file_exists($filePath)) {
+            return response()->file($filePath, [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => 'inline; filename="' . basename($filePath) . '"'
+            ]);
+        }
+    }
+
     $pdf = Pdf::loadView('pdf.undangan', compact('undangan'))->setPaper('A4', 'portrait');
 
     return $pdf->stream("Undangan_{$undangan->judul}.pdf");
@@ -269,6 +279,21 @@ public function storeTtd(Request $request)
 
     $penerima = PenerimaUndangan::with('undangan')->findOrFail($validated['penerima_id']);
 
+    // Cek radius lokasi jika koordinat ada
+    $warning = null;
+    if ($validated['latitude'] && $validated['longitude']) {
+        $officeLat = config('absensi.office_latitude', 0.5057);
+        $officeLon = config('absensi.office_longitude', 101.4503);
+        $allowedRadius = config('absensi.radius_meters', 75);
+
+        $distance = $this->calculateDistance($officeLat, $officeLon, $validated['latitude'], $validated['longitude']);
+        if ($distance > $allowedRadius) {
+            $warning = sprintf('Anda berada di luar radius absensi. Jarak Anda: %.2f meter (Maksimal radius: %d meter).', $distance, $allowedRadius);
+        }
+    } else {
+        $warning = 'Lokasi GPS tidak valid atau tidak terdeteksi.';
+    }
+
     // Waktu kegiatan
     $waktuKegiatan = Carbon::parse($penerima->undangan->tanggal . ' ' . $penerima->undangan->waktu);
     $waktuPresensi = Carbon::now();
@@ -301,7 +326,30 @@ public function storeTtd(Request $request)
         'waktu_presensi'   => $waktuPresensi,
     ]);
 
-    return redirect()->route('pegawai.sedang')->with('success', 'TTD dan presensi berhasil disimpan.');
+    $redirect = redirect()->route('pegawai.sedang')->with('success', 'TTD dan presensi berhasil disimpan.');
+    if ($warning) {
+        $redirect = $redirect->with('warning', $warning);
+    }
+    return $redirect;
+}
+
+/**
+ * Calculate distance between two coordinates in meters using Haversine formula.
+ */
+private function calculateDistance($lat1, $lon1, $lat2, $lon2)
+{
+    $earthRadius = 6371000; // Earth radius in meters
+
+    $latDelta = deg2rad($lat2 - $lat1);
+    $lonDelta = deg2rad($lon2 - $lon1);
+
+    $a = sin($latDelta / 2) * sin($latDelta / 2) +
+         cos(deg2rad($lat1)) * cos(deg2rad($lat2)) *
+         sin($lonDelta / 2) * sin($lonDelta / 2);
+    
+    $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+
+    return $earthRadius * $c;
 }
 
 

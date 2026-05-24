@@ -7,6 +7,7 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
+use Illuminate\Mail\Mailables\Attachment;
 use App\Models\UndanganKegiatan;
 
 class UndanganKegiatanMail extends Mailable implements ShouldQueue
@@ -52,10 +53,20 @@ class UndanganKegiatanMail extends Mailable implements ShouldQueue
     }
 
     /**
-     * No attachments needed.
+     * Attach the uploaded invitation letter file if it exists.
      */
     public function attachments(): array
     {
+        if ($this->undangan->file_undangan) {
+            $filePath = storage_path('app/public/' . $this->undangan->file_undangan);
+            if (file_exists($filePath)) {
+                return [
+                    Attachment::fromPath($filePath)
+                        ->as('Undangan_' . $this->undangan->judul . '.pdf')
+                        ->withMime('application/pdf'),
+                ];
+            }
+        }
         return [];
     }
 }
