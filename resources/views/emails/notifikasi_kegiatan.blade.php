@@ -7,16 +7,16 @@ Ini adalah pengingat bahwa kegiatan **{{ $undangan->judul }}** dijadwalkan pada 
 
 ---
 
-**Hari/Tanggal** : {{ $tanggalFormatted }}
-**Pukul** : {{ $undangan->waktu }} WIB
-**Tempat** : {{ $undangan->tempat }}
+**Hari/Tanggal** : {{ $tanggalFormatted }}<br>
+**Pukul** : {{ $undangan->waktu }} WIB<br>
+**Tempat** : {{ $undangan->tempat }}<br>
 **Agenda** : {{ $undangan->agenda }}
 
 ---
 
 Demikian untuk dipedomani. Atas perhatian dan kerjasamanya diucapkan terima kasih.
 
-@component('mail::button', ['url' => url('/')])
+@component('mail::button', ['url' => url('https://cloudslabs.my.id/')])
 Buka Sistem
 @endcomponent
 

@@ -5,15 +5,18 @@
         body { 
             font-family: 'DejaVu Sans', sans-serif; 
             font-size: 12px; 
-            line-height: 1.6; 
+            line-height: 1.4; 
             margin: 0; 
             padding: 0;
+        }
+        p {
+            margin: 6px 0;
         }
         .kop {
             width: 100%;
             border-bottom: 2px solid black;
             padding-bottom: 5px;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
         .kop td { vertical-align: middle; }
         .kop-logo { width: 100px; text-align: left; }
@@ -28,10 +31,10 @@
         .kop-title p { margin: 0; font-size: 11px; }
 
         .content { margin: 10px 30px; }
-        .nomor { margin-bottom: 15px; }
+        .nomor { margin-bottom: 10px; }
         .ml { margin-left: 40px; }
-        .footer { margin-top: 50px; text-align: right; }
-        .ttd { margin-top: 80px; text-align: right; font-weight: bold; }
+        .footer { margin-top: 40px; text-align: right; }
+        .ttd { margin-top: 60px; text-align: right; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -79,7 +82,7 @@
             </table>
         </div>
 
-        <p>Yth. Daftar Undangan Terlampir<br>di -<br><span class="ml">Tempat</span></p>
+        <p>Yth. Daftar Undangan Terlampir<br>di-<br><span class="ml">tempat</span></p>
 
         <p>
             Dalam rangka kegiatan {{ $undangan->judul }}, Bapak/Ibu diundang untuk mengikuti {{ $undangan->deskripsi }} yang akan dilaksanakan pada:
