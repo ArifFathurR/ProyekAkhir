@@ -12,20 +12,25 @@ export default function CekStatusUndangan({ undangans, filters }) {
     const [search, setSearch] = useState(filters?.search || '');
     const [status, setStatus] = useState(filters?.status || '');
     const [loadingKirim, setLoadingKirim] = useState(null);
+    const activeTab = filters?.tab || 'belum_terkirim';
 
     const handleSearch = useCallback((e) => {
         if (e) e.preventDefault();
-        router.get(route('undangan_kegiatan.index'), { search, status }, {
+        router.get(route('undangan_kegiatan.index'), { search, status, tab: activeTab }, {
             preserveState: true,
             replace: true,
         });
-    }, [search, status]);
+    }, [search, status, activeTab]);
 
     const handleClearFilter = useCallback(() => {
         setSearch('');
         setStatus('');
-        router.get(route('undangan_kegiatan.index'));
-    }, []);
+        router.get(route('undangan_kegiatan.index'), { tab: activeTab });
+    }, [activeTab]);
+
+    const handleTabChange = useCallback((tabName) => {
+        router.get(route('undangan_kegiatan.index'), { search, status, tab: tabName });
+    }, [search, status]);
 
     const handleKirim = useCallback((id) => {
         Swal.fire({
@@ -144,58 +149,92 @@ export default function CekStatusUndangan({ undangans, filters }) {
 
     // Filter form component
     const filterForm = (
-        <form onSubmit={handleSearch}>
-            <div className="flex flex-col lg:flex-row gap-3">
-                {/* Search Input */}
-                <div className="relative flex-1">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                        </svg>
-                    </div>
-                    <input
-                        type="text"
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                        placeholder="Cari berdasarkan judul undangan..."
-                        className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-colors"
-                    />
-                </div>
-
-                {/* Status Filter */}
-                <div className="flex-shrink-0 w-full lg:w-48">
-                    <select
-                        value={status}
-                        onChange={(e) => setStatus(e.target.value)}
-                        className="block w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-colors"
-                    >
-                        <option value="">Semua Status</option>
-                        <option value="Menunggu">Menunggu</option>
-                        <option value="Diterima">Diterima</option>
-                        <option value="Ditolak">Ditolak</option>
-                    </select>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex gap-2">
-                    <button
-                        type="submit"
-                        className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm transition-colors duration-200"
-                    >
-                        Filter
-                    </button>
-                    {(search || status) && (
-                        <button
-                            type="button"
-                            onClick={handleClearFilter}
-                            className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition-colors duration-200"
-                        >
-                            Clear
-                        </button>
-                    )}
-                </div>
+        <div className="space-y-4">
+            {/* Navigasi Tab */}
+            <div className="flex border-b border-gray-200">
+                <button
+                    type="button"
+                    onClick={() => handleTabChange('belum_terkirim')}
+                    className={`flex items-center gap-2 py-3 px-6 border-b-2 font-medium text-sm transition-all duration-200 ${
+                        activeTab === 'belum_terkirim'
+                            ? 'border-[#0B2E74] text-[#0B2E74]'
+                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    }`}
+                >
+                    <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                    Belum Dikirim
+                </button>
+                <button
+                    type="button"
+                    onClick={() => handleTabChange('terkirim')}
+                    className={`flex items-center gap-2 py-3 px-6 border-b-2 font-medium text-sm transition-all duration-200 ${
+                        activeTab === 'terkirim'
+                            ? 'border-[#0B2E74] text-[#0B2E74]'
+                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    }`}
+                >
+                    <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                    </svg>
+                    Terkirim
+                </button>
             </div>
-        </form>
+
+            <form onSubmit={handleSearch}>
+                <div className="flex flex-col lg:flex-row gap-3">
+                    {/* Search Input */}
+                    <div className="relative flex-1">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                        </div>
+                        <input
+                            type="text"
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            placeholder="Cari berdasarkan judul undangan..."
+                            className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-colors"
+                        />
+                    </div>
+
+                    {/* Status Filter */}
+                    <div className="flex-shrink-0 w-full lg:w-48">
+                        <select
+                            value={status}
+                            onChange={(e) => setStatus(e.target.value)}
+                            className="block w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-colors"
+                        >
+                            <option value="">Semua Status</option>
+                            <option value="Menunggu">Menunggu</option>
+                            <option value="Diterima">Diterima</option>
+                            <option value="Ditolak">Ditolak</option>
+                        </select>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex gap-2">
+                        <button
+                            type="submit"
+                            className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm transition-colors duration-200"
+                        >
+                            Filter
+                        </button>
+                        {(search || status) && (
+                            <button
+                                type="button"
+                                onClick={handleClearFilter}
+                                className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition-colors duration-200"
+                            >
+                                Clear
+                            </button>
+                        )}
+                    </div>
+                </div>
+            </form>
+        </div>
     );
 
     return (
@@ -291,7 +330,7 @@ export default function CekStatusUndangan({ undangans, filters }) {
                                                             Detail
                                                         </button>
 
-                                                        {undangan.status === 'Diterima' && (
+                                                        {undangan.status === 'Diterima' && !undangan.file_undangan && (
                                                             <button
                                                                 onClick={() => handleKirim(undangan.id)}
                                                                 disabled={loadingKirim === undangan.id}
@@ -306,6 +345,20 @@ export default function CekStatusUndangan({ undangans, filters }) {
                                                                 </svg>
                                                                 {loadingKirim === undangan.id ? 'Mengirim...' : 'Kirim'}
                                                             </button>
+                                                        )}
+
+                                                        {undangan.file_undangan && (
+                                                            <a
+                                                                href={`/storage/${undangan.file_undangan}`}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="inline-flex items-center px-3 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 text-xs font-medium rounded-md transition-colors duration-200"
+                                                            >
+                                                                <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                                </svg>
+                                                                Lihat PDF
+                                                            </a>
                                                         )}
 
                                                         {undangan.status === 'Ditolak' && (

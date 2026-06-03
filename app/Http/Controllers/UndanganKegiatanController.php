@@ -27,8 +27,9 @@ class UndanganKegiatanController extends Controller
     {
         $search = $request->search;
         $status = $request->status;
+        $tab = $request->input('tab', 'belum_terkirim');
 
-        $undangans = UndanganKegiatan::with(['updatedByUser', 'supervisor'])
+        $undangansQuery = UndanganKegiatan::with(['updatedByUser', 'supervisor'])
             ->where('user_id', auth()->id())
             ->when(
                 $search,
@@ -39,19 +40,25 @@ class UndanganKegiatanController extends Controller
                 $status,
                 fn($query) =>
                 $query->where('status', $status)
-            )
-            ->paginate(10)
+            );
+
+        if ($tab === 'terkirim') {
+            $undangansQuery->whereNotNull('file_undangan');
+        } else {
+            $undangansQuery->whereNull('file_undangan');
+        }
+
+        $undangans = $undangansQuery->paginate(10)
             ->withQueryString();
 
-        $pegawaiList = User::where('role', 'pegawai')
-            ->select('id', 'name', 'email')
-            ->get();
+        $pegawaiList = User::select('id', 'name', 'email')->get();
 
         return Inertia::render('Pegawai/CekStatusUndangan', [
             'undangans' => $undangans,
             'filters' => [
                 'search' => $search,
                 'status' => $status,
+                'tab' => $tab,
             ],
             'pegawaiList' => $pegawaiList,
         ]);
@@ -72,9 +79,7 @@ public function create()
     return Inertia::render('Pegawai/CreateUndangan', [
         'kegiatans' => $kegiatanOptions,
         'tims' => Tim::select('id', 'nama_tim')->get(),
-        'pegawaiList' => User::where('role', 'pegawai')
-            ->select('id', 'name', 'email')
-            ->get(),
+        'pegawaiList' => User::select('id', 'name', 'email')->get(),
         'anggotaTim' => AnggotaTim::select('user_id', 'tim_id')->get(),
     ]);
 }
@@ -111,6 +116,32 @@ public function create()
                 'status_penerima' => 'terima',
                 'status_kehadiran' => 'belum',
             ]);
+        }
+    }
+
+    // Kirim notifikasi email ke supervisor yang berada dalam 1 tim dengan pembuat undangan
+    $userTimIds = AnggotaTim::where('user_id', auth()->id())->pluck('tim_id');
+    if ($userTimIds->isNotEmpty()) {
+        $supervisors = User::where(function ($query) {
+                $query->where('role', 'supervisor')
+                      ->orWhere('role', 'like', '%supervisor%');
+            })
+            ->whereIn('id', function ($query) use ($userTimIds) {
+                $query->select('user_id')
+                      ->from('anggota_tims')
+                      ->whereIn('tim_id', $userTimIds);
+            })
+            ->get();
+
+        foreach ($supervisors as $supervisor) {
+            if ($supervisor->email) {
+                try {
+                    Mail::to($supervisor->email)
+                        ->send(new \App\Mail\NotifikasiKonfirmasiSupervisorMail($undangan));
+                } catch (\Exception $e) {
+                    \Log::error("Gagal mengirim email konfirmasi ke supervisor {$supervisor->email}: " . $e->getMessage());
+                }
+            }
         }
     }
 
@@ -245,7 +276,7 @@ public function update(UpdateUndanganKegiatanRequest $request, UndanganKegiatan 
         ]);
 
         try {
-            $undangan = UndanganKegiatan::with(['kegiatan', 'penerimaUndangan.user'])
+            $undangan = UndanganKegiatan::with(['kegiatan', 'penerimaUndangan.user', 'supervisor'])
                 ->findOrFail($id);
 
             if ($request->hasFile('file_undangan')) {
@@ -265,6 +296,12 @@ public function update(UpdateUndanganKegiatanRequest $request, UndanganKegiatan 
                 ->unique()
                 ->values()
                 ->toArray();
+
+            if ($undangan->supervisor && $undangan->supervisor->email) {
+                if (!in_array($undangan->supervisor->email, $emails)) {
+                    $emails[] = $undangan->supervisor->email;
+                }
+            }
 
             if (empty($emails)) {
                 return back()->with('error', 'Tidak ada penerima undangan yang memiliki email.');

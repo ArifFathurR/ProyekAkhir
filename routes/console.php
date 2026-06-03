@@ -14,7 +14,7 @@ Schedule::call(function () {
     $now = Carbon::now()->format('Y-m-d H:i');
 
     // Update ke Sedang Dilaksanakan jika tanggal + waktu = sekarang dan kirim notifikasi
-    $kegiatanSekarang = \App\Models\UndanganKegiatan::with('penerimaUndangan.user')
+    $kegiatanSekarang = \App\Models\UndanganKegiatan::with(['penerimaUndangan.user', 'supervisor'])
         ->whereRaw("DATE_FORMAT(CONCAT(tanggal, ' ', waktu), '%Y-%m-%d %H:%i') = ?", [$now])
         ->where('status', 'Diterima')
         ->get();
@@ -28,6 +28,12 @@ Schedule::call(function () {
             ->filter(fn($p) => $p->user && $p->user->email)
             ->pluck('user.email')
             ->unique();
+
+        if ($undangan->supervisor && $undangan->supervisor->email) {
+            $emails->push($undangan->supervisor->email);
+        }
+
+        $emails = $emails->unique();
 
         foreach ($emails as $email) {
             \Illuminate\Support\Facades\Mail::to($email)->send(new \App\Mail\NotifikasiKegiatanMail($undangan));

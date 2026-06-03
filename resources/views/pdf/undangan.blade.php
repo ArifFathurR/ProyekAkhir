@@ -42,8 +42,7 @@
     <table class="kop">
         <tr>
             <td class="kop-logo">
-                <img src="{{ public_path('storage/logo_bps.png') }}" alt="Logo BPS">
-            </td>
+                <img src="data:image/png;base64,{{ base64_encode(file_get_contents(public_path('storage/logo_bps.png'))) }}" alt="Logo BPS">            </td>
             <td class="kop-title">
                 <h1>BADAN PUSAT STATISTIK<br>PROVINSI RIAU</h1>
                 <p>Jalan Pattimura No. 12, Pekanbaru 28131, Telepon: (0761) 23042</p>

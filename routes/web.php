@@ -97,6 +97,8 @@ Route::middleware('auth')->group(function () {
 Route::get('/Admin', [AdminController::class, 'test']);
 Route::get('/dashboard-pegawai', [PegawaiController::class, 'index'])->name('pegawai.index');
 // Route::get('/dashboard-admin', [AdminController::class, 'index'])->name('admin.index');
+
+
 Route::get('/test-email', function () {
     Mail::raw('Tes kirim email Laravel via Gmail SMTP.', function ($msg) {
         $msg->to('ariffathurrahman43@gmail.com')->subject('Tes Kirim Gmail SMTP');

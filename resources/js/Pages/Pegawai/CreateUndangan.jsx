@@ -8,6 +8,7 @@ import { Label } from '@/Components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { Textarea } from '@/Components/ui/textarea';
 import { Button } from '@/Components/ui/button';
+import ClockTimePicker from '@/Components/ClockTimePicker';
 
 // Belum ada filter buat undangan untuk setiap pengawai pertim
 export default function CreateUndangan({ kegiatans = [], tims = [], pegawaiList = [], anggotaTim = [] }) {
@@ -141,19 +142,19 @@ export default function CreateUndangan({ kegiatans = [], tims = [], pegawaiList 
                 </div>
                 <div className="space-y-2">
                   <Label>Waktu Mulai</Label>
-                  <Input
-                    type="time"
+                  <ClockTimePicker
                     value={data.waktu}
-                    onChange={(e) => setData('waktu', e.target.value)}
+                    onChange={(value) => setData('waktu', value)}
+                    placeholder="Pilih Waktu Mulai"
                   />
                   {errors.waktu && <div className="text-red-500 text-sm mt-1">{errors.waktu}</div>}
                 </div>
                 <div className="space-y-2">
                   <Label>Waktu Selesai</Label>
-                  <Input
-                    type="time"
+                  <ClockTimePicker
                     value={data.waktu_selesai}
-                    onChange={(e) => setData('waktu_selesai', e.target.value)}
+                    onChange={(value) => setData('waktu_selesai', value)}
+                    placeholder="Pilih Waktu Selesai"
                   />
                   {errors.waktu_selesai && <div className="text-red-500 text-sm mt-1">{errors.waktu_selesai}</div>}
                 </div>

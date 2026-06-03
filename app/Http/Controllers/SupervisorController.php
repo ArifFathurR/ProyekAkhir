@@ -21,22 +21,37 @@ class SupervisorController extends Controller
      */
     public function index()
     {
-        
-    $undangans = UndanganKegiatan::with(['user', 'kegiatan'])
-        ->where('status', 'Menunggu')
-        ->latest()
-        ->get();
+        $supervisorTimIds = AnggotaTim::where('user_id', auth()->id())->pluck('tim_id');
 
-    $historyUndangans = UndanganKegiatan::with(['user', 'kegiatan'])
-        ->latest()
-        ->get();
+        $undangansQuery = UndanganKegiatan::with(['user', 'kegiatan'])
+            ->where('status', 'Menunggu');
 
-    
+        $historyQuery = UndanganKegiatan::with(['user', 'kegiatan']);
 
-    return Inertia::render('Supervisor/KonfirmasiUndangan', [
-        'undangans' => $undangans,
-        'historyUndangans' => $historyUndangans,
-    ]);
+        if ($supervisorTimIds->isNotEmpty()) {
+            $undangansQuery->whereIn('user_id', function ($query) use ($supervisorTimIds) {
+                $query->select('user_id')
+                    ->from('anggota_tims')
+                    ->whereIn('tim_id', $supervisorTimIds);
+            });
+
+            $historyQuery->whereIn('user_id', function ($query) use ($supervisorTimIds) {
+                $query->select('user_id')
+                    ->from('anggota_tims')
+                    ->whereIn('tim_id', $supervisorTimIds);
+            });
+        } else {
+            $undangansQuery->whereNull('id');
+            $historyQuery->whereNull('id');
+        }
+
+        $undangans = $undangansQuery->latest()->get();
+        $historyUndangans = $historyQuery->latest()->get();
+
+        return Inertia::render('Supervisor/KonfirmasiUndangan', [
+            'undangans' => $undangans,
+            'historyUndangans' => $historyUndangans,
+        ]);
     }
 
 
