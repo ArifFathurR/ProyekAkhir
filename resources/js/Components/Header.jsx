@@ -7,6 +7,8 @@ export default function Header() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
 
+  const userRoles = auth?.user?.role ? auth.user.role.split(',').map(r => r.trim()) : [];
+
   // Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event) {
@@ -66,14 +68,16 @@ export default function Header() {
                 Edit Profile
               </Link>
 
-              <Link
-                href={route('role.select')}
-                className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-100 transition"
-                onClick={() => setIsDropdownOpen(false)}
-              >
-                <FaSyncAlt className="text-gray-500" />
-                Switch Role
-              </Link>
+              {userRoles.length > 1 && (
+                <Link
+                  href={route('role.select')}
+                  className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-100 transition"
+                  onClick={() => setIsDropdownOpen(false)}
+                >
+                  <FaSyncAlt className="text-gray-500" />
+                  Switch Role
+                </Link>
+              )}
 
               <div className="border-t border-gray-100 my-1"></div>
 

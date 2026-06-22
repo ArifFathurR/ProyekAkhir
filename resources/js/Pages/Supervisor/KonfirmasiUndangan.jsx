@@ -1,6 +1,7 @@
 import SidebarSupervisor from '@/Layouts/SidebarSupervisor';
 import Header from '@/Components/Header';
 import FlashPopup from '@/Components/FlashPopup';
+import TableCard from '@/Components/TableCard';
 import { router } from '@inertiajs/react';
 import { useState } from 'react';
 import ModalKonfirmasiUndangan from '@/Components/ModalKonfirmasiUndangan';
@@ -55,8 +56,7 @@ export default function KonfirmasiUndangan({ undangans, historyUndangans }) {
     };
 
     const renderTable = (data, isKonfirmasi = false) => (
-        <div className="overflow-x-auto">
-            <table className="w-full">
+        <table className="w-full">
                 <thead className="bg-gradient-to-r from-[#0B2E74] to-[#1a4599] text-white">
                     <tr>
                         <th className="px-6 py-4 text-center text-xs font-semibold uppercase tracking-wider">No</th>
@@ -168,7 +168,6 @@ export default function KonfirmasiUndangan({ undangans, historyUndangans }) {
                     )}
                 </tbody>
             </table>
-        </div>
     );
 
     return (
@@ -238,12 +237,10 @@ export default function KonfirmasiUndangan({ undangans, historyUndangans }) {
 
 
                     {/* Main Content Card */}
-                    <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-                        {/* Card Header with Tabs */}
-                        <div className="border-b border-gray-200 p-6">
-                            <h2 className="text-lg font-semibold text-gray-900 mb-4">Data Undangan Kegiatan</h2>
-
-                            {/* Tabs */}
+                    <TableCard
+                        title="Data Undangan Kegiatan"
+                        filterForm={
+                            /* Tabs */
                             <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg w-fit">
                                 <button
                                     onClick={() => setActiveTab("konfirmasi")}
@@ -280,13 +277,12 @@ export default function KonfirmasiUndangan({ undangans, historyUndangans }) {
                                     )}
                                 </button>
                             </div>
-                        </div>
-
-                        {/* Table Content */}
+                        }
+                    >
                         {activeTab === "konfirmasi"
                             ? renderTable(undangans, true)
                             : renderTable(historyUndangans, false)}
-                    </div>
+                    </TableCard>
                 </main>
             </div>
 

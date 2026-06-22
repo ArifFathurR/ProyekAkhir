@@ -3,6 +3,8 @@ import { router, usePage } from '@inertiajs/react';
 import Header from '@/Components/Header';
 import SidebarPemantau from '@/Layouts/SidebarPemantau';
 import FlashPopup from '@/Components/FlashPopup';
+import TableCard from '@/Components/TableCard';
+import Pagination from '@/Components/Pagination';
 import ReactSelect from 'react-select';
 
 export default function DataPresensi({ penerimas, filters = {}, undangans = [] }) {
@@ -122,17 +124,10 @@ export default function DataPresensi({ penerimas, filters = {}, undangans = [] }
             </div>
 
             {/* Main Content Card */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-              {/* Card Header */}
-              <div className="border-b border-gray-200 p-6">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                  <div>
-                    <h2 className="text-lg font-semibold text-gray-900">Daftar Presensi Pegawai</h2>
-                    <p className="text-sm text-gray-500 mt-1">Daftar kehadiran seluruh pegawai</p>
-                  </div>
-                </div>
-
-                {/* Filter Form */}
+            <TableCard
+              title="Daftar Presensi Pegawai"
+              description="Daftar kehadiran seluruh pegawai"
+              filterForm={
                 <div className="mt-4">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-center w-full">
                     {/* Select Filter (Undangan) - gets 2/3 space */}
@@ -185,111 +180,80 @@ export default function DataPresensi({ penerimas, filters = {}, undangans = [] }
                     )}
                   </div>
                 </div>
-              </div>
-
-              {/* Table */}
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-[#0B2E74] text-white">
+              }
+              pagination={isFiltered ? <Pagination data={penerimas} /> : null}
+            >
+              <table className="w-full">
+                <thead className="bg-[#0B2E74] text-white">
+                  <tr>
+                    <th className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider">No</th>
+                    <th className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider">Nama Pegawai</th>
+                    <th className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider">Tim</th>
+                    <th className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider">Status Kehadiran</th>
+                    <th className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider">Lokasi</th>
+                    <th className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider">TTD</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {!isFiltered ? (
                     <tr>
-                      <th className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider">No</th>
-                      <th className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider">Nama Pegawai</th>
-                      <th className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider">Tim</th>
-                      <th className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider">Status Kehadiran</th>
-                      <th className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider">Lokasi</th>
-                      <th className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider">TTD</th>
+                      <td colSpan="7" className="px-6 py-12 text-center text-gray-500 bg-gray-50/50">
+                        <p className="text-lg font-medium text-gray-600 mb-1">Pilih undangan terlebih dahulu</p>
+                        <p className="text-sm">Silakan pilih agenda undangan di bagian filter untuk menampilkan data presensi yang sesuai.</p>
+                      </td>
                     </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    {!isFiltered ? (
-                      <tr>
-                        <td colSpan="7" className="px-6 py-12 text-center text-gray-500 bg-gray-50/50">
-                          <p className="text-lg font-medium text-gray-600 mb-1">Pilih undangan terlebih dahulu</p>
-                          <p className="text-sm">Silakan pilih agenda undangan di bagian filter untuk menampilkan data presensi yang sesuai.</p>
+                  ) : dataToShow.length > 0 ? (
+                    dataToShow.map((item, index) => (
+                      <tr key={item.id} className="hover:bg-gray-50 transition-colors duration-150">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
+                          {index + 1 + ((penerimas?.current_page || 1) - 1) * (penerimas?.per_page || 10)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap"><div className="text-sm text-gray-900">{item.user?.name || '-'}</div></td>
+                        <td className="px-6 py-4 whitespace-nowrap"><div className="text-sm text-gray-900">{item.tim?.nama_tim || '-'}</div></td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${getStatusBadge(item.status_kehadiran)}`}>
+                            {item.status_kehadiran || '-'}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {item.latitude && item.longitude ? (
+                            <a
+                              href={`https://www.google.com/maps?q=${item.latitude},${item.longitude}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 text-sm font-medium hover:underline"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                              </svg>
+                              Lihat Peta
+                            </a>
+                          ) : (
+                            <span className="text-gray-400 text-sm">-</span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {item.ttd ? (
+                            <img
+                              src={item.ttd}
+                              alt="Tanda Tangan"
+                              className="w-16 h-10 object-contain rounded border bg-white"
+                            />
+                          ) : (
+                            <span className="text-gray-400 text-sm">Belum ada</span>
+                          )}
                         </td>
                       </tr>
-                    ) : dataToShow.length > 0 ? (
-                      dataToShow.map((item, index) => (
-                        <tr key={item.id} className="hover:bg-gray-50 transition-colors duration-150">
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
-                            {index + 1 + ((penerimas?.current_page || 1) - 1) * (penerimas?.per_page || 10)}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap"><div className="text-sm text-gray-900">{item.user?.name || '-'}</div></td>
-                          <td className="px-6 py-4 whitespace-nowrap"><div className="text-sm text-gray-900">{item.tim?.nama_tim || '-'}</div></td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${getStatusBadge(item.status_kehadiran)}`}>
-                              {item.status_kehadiran || '-'}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            {item.latitude && item.longitude ? (
-                              <a
-                                href={`https://www.google.com/maps?q=${item.latitude},${item.longitude}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 text-sm font-medium hover:underline"
-                              >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                                </svg>
-                                Lihat Peta
-                              </a>
-                            ) : (
-                              <span className="text-gray-400 text-sm">-</span>
-                            )}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            {item.ttd ? (
-                              <img
-                                src={item.ttd}
-                                alt="Tanda Tangan"
-                                className="w-16 h-10 object-contain rounded border bg-white"
-                              />
-                            ) : (
-                              <span className="text-gray-400 text-sm">Belum ada</span>
-                            )}
-                          </td>
-                        </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan="7" className="px-6 py-12 text-center text-gray-500">Tidak ada data peserta ditemukan pada undangan ini.</td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Pagination */}
-              {isFiltered && penerimas?.links && penerimas.links.length > 3 && (
-                <div className="border-t border-gray-200 px-6 py-4">
-                  <div className="flex items-center justify-between">
-                    <div className="text-sm text-gray-700">
-                      Menampilkan <span className="font-medium">{penerimas.from || 0}</span> sampai{' '}
-                      <span className="font-medium">{penerimas.to || 0}</span> dari{' '}
-                      <span className="font-medium">{penerimas.total || 0}</span> data
-                    </div>
-                    <nav className="flex space-x-2">
-                      {penerimas.links.map((link, index) => (
-                        <button
-                          key={index}
-                          onClick={() => link.url && router.get(link.url, {}, { preserveState: true, preserveScroll: true })}
-                          disabled={!link.url}
-                          className={`px-3 py-2 text-sm font-medium rounded-md transition-colors duration-200 ${link.active
-                              ? 'bg-blue-600 text-white shadow-sm'
-                              : link.url
-                                ? 'text-gray-700 hover:bg-gray-100 border border-gray-300'
-                                : 'text-gray-400 cursor-not-allowed'
-                            }`}
-                          dangerouslySetInnerHTML={{ __html: link.label }}
-                        />
-                      ))}
-                    </nav>
-                  </div>
-                </div>
-              )}
-            </div>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="7" className="px-6 py-12 text-center text-gray-500">Tidak ada data peserta ditemukan pada undangan ini.</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </TableCard>
           </div>
         </main>
       </div>

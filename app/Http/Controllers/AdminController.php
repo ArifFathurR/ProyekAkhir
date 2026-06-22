@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use App\Models\User;
@@ -12,29 +13,29 @@ class AdminController extends Controller
     public function index()
     {
         $search = request('search');  // Mendapatkan parameter search
-    
-    // Menggunakan query builder untuk mencari user berdasarkan nama
-    $users = User::when($search, function ($query, $search) {
+
+        // Menggunakan query builder untuk mencari user berdasarkan nama
+        $users = User::when($search, function ($query, $search) {
             return $query->where('name', 'like', '%' . $search . '%')
-                        ->orWhere('email', 'like', '%' . $search . '%');
+                ->orWhere('email', 'like', '%' . $search . '%');
         })
-        ->paginate(8)  // Menambahkan pagination
-        ->withQueryString();  // Menjaga query string saat pagination
+            ->paginate(8)  // Menambahkan pagination
+            ->withQueryString();  // Menjaga query string saat pagination
         // Add total counts from database
-    $totalSupervisor = User::where('role', 'supervisor')->count();
-    $totalPemantau = User::where('role', 'pemantau')->count();
+        $totalSupervisor = User::where('role', 'supervisor')->count();
+        $totalPemantau = User::where('role', 'pemantau')->count();
 
-        
 
-    return Inertia::render('Admin/DataPegawai', [
-        'users' => $users,
-        'filters' => [
-            'search' => $search,
-        ],
-        'totalSupervisor' => $totalSupervisor,
-        'totalPemantau' => $totalPemantau,
-        
-    ]);
+
+        return Inertia::render('Admin/DataPegawai', [
+            'users' => $users,
+            'filters' => [
+                'search' => $search,
+            ],
+            'totalSupervisor' => $totalSupervisor,
+            'totalPemantau' => $totalPemantau,
+
+        ]);
     }
 
     public function create()
@@ -69,7 +70,7 @@ class AdminController extends Controller
         if (isset($validated['role']) && is_array($validated['role'])) {
             $validated['role'] = implode(',', $validated['role']);
         }
-        
+
         $user->update($validated);
 
         return redirect()->route('admin.index')->with('success', 'Data berhasil diperbarui.');

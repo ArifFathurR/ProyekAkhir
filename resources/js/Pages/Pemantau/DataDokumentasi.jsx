@@ -5,6 +5,7 @@ import Header from '@/Components/Header';
 import SidebarPemantau from '@/Layouts/SidebarPemantau';
 import FlashPopup from '@/Components/FlashPopup';
 import TableCard from '@/Components/TableCard';
+import Pagination from '@/Components/Pagination';
 import MenuKegiatan from '@/Components/MenuKegiatan';
 import { FaFilePdf } from 'react-icons/fa';
 import PopupDokumentasi from '@/Components/PopupDokumentasi';
@@ -125,34 +126,7 @@ export default function DataDokumentasi({ kegiatan_data = {}, total_foto = 0, fi
                   </button>
                 </form>
               }
-              pagination={
-                <div className="border-t border-gray-200 px-6 py-4">
-                  <nav className="flex items-center justify-center">
-                    <ul className="flex space-x-1">
-                      {kegiatan_data.links?.map((link, index) => (
-                        <li key={index}>
-                          {link.url ? (
-                            <a
-                              href={link.url}
-                              className={`px-3 py-1.5 border rounded-md text-sm font-medium transition-colors ${
-                                link.active 
-                                  ? 'bg-sky-500 border-sky-500 text-white' 
-                                  : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
-                              }`}
-                              dangerouslySetInnerHTML={{ __html: link.label }}
-                            />
-                          ) : (
-                            <span
-                              className="px-3 py-1.5 border border-gray-200 rounded-md text-sm font-medium text-gray-400 bg-gray-50 cursor-not-allowed"
-                              dangerouslySetInnerHTML={{ __html: link.label }}
-                            />
-                          )}
-                        </li>
-                      ))}
-                    </ul>
-                  </nav>
-                </div>
-              }
+              pagination={<Pagination data={kegiatan_data} />}
             >
               <table className="w-full">
                 <thead className="bg-[#0B2E74] text-white">

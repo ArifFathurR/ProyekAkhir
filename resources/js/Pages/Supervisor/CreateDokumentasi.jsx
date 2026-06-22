@@ -3,6 +3,11 @@ import { router, usePage } from '@inertiajs/react';
 import Header from '@/Components/Header';
 import SidebarSupervisor from '@/Layouts/SidebarSupervisor';
 import FlashPopup from '@/Components/FlashPopup';
+import { Input } from '@/Components/ui/input';
+import { Label } from '@/Components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 
 export default function CreateDokumentasi({ kegiatanOptions = [], undanganOptions = [] }) {
   const { errors, flash } = usePage().props;
@@ -39,6 +44,27 @@ export default function CreateDokumentasi({ kegiatanOptions = [], undanganOption
     }
   };
 
+  const handleKegiatanSelectChange = (value) => {
+    setFormData((prev) => ({ ...prev, kegiatan_id: value }));
+  };
+
+  const handleUndanganSelectChange = (value) => {
+    setFormData((prev) => ({ ...prev, undangan_id: value }));
+  };
+
+  const handleQuillChange = (content) => {
+    setFormData((prev) => ({ ...prev, notulensi: content }));
+  };
+
+  const quillModules = {
+    toolbar: [
+      ['italic', { 'color': [] }, { 'background': [] }],
+      [{ 'align': '' }, { 'align': 'center' }, { 'align': 'right' }, { 'align': 'justify' }],
+      [{ 'list': 'bullet' }, { 'list': 'ordered' }],
+      ['clean']
+    ],
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     const form = new FormData();
@@ -62,122 +88,130 @@ export default function CreateDokumentasi({ kegiatanOptions = [], undanganOption
   };
 
   return (
-    <div className="flex justify-start">
+    <div className="flex justify-start min-h-screen w-full overflow-x-hidden">
       <SidebarSupervisor />
-      <div className="flex-1 bg-[#F5F7FA] min-h-screen md:ml-64">
+      <div className="flex-1 min-w-0 bg-[#F5F7FA] min-h-screen md:ml-64">
         <Header />
-        <main className="pt-28 px-6">
+        <main className="pt-20 md:pt-28 px-4 md:px-6">
           <FlashPopup flash={flash} />
-          <div className="max-full mx-auto p-6 bg-white shadow rounded">
-          <h1 className="text-2xl font-bold mb-4 text-center">Tambah Dokumentasi Kegiatan</h1>
-          <form onSubmit={handleSubmit}  encType="multipart/form-data" className="space-y-5">
-            <div>
-              <label className="block text-sm mb-1">Kegiatan</label>
-              <select
-                name="kegiatan_id"
-                value={formData.kegiatan_id}
-                onChange={handleChange}
-                className="w-full border px-3 py-2 rounded"
-              >
-                <option value="">Pilih Kegiatan</option>
-                {kegiatanOptions.map((k) => (
-                  <option key={k.id} value={k.id}>
-                    {k.nama_kegiatan}
-                  </option>
-                ))}
-              </select>
-              {errors.kegiatan_id && <div className="text-red-500">{errors.kegiatan_id}</div>}
-            </div>
+          <div className="max-w-full mx-auto p-4 sm:p-6 bg-white shadow rounded">
+            <h1 className="text-2xl font-bold mb-6 text-center text-gray-800">Tambah Dokumentasi Kegiatan</h1>
+            <form onSubmit={handleSubmit} encType="multipart/form-data" className="space-y-6">
+              
+              <div className="space-y-2">
+                <Label>Kegiatan</Label>
+                <Select
+                  value={formData.kegiatan_id}
+                  onValueChange={handleKegiatanSelectChange}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Pilih Kegiatan" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {kegiatanOptions.map((k) => (
+                      <SelectItem key={k.id} value={String(k.id)}>
+                        {k.nama_kegiatan}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.kegiatan_id && <div className="text-red-500 text-sm">{errors.kegiatan_id}</div>}
+              </div>
 
-            <div>
-              <label className="block text-sm mb-1">Undangan</label>
-              <select
-                name="undangan_id"
-                value={formData.undangan_id}
-                onChange={handleChange}
-                className="w-full border px-3 py-2 rounded"
-              >
-                <option value="">Pilih Undangan</option>
-                {undanganOptions.map((u) => (
-                  <option key={u.id} value={u.id}>
-                    {u.judul}
-                  </option>
-                ))}
-              </select>
-              {errors.undangan_id && <div className="text-red-500">{errors.undangan_id}</div>}
-            </div>
+              <div className="space-y-2">
+                <Label>Undangan</Label>
+                <Select
+                  value={formData.undangan_id}
+                  onValueChange={handleUndanganSelectChange}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Pilih Undangan" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {undanganOptions.map((u) => (
+                      <SelectItem key={u.id} value={String(u.id)}>
+                        {u.judul}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.undangan_id && <div className="text-red-500 text-sm">{errors.undangan_id}</div>}
+              </div>
 
-            <div>
-              <label className="block text-sm mb-1">Notulensi</label>
-              <textarea
-                name="notulensi"
-                type="text"
-                value={formData.notulensi}
-                onChange={handleChange}
-                className="w-full border px-3 py-2 rounded"
-              />
-              {errors.notulensi && <div className="text-red-500">{errors.notulensi}</div>}
-            </div>
-
-            <div>
-              <label className="block text-sm mb-1">Link Zoom</label>
-              <input
-                type="url"
-                name="link_zoom"
-                value={formData.link_zoom}
-                onChange={handleChange}
-                className="w-full border px-3 py-2 rounded"
-              />
-              {errors.link_zoom && <div className="text-red-500">{errors.link_zoom}</div>}
-            </div>
-
-            <div>
-              <label className="block text-sm mb-1">Link Materi</label>
-              <input
-                type="url"
-                name="link_materi"
-                value={formData.link_materi}
-                onChange={handleChange}
-                className="w-full border px-3 py-2 rounded"
-              />
-              {errors.link_materi && <div className="text-red-500">{errors.link_materi}</div>}
-            </div>
-
-            <div>
-              <label className="block text-sm mb-1">Upload Foto</label>
-              <input
-                type="file"
-                name="foto"
-                multiple
-                accept="image/*"
-                onChange={handleChange}
-                className="w-full border px-3 py-2 rounded"
-              />
-              {errors.foto && <div className="text-red-500">{errors.foto}</div>}
-
-              {previewImages.length > 0 && (
-                <div className="mt-2 flex flex-wrap gap-3">
-                  {previewImages.map((src, index) => (
-                    <img
-                      key={index}
-                      src={src}
-                      alt={`Preview ${index}`}
-                      className="w-32 h-32 object-cover border rounded"
-                    />
-                  ))}
+              <div className="space-y-2">
+                <Label>Notulensi</Label>
+                <div className="bg-white rounded">
+                  <ReactQuill
+                    theme="snow"
+                    value={formData.notulensi}
+                    onChange={handleQuillChange}
+                    modules={quillModules}
+                    placeholder="Tulis notulensi kegiatan di sini..."
+                    className="h-40 mb-12"
+                  />
                 </div>
-              )}
-            </div>
+                {errors.notulensi && <div className="text-red-500 text-sm mt-12">{errors.notulensi}</div>}
+              </div>
 
-            <div>
-              <button
-                type="submit"
-                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-              >
-                Simpan
-              </button>
-            </div>
-          </form>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label>Link Zoom</Label>
+                  <Input
+                    type="url"
+                    name="link_zoom"
+                    value={formData.link_zoom}
+                    onChange={handleChange}
+                  />
+                  {errors.link_zoom && <div className="text-red-500 text-sm">{errors.link_zoom}</div>}
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Link Materi</Label>
+                  <Input
+                    type="url"
+                    name="link_materi"
+                    value={formData.link_materi}
+                    onChange={handleChange}
+                  />
+                  {errors.link_materi && <div className="text-red-500 text-sm">{errors.link_materi}</div>}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Upload Foto</Label>
+                <Input
+                  type="file"
+                  name="foto"
+                  multiple
+                  accept="image/*"
+                  onChange={handleChange}
+                />
+                {errors.foto && <div className="text-red-500 text-sm">{errors.foto}</div>}
+
+                {previewImages.length > 0 && (
+                  <div className="mt-4 flex flex-wrap gap-4">
+                    {previewImages.map((src, index) => (
+                      <div key={index} className="relative group">
+                        <img
+                          src={src}
+                          alt={`Preview ${index}`}
+                          className="w-32 h-32 object-cover border rounded shadow-sm"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="pt-4">
+                <button
+                  type="submit"
+                  className="w-full bg-[#0B2E74] text-white font-semibold px-4 py-2 rounded-md hover:bg-blue-800 transition duration-150"
+                >
+                  Simpan Dokumentasi
+                </button>
+              </div>
+            </form>
           </div>
         </main>
       </div>

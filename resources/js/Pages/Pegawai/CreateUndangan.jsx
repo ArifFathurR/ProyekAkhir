@@ -34,11 +34,16 @@ export default function CreateUndangan({ kegiatans = [], tims = [], pegawaiList 
   const [selectedPegawai, setSelectedPegawai] = useState([]);
   const [selectedTims, setSelectedTims] = useState([]);
 
-  const timOptions = useMemo(() =>
-    tims.map(t => ({
+  const timOptions = useMemo(() => {
+    const baseOptions = tims.map(t => ({
       value: String(t.id),
       label: t.nama_tim
-    })), [tims]);
+    }));
+    if (baseOptions.length > 0) {
+      return [{ value: 'all', label: 'Semua Tim' }, ...baseOptions];
+    }
+    return baseOptions;
+  }, [tims]);
 
   const pegawaiOptions = useMemo(() =>
     pegawaiList.map(p => ({
@@ -220,8 +225,18 @@ export default function CreateUndangan({ kegiatans = [], tims = [], pegawaiList 
                   options={timOptions}
                   value={selectedTims}
                   onChange={(val) => {
-                    setSelectedTims(val || []);
-                    setData('tim_ids', (val || []).map(v => v.value));
+                    const hasAll = val && val.some(v => v.value === 'all');
+                    if (hasAll) {
+                      const allIndividualTeams = tims.map(t => ({
+                        value: String(t.id),
+                        label: t.nama_tim
+                      }));
+                      setSelectedTims(allIndividualTeams);
+                      setData('tim_ids', allIndividualTeams.map(v => v.value));
+                    } else {
+                      setSelectedTims(val || []);
+                      setData('tim_ids', (val || []).map(v => v.value));
+                    }
                   }}
                   placeholder="Pilih Tim..."
                   className="react-select-container"

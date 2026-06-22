@@ -130,16 +130,16 @@ class DokumentasiKegiatanSupervisorController extends Controller
         return redirect()->route('dokumentasisupervisor.index')->with('success', 'Dokumentasi berhasil diperbarui.');
     }
 
-    public function destroy(DokumentasiKegiatan $dokumentasi_kegiatan)
+    public function destroy(DokumentasiKegiatan $dokumentasisupervisor)
     {
-        foreach ($dokumentasi_kegiatan->fotoDokumentasi as $foto) {
+        foreach ($dokumentasisupervisor->fotoDokumentasi as $foto) {
             if (Storage::disk('public')->exists($foto->foto)) {
                 Storage::disk('public')->delete($foto->foto);
             }
             $foto->delete();
         }
 
-        $dokumentasi_kegiatan->delete();
+        $dokumentasisupervisor->delete();
 
         return redirect()->route('dokumentasisupervisor.index')->with('success', 'Dokumentasi berhasil dihapus.');
     }

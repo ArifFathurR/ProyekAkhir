@@ -3,6 +3,8 @@ import SidebarPemantau from '@/Layouts/SidebarPemantau';
 import { router, usePage } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 import FlashPopup from '@/Components/FlashPopup';
+import TableCard from '@/Components/TableCard';
+import Pagination from '@/Components/Pagination';
 
 export default function DataTim({ tims, filters }) {
   const [search, setSearch] = useState(filters.search || '');
@@ -52,17 +54,10 @@ export default function DataTim({ tims, filters }) {
             </div>
 
             {/* Main Content Card */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-              {/* Card Header */}
-              <div className="border-b border-gray-200 p-6">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                  <div>
-                    <h2 className="text-lg font-semibold text-gray-900">Daftar Tim</h2>
-                    <p className="text-sm text-gray-500 mt-1">Daftar seluruh tim</p>
-                  </div>
-                </div>
-
-                {/* Filter Form */}
+            <TableCard
+              title="Daftar Tim"
+              description="Daftar seluruh tim"
+              filterForm={
                 <div className="mt-4">
                   <div className="flex flex-col lg:flex-row gap-3">
                     {/* Search Input */}
@@ -102,74 +97,43 @@ export default function DataTim({ tims, filters }) {
                     </div>
                   </div>
                 </div>
-              </div>
-
-              {/* Table */}
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-[#0B2E74] text-white">
-                    <tr>
-                      <th className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider">No</th>
-                      <th className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider">Nama Tim</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    {tims.data.length > 0 ? (
-                      tims.data.map((tim, idx) => (
-                        <tr key={tim.id} className="hover:bg-gray-50 transition-colors duration-150">
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
-                            {idx + 1 + (tims.current_page - 1) * tims.per_page}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="flex items-center">
-                              
-                              <div className="ml-4">
-                                <div className="text-sm font-medium text-gray-900">{tim.nama_tim}</div>
-                              </div>
+              }
+              pagination={<Pagination data={tims} />}
+            >
+              <table className="w-full">
+                <thead className="bg-[#0B2E74] text-white">
+                  <tr>
+                    <th className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider">No</th>
+                    <th className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider">Nama Tim</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {tims.data.length > 0 ? (
+                    tims.data.map((tim, idx) => (
+                      <tr key={tim.id} className="hover:bg-gray-50 transition-colors duration-150">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
+                          {idx + 1 + (tims.current_page - 1) * tims.per_page}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center">
+                            
+                            <div className="ml-4">
+                              <div className="text-sm font-medium text-gray-900">{tim.nama_tim}</div>
                             </div>
-                          </td>
-                        </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan="2" className="px-6 py-12 text-center text-gray-500">
-                          Belum ada data tim.
+                          </div>
                         </td>
                       </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Pagination */}
-              {tims?.links && tims.links.length > 3 && (
-                <div className="border-t border-gray-200 px-6 py-4">
-                  <div className="flex items-center justify-between">
-                    <div className="text-sm text-gray-700">
-                      Menampilkan <span className="font-medium">{tims.from || 0}</span> sampai{' '}
-                      <span className="font-medium">{tims.to || 0}</span> dari{' '}
-                      <span className="font-medium">{tims.total || 0}</span> data
-                    </div>
-                    <nav className="flex space-x-2">
-                      {tims.links.map((link, index) => (
-                        <a
-                          key={index}
-                          href={link.url}
-                          className={`px-3 py-2 text-sm font-medium rounded-md transition-colors duration-200 ${
-                            link.active
-                              ? 'bg-blue-600 text-white shadow-sm'
-                              : link.url
-                              ? 'text-gray-700 hover:bg-gray-100 border border-gray-300'
-                              : 'text-gray-400 cursor-not-allowed'
-                          }`}
-                          dangerouslySetInnerHTML={{ __html: link.label }}
-                        />
-                      ))}
-                    </nav>
-                  </div>
-                </div>
-              )}
-            </div>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="2" className="px-6 py-12 text-center text-gray-500">
+                        Belum ada data tim.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </TableCard>
           </div>
         </main>
       </div>

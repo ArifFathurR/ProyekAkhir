@@ -63,8 +63,7 @@ class DokumentasiApiController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'kegiatan_id' => 'required|integer',
-            'undangan_id' => 'required|integer',
+            'undangan_id' => 'required|integer|exists:undangan_kegiatans,id',
             'link_zoom' => 'nullable|string',
             'link_materi' => 'nullable|string',
             'notulensi' => 'nullable|string',
@@ -72,6 +71,10 @@ class DokumentasiApiController extends Controller
         ]);
 
         $userId = Auth::id();
+
+        // Ambil kegiatan_id secara otomatis berdasarkan undangan_id
+        $undangan = \App\Models\UndanganKegiatan::findOrFail($request->undangan_id);
+        $kegiatanId = $undangan->kegiatan_id;
 
         // Pastikan user ini adalah penerima undangan tersebut
         $penerima = PenerimaUndangan::where('user_id', $userId)
@@ -100,7 +103,7 @@ class DokumentasiApiController extends Controller
 
         // simpan dokumentasi kegiatan
         $dokumentasi = DokumentasiKegiatan::create([
-            'kegiatan_id' => $request->kegiatan_id,
+            'kegiatan_id' => $kegiatanId,
             'undangan_id' => $request->undangan_id,
             'penerima_id' => $penerima->id, // Menyimpan ID user yang terlibat dari penerima undangan
             'notulensi' => $request->notulensi,
@@ -145,7 +148,6 @@ class DokumentasiApiController extends Controller
 
     $request->validate([
         'undangan_id' => 'required|exists:undangan_kegiatans,id',
-        'kegiatan_id' => 'required|exists:kegiatans,id',
         'notulensi'   => 'nullable|string',
         'link_zoom'   => 'nullable|string',
         'link_materi' => 'nullable|string',
@@ -154,6 +156,10 @@ class DokumentasiApiController extends Controller
     ]);
 
     $dokumentasi = DokumentasiKegiatan::findOrFail($id);
+
+    // Ambil kegiatan_id secara otomatis berdasarkan undangan_id
+    $undangan = \App\Models\UndanganKegiatan::findOrFail($request->undangan_id);
+    $kegiatanId = $undangan->kegiatan_id;
 
     // cek apakah user berhak update
     $isAuthorized = PenerimaUndangan::where('user_id', $userId)
@@ -169,7 +175,7 @@ class DokumentasiApiController extends Controller
     // update data dokumentasi
     $dokumentasi->update([
         'undangan_id' => $request->undangan_id,
-        'kegiatan_id' => $request->kegiatan_id,
+        'kegiatan_id' => $kegiatanId,
         'notulensi'   => $request->notulensi,
         'link_zoom'   => $request->link_zoom,
         'link_materi' => $request->link_materi,

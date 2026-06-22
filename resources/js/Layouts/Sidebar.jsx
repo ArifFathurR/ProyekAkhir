@@ -30,7 +30,7 @@ export default function Sidebar() {
     setIsOpen(false);
   }, [url]);
 
-  // ✅ Update hanya bagian ini:
+  // Update hanya bagian ini:
   const baseUrl = import.meta.env.VITE_APP_URL || '';
   const isActive = (path) => {
     const currentPath = url.replace(baseUrl, ''); // Hilangkan base url (misal /laravel)

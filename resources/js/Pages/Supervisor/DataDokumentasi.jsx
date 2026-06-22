@@ -3,6 +3,8 @@ import { router } from '@inertiajs/react';
 import Header from '@/Components/Header';
 import SidebarSupervisor from '@/Layouts/SidebarSupervisor';
 import FlashPopup from '@/Components/FlashPopup';
+import TableCard from '@/Components/TableCard';
+import Pagination from '@/Components/Pagination';
 import Swal from 'sweetalert2';
 
 export default function DataDokumentasi({ dokumentasis, filters = {}, totalUndangan, totalFoto }) {
@@ -112,32 +114,23 @@ export default function DataDokumentasi({ dokumentasis, filters = {}, totalUndan
             </div>
 
             {/* Main Content Card */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-              {/* Card Header */}
-              <div className="border-b border-gray-200 p-6">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                  <div>
-                    <h2 className="text-lg font-semibold text-gray-900">Data Dokumentasi Kegiatan</h2>
-                    <p className="text-sm text-gray-500 mt-1">Daftar seluruh dokumentasi kegiatan</p>
-                  </div>
-
-                  {/* Action Buttons */}
-                  <div className="flex gap-3">
-                    <button
-                      type="button"
-                      onClick={() => router.get(route('dokumentasisupervisor.create'))}
-                      className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium rounded-lg shadow-sm transition-all duration-200 transform hover:scale-105"
-                    >
-                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                      </svg>
-                      Tambah Dokumentasi
-                    </button>
-                  </div>
-                </div>
-
-                {/* Filter Form */}
-                <form onSubmit={handleFilter} className="mt-4">
+            <TableCard
+              title="Data Dokumentasi Kegiatan"
+              description="Daftar seluruh dokumentasi kegiatan"
+              headerActions={
+                <button
+                  type="button"
+                  onClick={() => router.get(route('dokumentasisupervisor.create'))}
+                  className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium rounded-lg shadow-sm transition-all duration-200 transform hover:scale-105"
+                >
+                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                  Tambah Dokumentasi
+                </button>
+              }
+              filterForm={
+                <form onSubmit={handleFilter}>
                   <div className="flex flex-col lg:flex-row gap-3">
                     {/* Search Input */}
                     <div className="relative flex-1">
@@ -185,115 +178,84 @@ export default function DataDokumentasi({ dokumentasis, filters = {}, totalUndan
                     </div>
                   </div>
                 </form>
-              </div>
-
-              {/* Table */}
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-[#0B2E74] text-white">
-                    <tr>
-                      <th className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider">No</th>
-                      <th className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider">Nama Kegiatan</th>
-                      <th className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider">Judul Undangan</th>
-                      <th className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider">Link Zoom</th>
-                      <th className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider">Link Materi</th>
-                      <th className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider">Foto</th>
-                      <th className="px-6 py-4 text-center text-xs font-medium uppercase tracking-wider">Aksi</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    {dokumentasis?.data?.length > 0 ? (
-                      dokumentasis.data.map((item, index) => (
-                        <tr key={item.id} className="hover:bg-gray-50 transition-colors duration-150">
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
-                            {index + 1 + (dokumentasis.current_page - 1) * dokumentasis.per_page}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">{item.kegiatan?.nama_kegiatan || '-'}</td>
-                          <td className="px-6 py-4 whitespace-nowrap">{item.undangan?.judul || '-'}</td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            {item.link_zoom ? (
-                              <a href={item.link_zoom} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">Zoom</a>
-                            ) : <span className="text-gray-400 text-sm">-</span>}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            {item.link_materi ? (
-                              <a href={item.link_materi} target="_blank" rel="noopener noreferrer" className="text-purple-600 underline">Materi</a>
-                            ) : <span className="text-gray-400 text-sm">-</span>}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            {item.foto_dokumentasi?.length > 0 ? (
-                              <div className="flex items-center">
-                                <img
-                                  src={`/storage/${item.foto_dokumentasi[0].foto}`}
-                                  alt="Foto Dokumentasi"
-                                  className="w-12 h-12 object-cover rounded-lg shadow-sm"
-                                />
-                                {item.foto_dokumentasi.length > 1 && (
-                                  <span className="ml-2 text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
-                                    +{item.foto_dokumentasi.length - 1}
-                                  </span>
-                                )}
-                              </div>
-                            ) : (
-                              <span className="text-gray-400 text-sm">Tidak ada foto</span>
-                            )}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-center">
-                            <div className="flex items-center justify-center space-x-3">
-                              <button
-                                onClick={() => router.get(route('dokumentasisupervisor.edit', item.id))}
-                                className="inline-flex items-center px-3 py-1.5 bg-yellow-100 hover:bg-yellow-200 text-yellow-700 text-xs font-medium rounded-md transition-colors duration-200"
-                              >
-                                Edit
-                              </button>
-                              <button
-                                onClick={() => handleDelete(item.id)}
-                                className="inline-flex items-center px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 text-xs font-medium rounded-md transition-colors duration-200"
-                              >
-                                Hapus
-                              </button>
+              }
+              pagination={<Pagination data={dokumentasis} />}
+            >
+              <table className="w-full">
+                <thead className="bg-[#0B2E74] text-white">
+                  <tr>
+                    <th className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider">No</th>
+                    <th className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider">Nama Kegiatan</th>
+                    <th className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider">Judul Undangan</th>
+                    <th className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider">Link Zoom</th>
+                    <th className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider">Link Materi</th>
+                    <th className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider">Foto</th>
+                    <th className="px-6 py-4 text-center text-xs font-medium uppercase tracking-wider">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {dokumentasis?.data?.length > 0 ? (
+                    dokumentasis.data.map((item, index) => (
+                      <tr key={item.id} className="hover:bg-gray-50 transition-colors duration-150">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
+                          {index + 1 + (dokumentasis.current_page - 1) * dokumentasis.per_page}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">{item.kegiatan?.nama_kegiatan || '-'}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">{item.undangan?.judul || '-'}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {item.link_zoom ? (
+                            <a href={item.link_zoom} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">Zoom</a>
+                          ) : <span className="text-gray-400 text-sm">-</span>}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {item.link_materi ? (
+                            <a href={item.link_materi} target="_blank" rel="noopener noreferrer" className="text-purple-600 underline">Materi</a>
+                          ) : <span className="text-gray-400 text-sm">-</span>}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {item.foto_dokumentasi?.length > 0 ? (
+                            <div className="flex items-center">
+                              <img
+                                src={`/storage/${item.foto_dokumentasi[0].foto}`}
+                                alt="Foto Dokumentasi"
+                                className="w-12 h-12 object-cover rounded-lg shadow-sm"
+                              />
+                              {item.foto_dokumentasi.length > 1 && (
+                                <span className="ml-2 text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                                  +{item.foto_dokumentasi.length - 1}
+                                </span>
+                              )}
                             </div>
-                          </td>
-                        </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan="7" className="px-6 py-12 text-center text-gray-500">Tidak ada data ditemukan.</td>
+                          ) : (
+                            <span className="text-gray-400 text-sm">Tidak ada foto</span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-center">
+                          <div className="flex items-center justify-center space-x-3">
+                            <button
+                              onClick={() => router.get(route('dokumentasisupervisor.edit', item.id))}
+                              className="inline-flex items-center px-3 py-1.5 bg-yellow-100 hover:bg-yellow-200 text-yellow-700 text-xs font-medium rounded-md transition-colors duration-200"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => handleDelete(item.id)}
+                              className="inline-flex items-center px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 text-xs font-medium rounded-md transition-colors duration-200"
+                            >
+                              Hapus
+                            </button>
+                          </div>
+                        </td>
                       </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Pagination */}
-              {dokumentasis?.links && dokumentasis.links.length > 3 && (
-                <div className="border-t border-gray-200 px-6 py-4">
-                  <div className="flex items-center justify-between">
-                    <div className="text-sm text-gray-700">
-                      Menampilkan <span className="font-medium">{dokumentasis.from || 0}</span> sampai{' '}
-                      <span className="font-medium">{dokumentasis.to || 0}</span> dari{' '}
-                      <span className="font-medium">{dokumentasis.total || 0}</span> data
-                    </div>
-                    <nav className="flex space-x-2">
-                      {dokumentasis.links.map((link, index) => (
-                        <a
-                          key={index}
-                          href={link.url}
-                          className={`px-3 py-2 text-sm font-medium rounded-md transition-colors duration-200 ${
-                            link.active
-                              ? 'bg-blue-600 text-white shadow-sm'
-                              : link.url
-                              ? 'text-gray-700 hover:bg-gray-100 border border-gray-300'
-                              : 'text-gray-400 cursor-not-allowed'
-                          }`}
-                          dangerouslySetInnerHTML={{ __html: link.label }}
-                        />
-                      ))}
-                    </nav>
-                  </div>
-                </div>
-              )}
-            </div>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="7" className="px-6 py-12 text-center text-gray-500">Tidak ada data ditemukan.</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </TableCard>
           </div>
         </main>
       </div>

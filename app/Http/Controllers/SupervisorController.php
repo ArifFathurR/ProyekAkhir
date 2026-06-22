@@ -99,7 +99,9 @@ public function konfirmasi(Request $request, $id)
         ->where('user_id', $userId)
         ->whereHas('undangan', function ($query) {
             $query->where('status', 'Diterima')
-            ->where('status_pelaksanaan', 'Belum Dilaksanakan'); // 🔍 Cek status di tabel undangan_kegiatans
+            ->where('status_pelaksanaan', 'Belum Dilaksanakan')
+            ->whereNotNull('file_undangan')
+            ->where('file_undangan', '!=', ''); // 🔍 Cek status di tabel undangan_kegiatans
         })
         ->get()
         ->map(function ($item) {
