@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Pemantau;
 
+use App\Http\Controllers\Controller;
 use App\Models\Pemantau;
 use App\Http\Requests\StorePemantauRequest;
 use App\Http\Requests\UpdatePemantauRequest;
@@ -13,7 +14,6 @@ use App\Models\AnggotaTim;
 use App\Models\PenerimaUndangan;
 use App\Models\DokumentasiKegiatan;
 use Illuminate\Http\Request;
-
 
 class PemantauController extends Controller
 {
@@ -241,5 +241,4 @@ class PemantauController extends Controller
             ],
         ]);
     }
-    
 }

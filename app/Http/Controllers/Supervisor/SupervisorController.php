@@ -1,6 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Supervisor;
+
+use App\Http\Controllers\Controller;
 use App\Models\DokumentasiKegiatan;
 use App\Models\Supervisor;
 use App\Http\Requests\StoreSupervisorRequest;
@@ -249,8 +251,8 @@ public function Selesai(Supervisor $Supervisor)
     ]);
 }
 
-public function kalender(){
-    {
+public function kalender()
+{
     $userId = auth()->id();
 
     $kegiatan = PenerimaUndangan::with(['undangan.kegiatan'])
@@ -276,9 +278,9 @@ public function kalender(){
         'kegiatan' => $kegiatan,
     ]);
 }
-}
 
-public function AnggotaTim(){
+public function AnggotaTim()
+{
     $search = request('search');
     $filterTim = request('tim');
     $userId = Auth::id();

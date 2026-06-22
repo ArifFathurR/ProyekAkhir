@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Pegawai;
 
+use App\Http\Controllers\Controller;
 use App\Models\FotoDokumentasi;
 use App\Http\Requests\StoreFotoDokumentasiRequest;
 use App\Http\Requests\UpdateFotoDokumentasiRequest;

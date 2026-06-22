@@ -1,20 +1,20 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\AdminController;
-use App\Http\Controllers\TimController;
-use App\Http\Controllers\KegiatanController;
-use App\Http\Controllers\SupervisorController;
-use App\Http\Controllers\UndanganKegiatanController;
-use App\Http\Controllers\AnggotaTimController;
-use App\Http\Controllers\DokumentasiKegiatanController;
-use App\Http\Controllers\DokumentasiKegiatanSupervisorController;
-use App\Http\Controllers\PenerimaUndanganController;
-use App\Http\Controllers\PemantauController;
+use App\Http\Controllers\Admin\AdminController;
+use App\Http\Controllers\Admin\TimController;
+use App\Http\Controllers\Admin\KegiatanController;
+use App\Http\Controllers\Admin\AnggotaTimController;
+use App\Http\Controllers\Pegawai\PegawaiController;
+use App\Http\Controllers\Pegawai\UndanganKegiatanController;
+use App\Http\Controllers\Pegawai\DokumentasiKegiatanController;
+use App\Http\Controllers\Pegawai\PenerimaUndanganController;
+use App\Http\Controllers\Supervisor\SupervisorController;
+use App\Http\Controllers\Supervisor\DokumentasiKegiatanSupervisorController;
+use App\Http\Controllers\Pemantau\PemantauController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
-use App\Http\Controllers\PegawaiController;
 use App\Http\Middleware\RoleMiddleware;
 
 Route::redirect('/', '/login');

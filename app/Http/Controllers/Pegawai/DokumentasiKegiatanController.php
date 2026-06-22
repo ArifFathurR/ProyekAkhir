@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Pegawai;
 
+use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreDokumentasiKegiatanRequest;
 use App\Models\DokumentasiKegiatan;
 use App\Models\FotoDokumentasi;

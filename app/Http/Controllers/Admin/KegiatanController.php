@@ -1,12 +1,13 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Controller;
 use App\Models\Kegiatan;
 use App\Http\Requests\StoreKegiatanRequest;
 use App\Http\Requests\UpdateKegiatanRequest;
 use Inertia\Inertia;
-use \App\Models\Tim;
+use App\Models\Tim;
 use Illuminate\Support\Facades\Auth;
 
 class KegiatanController extends Controller

@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Http\Controllers;
-use App\Http\Requests\StorePenerimaUndanganRequest;
+namespace App\Http\Controllers\Pegawai;
 
+use App\Http\Controllers\Controller;
+use App\Http\Requests\StorePenerimaUndanganRequest;
 use App\Models\Pegawai;
 use App\Http\Requests\StorePegawaiRequest;
 use App\Http\Requests\UpdatePegawaiRequest;
@@ -17,7 +18,6 @@ use Illuminate\Support\Facades\Log;
 use App\Http\Requests\UpdatePenerimaUndanganRequest;
 use Illuminate\Support\Carbon;
 use App\Models\DokumentasiKegiatan;
-
 
 class PegawaiController extends Controller
 {
