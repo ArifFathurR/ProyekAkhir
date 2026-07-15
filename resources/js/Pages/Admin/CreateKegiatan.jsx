@@ -1,6 +1,7 @@
 import Header from '@/Components/Header';
 import Sidebar from '@/Layouts/Sidebar';
 import { useForm } from '@inertiajs/react';
+import Swal from 'sweetalert2';
 
 // 🔹 Import komponen dari Shadcn UI
 import { Input } from "@/components/ui/input";
@@ -25,7 +26,20 @@ export default function CreateKegiatan({ tims }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    post(route('kegiatan.store'));
+    Swal.fire({
+      title: 'Tambah Kegiatan?',
+      text: 'Apakah Anda yakin ingin menambahkan kegiatan baru ini?',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#0284c7',
+      cancelButtonColor: '#64748b',
+      confirmButtonText: 'Ya, Tambah',
+      cancelButtonText: 'Batal'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        post(route('kegiatan.store'));
+      }
+    });
   };
 
   return (

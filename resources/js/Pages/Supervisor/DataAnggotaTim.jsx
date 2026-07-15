@@ -27,7 +27,7 @@ export default function DataAnggotaTim({ anggota_tims, filters = {}, tims = [] }
   };
 
   const handleFilter = () => {
-    router.get(route('anggota_tim.index'), {
+    router.get(route('supervisor.anggota_tim'), {
       search: search,
       tim: selectedTim,
     });
@@ -36,7 +36,7 @@ export default function DataAnggotaTim({ anggota_tims, filters = {}, tims = [] }
   const handleClearFilter = () => {
     setSearch('');
     setSelectedTim('');
-    router.get(route('anggota_tim.index'));
+    router.get(route('supervisor.anggota_tim'));
   };
 
   return (

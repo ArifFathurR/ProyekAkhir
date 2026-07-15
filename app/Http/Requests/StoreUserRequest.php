@@ -11,7 +11,7 @@ class StoreUserRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -26,6 +26,7 @@ class StoreUserRequest extends FormRequest
             'email' => 'required|email|unique:users,email',
             'no_hp' => 'required|string|max:20',
             'role' => 'required|in:admin,pegawai,supervisor',
+            'password' => 'required|string|min:8',
         ];
     }
 }

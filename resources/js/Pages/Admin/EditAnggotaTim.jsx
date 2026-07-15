@@ -1,6 +1,7 @@
 import { useForm, router } from '@inertiajs/react';
 import Header from '@/Components/Header';
 import Sidebar from '@/Layouts/Sidebar';
+import Swal from 'sweetalert2';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Button } from '@/Components/ui/button';
@@ -29,7 +30,20 @@ export default function EditAnggotaTim({ anggota_tim, users, tims }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    put(route('anggota_tim.update', anggota_tim.id));
+    Swal.fire({
+      title: 'Update Anggota Tim?',
+      text: 'Apakah Anda yakin ingin menyimpan perubahan data anggota tim ini?',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#0284c7',
+      cancelButtonColor: '#64748b',
+      confirmButtonText: 'Ya, Update',
+      cancelButtonText: 'Batal'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        put(route('anggota_tim.update', anggota_tim.id));
+      }
+    });
   };
 
   return (

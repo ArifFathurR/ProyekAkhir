@@ -13,13 +13,16 @@ return new class extends Migration
     {
         Schema::create('penerima_undangans', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('undangan_kegiataan_id')->constrained('udangan_kegiatan')->onDelete('cascade');
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->string('status_penerimaan', 50)->nullable();
-            $table->string('status_kehadiran', 50)->nullable();
-            $table->string('ttd', 255)->nullable();
-            $table->string('koordinat', 150)->nullable();
-            $table->time('waktu_presensi')->nullable();
+            $table->foreignId('tim_id')->constrained('tims')->onDelete('cascade');
+            $table->foreignId('undangan_id')->nullable()->constrained('undangan_kegiatans');
+            $table->string('status_penerima', 150);
+            $table->string('status_kehadiran', 150);
+            $table->text('ttd')->nullable();
+            $table->text('latitude')->nullable();
+            $table->text('longitude')->nullable();
+            $table->point('koordinat')->nullable();
+            $table->timestamp('waktu_presensi')->nullable();
             $table->string('alasan_berhalangan', 255)->nullable();
             $table->timestamps();
         });

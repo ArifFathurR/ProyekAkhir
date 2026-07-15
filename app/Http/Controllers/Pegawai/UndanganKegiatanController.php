@@ -44,9 +44,13 @@ class UndanganKegiatanController extends Controller
             );
 
         if ($tab === 'terkirim') {
-            $undangansQuery->whereNotNull('file_undangan');
+            $undangansQuery->whereNotNull('file_undangan')
+                           ->where('status', '!=', 'Revisi');
         } else {
-            $undangansQuery->whereNull('file_undangan');
+            $undangansQuery->where(function ($query) {
+                $query->whereNull('file_undangan')
+                      ->orWhere('status', 'Revisi');
+            });
         }
 
         $undangans = $undangansQuery->paginate(10)
@@ -175,10 +179,8 @@ public function edit(UndanganKegiatan $undanganKegiatan)
     // Ambil semua tim (opsional, jika perlu untuk dropdown tim)
     $tims = Tim::all(['id', 'nama_tim']);
 
-    // Ambil semua pegawai yang tergabung dalam tim-tim tersebut
-    $pegawaiOptions = User::whereHas('anggotaTim', function ($query) use ($timIds) {
-        $query->whereIn('tim_id', $timIds);
-    })->get()->map(function ($user) {
+    // Ambil semua pegawai
+    $pegawaiOptions = User::all(['id', 'name'])->map(function ($user) {
         return [
             'value' => $user->id,
             'label' => $user->name,

@@ -13,6 +13,12 @@ return new class extends Migration
     {
         Schema::create('dokumentasi_kegiatans', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('kegiatan_id')->nullable()->constrained('kegiatans')->onDelete('cascade');
+            $table->foreignId('undangan_id')->nullable()->constrained('undangan_kegiatans')->onDelete('cascade');
+            $table->foreignId('penerima_id')->nullable()->constrained('penerima_undangans');
+            $table->string('notulensi', 255)->nullable();
+            $table->string('link_zoom', 255)->nullable();
+            $table->string('link_materi', 255)->nullable();
             $table->timestamps();
         });
     }

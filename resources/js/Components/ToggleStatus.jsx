@@ -1,20 +1,33 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { router } from '@inertiajs/react';
 
-export default function ToggleStatus({ id, defaultStatus = 'berhalangan', routeName }) {
+export default function ToggleStatus({ id, defaultStatus = 'berhalangan', routeName, onToggle }) {
   const [status, setStatus] = useState(defaultStatus);
   const isTerima = status === 'terima';
 
+  useEffect(() => {
+    setStatus(defaultStatus);
+  }, [defaultStatus]);
+
   const handleToggle = () => {
     const newStatus = isTerima ? 'berhalangan' : 'terima';
-    setStatus(newStatus);
+    console.log('Toggle clicked. isTerima:', isTerima, 'newStatus:', newStatus);
 
-    router.post(route(routeName, id), {
-      status_penerima: newStatus,
-    }, {
-      preserveScroll: true,
-      only: ['kegiatan'],
-    });
+    if (onToggle) {
+      onToggle(id, newStatus, (success) => {
+        if (success) {
+          setStatus(newStatus);
+        }
+      });
+    } else {
+      setStatus(newStatus);
+      router.post(route(routeName, id), {
+        status_penerima: newStatus,
+      }, {
+        preserveScroll: true,
+        only: ['kegiatan'],
+      });
+    }
   };
 
   return (

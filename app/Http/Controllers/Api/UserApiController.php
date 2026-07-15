@@ -82,4 +82,14 @@ class UserApiController extends Controller
         $user->delete();
         return response()->json(['message' => 'User deleted successfully']);
     }
+
+    public function testApi(){
+        $data = [
+            'nama:' => 'Arif Fathur Rahman',
+            'Nim: ' => '22555301021',
+            'Kelas:' => '4TIKIA'
+        ];
+
+        return response()->json($data,201);
+    }
 }

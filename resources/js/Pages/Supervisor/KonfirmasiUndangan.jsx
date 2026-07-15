@@ -31,6 +31,12 @@ export default function KonfirmasiUndangan({ undangans, historyUndangans }) {
                 text: 'text-red-800',
                 border: 'border-red-200',
                 icon: '❌'
+            },
+            'revisi': {
+                bg: 'bg-orange-100',
+                text: 'text-orange-800',
+                border: 'border-orange-200',
+                icon: '✏️'
             }
         };
 
@@ -51,6 +57,8 @@ export default function KonfirmasiUndangan({ undangans, historyUndangans }) {
             return 'bg-red-50/50 hover:bg-red-50';
         } else if (statusLower === 'diterima') {
             return 'bg-blue-50/30 hover:bg-blue-50/50';
+        } else if (statusLower === 'revisi') {
+            return 'bg-orange-50/30 hover:bg-orange-50/50';
         }
         return 'hover:bg-gray-50';
     };

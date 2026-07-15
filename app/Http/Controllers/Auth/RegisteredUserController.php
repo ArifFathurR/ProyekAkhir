@@ -34,16 +34,17 @@ class RegisteredUserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'role'=>'required|string|max:255',
+            'role'=>'nullable|string|max:255',
             'no_hp' => 'required|string|max:255',
 
         ]);
+        $role = $request->role ?: 'pegawai';
 
         $user = User::create([  
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'role' => $request->role,
+            'role' => $role,
             'no_hp' => $request->no_hp,
             
         ]);
@@ -56,12 +57,12 @@ class RegisteredUserController extends Controller
         if ($user->role == 'admin') {
             return redirect()->route('admin.index');
         } elseif ($user->role == 'pegawai') {
-            return redirect()->route('pegawai.index');
+            return redirect()->route('pegawai.show');
         }elseif ($user->role == 'supervisor') {
             return redirect()->route('supervisor.index');
         }
 
-        // Default redirect jika role tidak sesuai
-        return redirect()->intended(route('dashboard'));
+        // // Default redirect jika role tidak sesuai
+        // return redirect()->intended(route('dashboard'));
     }
 }

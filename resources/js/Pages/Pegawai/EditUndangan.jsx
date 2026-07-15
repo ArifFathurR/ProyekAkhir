@@ -231,6 +231,8 @@ export default function EditUndangan({ undangan, kegiatans = [], tims = [], pega
                   placeholder="Cari & pilih pegawai..."
                   className="react-select-container"
                   classNamePrefix="react-select"
+                  menuPortalTarget={typeof window !== 'undefined' ? document.body : null}
+                  styles={{ menuPortal: base => ({ ...base, zIndex: 9999 }) }}
                 />
                 {errors.user_ids && <div className="text-red-500 text-sm mt-1">{errors.user_ids}</div>}
               </div>

@@ -7,29 +7,37 @@ import Swal from 'sweetalert2';
 import { Input } from "@/Components/ui/input";
 import { Label } from "@/Components/ui/label";
 import { Button } from "@/Components/ui/button";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/Components/ui/select";
 
-export default function EditPegawai({ pegawai, roles }) {
-  const { data, setData, put, processing, errors } = useForm({
-    name: pegawai.name || '',
-    email: pegawai.email || '',
-    no_hp: pegawai.no_hp || '',
-    role: pegawai.role ? pegawai.role.split(',').map(r => r.trim()) : [],
+export default function CreatePegawai({ roles }) {
+  const { data, setData, post, processing, errors } = useForm({
+    name: '',
+    email: '',
+    no_hp: '',
+    password: '',
+    role: '',
   });
 
   const handleSubmit = (e) => {
     e.preventDefault();
     Swal.fire({
-      title: 'Update Pegawai?',
-      text: 'Apakah Anda yakin ingin menyimpan perubahan data pegawai ini?',
+      title: 'Tambah Pegawai?',
+      text: 'Apakah Anda yakin ingin menambahkan pegawai baru ini?',
       icon: 'question',
       showCancelButton: true,
       confirmButtonColor: '#0284c7',
       cancelButtonColor: '#64748b',
-      confirmButtonText: 'Ya, Update',
+      confirmButtonText: 'Ya, Tambah',
       cancelButtonText: 'Batal'
     }).then((result) => {
       if (result.isConfirmed) {
-        put(route('admin.pegawai.update', pegawai.id));
+        post(route('admin.pegawai.store'));
       }
     });
   };
@@ -44,10 +52,10 @@ export default function EditPegawai({ pegawai, roles }) {
           <div className="w-full bg-white border border-sky-100 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-8">
             {/* Title */}
             <h2 className="text-3xl font-bold text-center text-sky-700 mb-2">
-              Formulir Edit Pegawai
+              Formulir Tambah Pegawai
             </h2>
             <p className="text-gray-500 text-center mb-8 text-sm">
-              Perbarui data pegawai di bawah ini, lalu klik tombol update.
+              Lengkapi data pegawai di bawah ini, lalu klik tombol simpan.
             </p>
 
             {/* Form */}
@@ -103,31 +111,41 @@ export default function EditPegawai({ pegawai, roles }) {
                 )}
               </div>
 
-              {/* Role Checkboxes */}
+              {/* Password */}
               <div className="space-y-2">
-                <Label>Role</Label>
-                <div className="flex flex-col gap-2 mt-1">
-                  {roles && roles.map((r) => (
-                    <label key={r} className="flex items-center space-x-2 cursor-pointer select-none">
-                      <input
-                        type="checkbox"
-                        value={r}
-                        checked={data.role.includes(r)}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          const isChecked = e.target.checked;
-                          if (isChecked) {
-                            setData('role', [...data.role, value]);
-                          } else {
-                            setData('role', data.role.filter((role) => role !== value));
-                          }
-                        }}
-                        className="rounded border-gray-300 text-sky-600 shadow-sm focus:border-sky-300 focus:ring focus:ring-sky-200 focus:ring-opacity-50"
-                      />
-                      <span className="text-gray-700 capitalize text-sm">{r}</span>
-                    </label>
-                  ))}
-                </div>
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="Masukkan password..."
+                  value={data.password}
+                  onChange={(e) => setData('password', e.target.value)}
+                  className="focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-1"
+                  required
+                />
+                {errors.password && (
+                  <p className="text-red-500 text-sm mt-1">{errors.password}</p>
+                )}
+              </div>
+
+              {/* Role */}
+              <div className="space-y-2">
+                <Label htmlFor="role">Role</Label>
+                <Select
+                  onValueChange={(value) => setData('role', value)}
+                  value={data.role || ""}
+                >
+                  <SelectTrigger className="focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-1 capitalize">
+                    <SelectValue placeholder="-- Pilih Role --" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {roles && roles.map((r) => (
+                      <SelectItem key={r} value={r} className="capitalize">
+                        {r}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 {errors.role && (
                   <p className="text-red-500 text-sm mt-1">{errors.role}</p>
                 )}
@@ -139,7 +157,7 @@ export default function EditPegawai({ pegawai, roles }) {
                 disabled={processing}
                 className="w-full bg-sky-600 hover:bg-sky-700 text-white font-semibold py-2 rounded-md transition-transform duration-200 hover:scale-[1.02]"
               >
-                {processing ? 'Menyimpan...' : 'UPDATE DATA'}
+                {processing ? 'Menyimpan...' : 'TAMBAH DATA'}
               </Button>
             </form>
           </div>

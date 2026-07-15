@@ -2,6 +2,7 @@ import { useForm, router, usePage } from '@inertiajs/react';
 import Header from '@/Components/Header';
 import Sidebar from '@/Layouts/Sidebar';
 import FlashPopup from '@/Components/FlashPopup';
+import Swal from 'sweetalert2';
 
 import SuccessToast from '@/Components/SuccesToast'; // pastikan nama file dan path-nya sesuai
 import { Input } from '@/Components/ui/input';
@@ -27,7 +28,20 @@ export default function CreateAnggotaTim({ users, tims }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    post(route('anggota_tim.store'));
+    Swal.fire({
+      title: 'Tambah Anggota Tim?',
+      text: 'Apakah Anda yakin ingin menambahkan anggota tim baru ini?',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#0284c7',
+      cancelButtonColor: '#64748b',
+      confirmButtonText: 'Ya, Tambah',
+      cancelButtonText: 'Batal'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        post(route('anggota_tim.store'));
+      }
+    });
   };
 
   return (

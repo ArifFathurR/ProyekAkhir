@@ -94,7 +94,7 @@ export default function Register() {
                         <InputError message={errors.email} className="mt-1" />
                     </div>
 
-                    {/* Role Field */}
+                    {/* Role Field
                     <div className="space-y-1.5">
                         <label htmlFor="role" className="block text-sm font-semibold text-slate-700 ml-1">
                             Role (Peran)
@@ -129,7 +129,7 @@ export default function Register() {
                             </div>
                         </div>
                         <InputError message={errors.role} className="mt-1" />
-                    </div>
+                    </div> */}
 
                     {/* Phone Number Field */}
                     <div className="space-y-1.5">

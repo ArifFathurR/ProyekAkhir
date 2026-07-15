@@ -211,6 +211,7 @@ export default function CekStatusUndangan({ undangans, filters }) {
                             <option value="Menunggu">Menunggu</option>
                             <option value="Diterima">Diterima</option>
                             <option value="Ditolak">Ditolak</option>
+                            <option value="Revisi">Revisi</option>
                         </select>
                     </div>
 
@@ -298,12 +299,15 @@ export default function CekStatusUndangan({ undangans, filters }) {
                                                     <div className="text-sm font-medium text-gray-900">{undangan.judul}</div>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span className={`inline-flex px-3 py-1 rounded-full text-xs font-semibold ${undangan.status === 'Diterima'
+                                                    <span className={`inline-flex px-3 py-1 rounded-full text-xs font-semibold ${
+                                                        undangan.status === 'Diterima'
                                                             ? 'bg-green-100 text-green-800'
                                                             : undangan.status === 'Menunggu'
                                                                 ? 'bg-yellow-100 text-yellow-800'
-                                                                : 'bg-red-100 text-red-800'
-                                                        }`}>
+                                                                : undangan.status === 'Revisi'
+                                                                    ? 'bg-orange-100 text-orange-800'
+                                                                    : 'bg-red-100 text-red-800'
+                                                    }`}>
                                                         {undangan.status}
                                                     </span>
                                                 </td>
@@ -361,7 +365,7 @@ export default function CekStatusUndangan({ undangans, filters }) {
                                                             </a>
                                                         )}
 
-                                                        {undangan.status === 'Ditolak' && (
+                                                        {(undangan.status === 'Ditolak' || undangan.status === 'Revisi') && (
                                                             <button
                                                                 onClick={() => handleEdit(undangan.id)}
                                                                 className="inline-flex items-center px-3 py-1.5 bg-orange-100 hover:bg-orange-200 text-orange-700 text-xs font-medium rounded-md transition-colors duration-200"

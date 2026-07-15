@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { router, usePage } from '@inertiajs/react';
+import { useForm, usePage } from '@inertiajs/react';
 import Header from '@/Components/Header';
 import SidebarSupervisor from '@/Layouts/SidebarSupervisor';
 import FlashPopup from '@/Components/FlashPopup';
@@ -8,12 +8,12 @@ import { Label } from '@/Components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
+import Swal from 'sweetalert2';
 
-export default function CreateDokumentasi({ kegiatanOptions = [], undanganOptions = [] }) {
-  const { errors, flash } = usePage().props;
+export default function CreateDokumentasi({ undanganOptions = [] }) {
+  const { flash } = usePage().props;
 
-  const [formData, setFormData] = useState({
-    kegiatan_id: '',
+  const { data, setData, post, processing, errors } = useForm({
     undangan_id: '',
     notulensi: '',
     link_zoom: '',
@@ -30,30 +30,19 @@ export default function CreateDokumentasi({ kegiatanOptions = [], undanganOption
       const selectedFiles = Array.from(files);
       const previews = selectedFiles.map((file) => URL.createObjectURL(file));
 
-      setFormData((prev) => ({
-        ...prev,
-        foto: selectedFiles,
-      }));
-
+      setData('foto', selectedFiles);
       setPreviewImages(previews);
     } else {
-      setFormData((prev) => ({
-        ...prev,
-        [name]: value,
-      }));
+      setData(name, value);
     }
   };
 
-  const handleKegiatanSelectChange = (value) => {
-    setFormData((prev) => ({ ...prev, kegiatan_id: value }));
-  };
-
   const handleUndanganSelectChange = (value) => {
-    setFormData((prev) => ({ ...prev, undangan_id: value }));
+    setData('undangan_id', value);
   };
 
   const handleQuillChange = (content) => {
-    setFormData((prev) => ({ ...prev, notulensi: content }));
+    setData('notulensi', content);
   };
 
   const quillModules = {
@@ -67,23 +56,23 @@ export default function CreateDokumentasi({ kegiatanOptions = [], undanganOption
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const form = new FormData();
-
-    form.append('kegiatan_id', formData.kegiatan_id);
-    form.append('undangan_id', formData.undangan_id);
-    form.append('notulensi', formData.notulensi);
-    form.append('link_zoom', formData.link_zoom);
-    form.append('link_materi', formData.link_materi);
-
-    if (formData.foto && formData.foto.length > 0) {
-      formData.foto.forEach((file) => {
-        form.append('foto[]', file);
-      });
-    }
-
-    router.post('/dokumentasisupervisor', form, {
-      forceFormData: true,
-      preserveScroll: true,
+    
+    Swal.fire({
+      title: 'Simpan Dokumentasi?',
+      text: 'Apakah Anda yakin ingin menambahkan dokumentasi kegiatan baru ini?',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#0284c7',
+      cancelButtonColor: '#64748b',
+      confirmButtonText: 'Ya, Simpan',
+      cancelButtonText: 'Batal'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        post('/dokumentasisupervisor', {
+          forceFormData: true,
+          preserveScroll: true,
+        });
+      }
     });
   };
 
@@ -98,30 +87,12 @@ export default function CreateDokumentasi({ kegiatanOptions = [], undanganOption
             <h1 className="text-2xl font-bold mb-6 text-center text-gray-800">Tambah Dokumentasi Kegiatan</h1>
             <form onSubmit={handleSubmit} encType="multipart/form-data" className="space-y-6">
               
-              <div className="space-y-2">
-                <Label>Kegiatan</Label>
-                <Select
-                  value={formData.kegiatan_id}
-                  onValueChange={handleKegiatanSelectChange}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Pilih Kegiatan" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {kegiatanOptions.map((k) => (
-                      <SelectItem key={k.id} value={String(k.id)}>
-                        {k.nama_kegiatan}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {errors.kegiatan_id && <div className="text-red-500 text-sm">{errors.kegiatan_id}</div>}
-              </div>
+
 
               <div className="space-y-2">
                 <Label>Undangan</Label>
                 <Select
-                  value={formData.undangan_id}
+                  value={data.undangan_id}
                   onValueChange={handleUndanganSelectChange}
                 >
                   <SelectTrigger className="w-full">
@@ -143,7 +114,7 @@ export default function CreateDokumentasi({ kegiatanOptions = [], undanganOption
                 <div className="bg-white rounded">
                   <ReactQuill
                     theme="snow"
-                    value={formData.notulensi}
+                    value={data.notulensi}
                     onChange={handleQuillChange}
                     modules={quillModules}
                     placeholder="Tulis notulensi kegiatan di sini..."
@@ -159,7 +130,7 @@ export default function CreateDokumentasi({ kegiatanOptions = [], undanganOption
                   <Input
                     type="url"
                     name="link_zoom"
-                    value={formData.link_zoom}
+                    value={data.link_zoom}
                     onChange={handleChange}
                   />
                   {errors.link_zoom && <div className="text-red-500 text-sm">{errors.link_zoom}</div>}
@@ -170,7 +141,7 @@ export default function CreateDokumentasi({ kegiatanOptions = [], undanganOption
                   <Input
                     type="url"
                     name="link_materi"
-                    value={formData.link_materi}
+                    value={data.link_materi}
                     onChange={handleChange}
                   />
                   {errors.link_materi && <div className="text-red-500 text-sm">{errors.link_materi}</div>}
@@ -206,7 +177,8 @@ export default function CreateDokumentasi({ kegiatanOptions = [], undanganOption
               <div className="pt-4">
                 <button
                   type="submit"
-                  className="w-full bg-[#0B2E74] text-white font-semibold px-4 py-2 rounded-md hover:bg-blue-800 transition duration-150"
+                  disabled={processing}
+                  className="w-full bg-[#0B2E74] text-white font-semibold px-4 py-2 rounded-md hover:bg-blue-800 transition duration-150 disabled:bg-gray-400"
                 >
                   Simpan Dokumentasi
                 </button>

@@ -42,7 +42,7 @@ class AdminController extends Controller
 
     public function create()
     {
-        $roles = ['admin', 'pegawai', 'supervisor'];
+        $roles = ['admin', 'pegawai', 'supervisor','pemantau'];
         return Inertia::render('Admin/CreatePegawai', [
             'roles' => $roles
         ]);

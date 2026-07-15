@@ -11,8 +11,9 @@ use App\Http\Controllers\Api\UserApiController;
 use App\Http\Controllers\Api\DokumentasiApiController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\PegawaiApiController;
-Route::get('/', function(){
-    return'API';
+
+Route::get('/', function () {
+    return 'API';
 });
 
 Route::post('/login', [AuthController::class, 'login']);
@@ -30,19 +31,21 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/dokumentasi/selesai/{id_undangan}', [DokumentasiApiController::class, 'selesai']);
     //pegawai
     Route::get('/pegawai/kegiatan', [PegawaiApiController::class, 'index']);
-        Route::get('/pegawai/kegiatan-akandatang', [PegawaiApiController::class, 'akanDatang']);
+    Route::get('/pegawai/kegiatan-akandatang', [PegawaiApiController::class, 'akanDatang']);
 
     Route::get('/pegawai/kegiatan/sedang', [PegawaiApiController::class, 'sedang']);
     Route::get('/pegawai/kegiatan/selesai', [PegawaiApiController::class, 'selesai']);
     Route::get('/pegawai/kegiatan/kalender', [PegawaiApiController::class, 'kalender']);
     Route::post('/pegawai/ttd', [PegawaiApiController::class, 'storeTtd']);
     Route::get('/pegawai/dokumentasi/{penerima_id}', [PegawaiApiController::class, 'getByPenerimaId']);
-// Route
-Route::get('/pegawai/dropdown-dokumentasi', [PegawaiApiController::class, 'dropdownDokumentasi']);
-Route::get('/pegawai/semua-kegiatan', [PegawaiApiController::class, 'getAllKegiatanUser']);
-Route::get('/pegawai/riwayat-presensi', [PegawaiApiController::class, 'riwayatPresensi']);
-
+    // Route
+    Route::get('/pegawai/dropdown-dokumentasi', [PegawaiApiController::class, 'dropdownDokumentasi']);
+    Route::get('/pegawai/semua-kegiatan', [PegawaiApiController::class, 'getAllKegiatanUser']);
+    Route::get('/pegawai/riwayat-presensi', [PegawaiApiController::class, 'riwayatPresensi']);
 });
+
+Route::get('/test',[UserApiController::class, 'testApi']);
+
 
 // Route::apiResource('users', UserApiController::class);
 
@@ -54,4 +57,3 @@ Route::get('/pegawai/riwayat-presensi', [PegawaiApiController::class, 'riwayatPr
 //     Route::put('/{id}', [UserApiController::class, 'update']);    // PUT /api/users/{id}
 //     Route::delete('/{id}', [UserApiController::class, 'destroy']); // DELETE /api/users/{id}
 // });
-

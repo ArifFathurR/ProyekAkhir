@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import Modal from '@/Components/Modal';
+import Swal from 'sweetalert2';
 
 export default function EditTim({ show, onClose, tim }) {
   const { data, setData, put, processing, errors, reset } = useForm({
@@ -18,10 +19,23 @@ export default function EditTim({ show, onClose, tim }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (tim) {
-      put(route('tim.update', tim.id), {
-        onSuccess: () => {
-          onClose();
-        },
+      Swal.fire({
+        title: 'Update Tim?',
+        text: 'Apakah Anda yakin ingin menyimpan perubahan nama tim ini?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#0284c7',
+        cancelButtonColor: '#64748b',
+        confirmButtonText: 'Ya, Update',
+        cancelButtonText: 'Batal'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          put(route('tim.update', tim.id), {
+            onSuccess: () => {
+              onClose();
+            },
+          });
+        }
       });
     }
   };

@@ -3,6 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import Modal from '@/Components/Modal';
+import Swal from 'sweetalert2';
 
 export default function CreateTim({ show, onClose }) {
   const { data, setData, post, processing, errors, reset } = useForm({
@@ -11,11 +12,24 @@ export default function CreateTim({ show, onClose }) {
 
   const handleAddSubmit = (e) => {
     e.preventDefault();
-    post(route('tim.store'), {
-      onSuccess: () => {
-        onClose();
-        reset();
-      },
+    Swal.fire({
+      title: 'Tambah Tim?',
+      text: 'Apakah Anda yakin ingin menambahkan tim baru ini?',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#0284c7',
+      cancelButtonColor: '#64748b',
+      confirmButtonText: 'Ya, Tambah',
+      cancelButtonText: 'Batal'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        post(route('tim.store'), {
+          onSuccess: () => {
+            onClose();
+            reset();
+          },
+        });
+      }
     });
   };
 

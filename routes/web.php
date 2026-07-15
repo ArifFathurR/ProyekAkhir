@@ -12,6 +12,7 @@ use App\Http\Controllers\Pegawai\PenerimaUndanganController;
 use App\Http\Controllers\Supervisor\SupervisorController;
 use App\Http\Controllers\Supervisor\DokumentasiKegiatanSupervisorController;
 use App\Http\Controllers\Pemantau\PemantauController;
+use App\Http\Controllers\TestController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -107,4 +108,8 @@ Route::get('/test-email', function () {
     return 'Email test dikirim. Cek inbox/spam.';
 });
 
+Route::get('/test', [TestController::class, 'index']);
+Route::get('/test2', [TestController::class, 'halaman2'])->name('test.halaman2');
+
 require __DIR__.'/auth.php';
+

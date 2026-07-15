@@ -8,22 +8,18 @@ import { Label } from '@/Components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
+import Swal from 'sweetalert2';
 
-export default function EditDokumentasi({ dokumentasi, kegiatanOptions, undanganOptions }) {
+export default function EditDokumentasi({ dokumentasi, undanganOptions }) {
     const { errors } = usePage().props;
 
     const [data, setData] = useState({
-        kegiatan_id: dokumentasi.kegiatan_id || '',
         undangan_id: dokumentasi.undangan_id || '',
         notulensi: dokumentasi.notulensi || '',
         link_zoom: dokumentasi.link_zoom || '',
         link_materi: dokumentasi.link_materi || '',
         foto: null,
     });
-
-    const handleKegiatanSelectChange = (value) => {
-        setData((prev) => ({ ...prev, kegiatan_id: value }));
-    };
 
     const handleUndanganSelectChange = (value) => {
         setData((prev) => ({ ...prev, undangan_id: value }));
@@ -45,7 +41,6 @@ export default function EditDokumentasi({ dokumentasi, kegiatanOptions, undangan
     const handleSubmit = (e) => {
         e.preventDefault();
         const formData = new FormData();
-        formData.append('kegiatan_id', data.kegiatan_id);
         formData.append('undangan_id', data.undangan_id);
         formData.append('notulensi', data.notulensi);
         formData.append('link_zoom', data.link_zoom);
@@ -57,11 +52,24 @@ export default function EditDokumentasi({ dokumentasi, kegiatanOptions, undangan
             }
         }
 
-        router.post(`/dokumentasisupervisor/${dokumentasi.id}`, formData, {
-            forceFormData: true,
-            preserveScroll: true,
-            method: 'post',
-            headers: { 'X-HTTP-Method-Override': 'PUT' },
+        Swal.fire({
+            title: 'Simpan Perubahan?',
+            text: 'Apakah Anda yakin ingin menyimpan perubahan dokumentasi ini?',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#0284c7',
+            cancelButtonColor: '#64748b',
+            confirmButtonText: 'Ya, Simpan',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                router.post(`/dokumentasisupervisor/${dokumentasi.id}`, formData, {
+                    forceFormData: true,
+                    preserveScroll: true,
+                    method: 'post',
+                    headers: { 'X-HTTP-Method-Override': 'PUT' },
+                });
+            }
         });
     };
     const handleDeleteFoto = (fotoId) => {
@@ -86,26 +94,7 @@ export default function EditDokumentasi({ dokumentasi, kegiatanOptions, undangan
                         <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">Edit Dokumentasi Kegiatan</h2>
                         <form onSubmit={handleSubmit} encType="multipart/form-data" className="space-y-6">
                             
-                            {/* Pilih Kegiatan */}
-                            <div className="space-y-2">
-                                <Label>Pilih Kegiatan</Label>
-                                <Select
-                                    value={String(data.kegiatan_id)}
-                                    onValueChange={handleKegiatanSelectChange}
-                                >
-                                    <SelectTrigger className="w-full">
-                                        <SelectValue placeholder="-- Pilih Kegiatan --" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {kegiatanOptions.map((item) => (
-                                            <SelectItem key={item.id} value={String(item.id)}>
-                                                {item.nama_kegiatan}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                {errors.kegiatan_id && <p className="text-sm text-red-600">{errors.kegiatan_id}</p>}
-                            </div>
+
 
                             {/* Pilih Undangan */}
                             <div className="space-y-2">

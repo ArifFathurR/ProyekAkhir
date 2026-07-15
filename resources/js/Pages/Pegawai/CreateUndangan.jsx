@@ -51,22 +51,6 @@ export default function CreateUndangan({ kegiatans = [], tims = [], pegawaiList 
       label: `${p.name} (${p.email})`
     })), [pegawaiList]);
 
-  useEffect(() => {
-    setData('user_ids', selectedPegawai.map(p => p.value));
-  }, [selectedPegawai]);
-
-  useEffect(() => {
-    if (data.tim_ids && data.tim_ids.length > 0) {
-      const anggota = anggotaTim
-        .filter(a => data.tim_ids.includes(String(a.tim_id)))
-        .map(a => String(a.user_id));
-      const uniqueUserIds = Array.from(new Set(anggota));
-      const matched = pegawaiOptions.filter(p => uniqueUserIds.includes(p.value));
-      setSelectedPegawai(matched);
-    } else if (data.tim_ids && data.tim_ids.length === 0) {
-      setSelectedPegawai([]);
-    }
-  }, [data.tim_ids, pegawaiOptions, anggotaTim]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -226,21 +210,45 @@ export default function CreateUndangan({ kegiatans = [], tims = [], pegawaiList 
                   value={selectedTims}
                   onChange={(val) => {
                     const hasAll = val && val.some(v => v.value === 'all');
+                    let newSelectedTims = [];
                     if (hasAll) {
-                      const allIndividualTeams = tims.map(t => ({
+                      newSelectedTims = tims.map(t => ({
                         value: String(t.id),
                         label: t.nama_tim
                       }));
-                      setSelectedTims(allIndividualTeams);
-                      setData('tim_ids', allIndividualTeams.map(v => v.value));
                     } else {
-                      setSelectedTims(val || []);
-                      setData('tim_ids', (val || []).map(v => v.value));
+                      newSelectedTims = val || [];
+                    }
+                    
+                    setSelectedTims(newSelectedTims);
+                    const newTimIds = newSelectedTims.map(v => v.value);
+                    
+                    if (newTimIds.length > 0) {
+                      const anggota = anggotaTim
+                        .filter(a => newTimIds.includes(String(a.tim_id)))
+                        .map(a => String(a.user_id));
+                      const uniqueUserIds = Array.from(new Set(anggota));
+                      const matched = pegawaiOptions.filter(p => uniqueUserIds.includes(p.value));
+                      setSelectedPegawai(matched);
+                      setData(data => ({
+                        ...data,
+                        tim_ids: newTimIds,
+                        user_ids: matched.map(p => p.value)
+                      }));
+                    } else {
+                      setSelectedPegawai([]);
+                      setData(data => ({
+                        ...data,
+                        tim_ids: newTimIds,
+                        user_ids: []
+                      }));
                     }
                   }}
                   placeholder="Pilih Tim..."
                   className="react-select-container"
                   classNamePrefix="react-select"
+                  menuPortalTarget={typeof window !== 'undefined' ? document.body : null}
+                  styles={{ menuPortal: base => ({ ...base, zIndex: 9999 }) }}
                 />
               </div>
 
@@ -251,10 +259,15 @@ export default function CreateUndangan({ kegiatans = [], tims = [], pegawaiList 
                   isMulti
                   options={pegawaiOptions}
                   value={selectedPegawai}
-                  onChange={setSelectedPegawai}
+                  onChange={(val) => {
+                    setSelectedPegawai(val || []);
+                    setData('user_ids', (val || []).map(p => p.value));
+                  }}
                   placeholder="Cari & pilih pegawai..."
                   className="react-select-container"
                   classNamePrefix="react-select"
+                  menuPortalTarget={typeof window !== 'undefined' ? document.body : null}
+                  styles={{ menuPortal: base => ({ ...base, zIndex: 9999 }) }}
                 />
                 {errors.user_ids && <div className="text-red-500 text-sm mt-1">{errors.user_ids}</div>}
               </div>

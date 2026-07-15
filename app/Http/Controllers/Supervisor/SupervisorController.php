@@ -60,7 +60,7 @@ class SupervisorController extends Controller
 public function konfirmasi(Request $request, $id)
 {
     $request->validate([
-        'status' => 'required|in:Diterima,Ditolak',
+        'status' => 'required|in:Diterima,Ditolak,Revisi',
         'komentar' => 'nullable|string|max:1000',
     ]);
 

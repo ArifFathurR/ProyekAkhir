@@ -73,6 +73,7 @@ class PegawaiController extends Controller
                 'agenda' => $item->undangan->agenda ?? '-',
                 'file_undangan' => route('undangan_kegiatan.preview', $item->undangan_id),
                 'status_penerima' => $item->status_penerima,
+                'alasan_berhalangan' => $item->alasan_berhalangan,
             ];
         });
 
@@ -130,10 +131,10 @@ public function toggleKonfirmasi(Request $request, $id)
     $penerima = \App\Models\PenerimaUndangan::findOrFail($id);
     $penerima->update([
         'status_penerima' => $request->status_penerima,
+        'alasan_berhalangan' => $request->status_penerima === 'berhalangan' ? $request->alasan_berhalangan : null,
     ]);
 
     return back()->with('success', 'Status berhasil diperbarui.');
-
 }
 
 

@@ -13,21 +13,25 @@ return new class extends Migration
     {
         Schema::create('undangan_kegiatans', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('kegiataan_id')->constrained('kegiatans')->onDelete('cascade');
+            $table->foreignId('kegiatan_id')->constrained('kegiatans')->onDelete('cascade');
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->string('nomor_surat');
             $table->string('sifat');
-            $table->string('Judul');
+            $table->string('judul');
             $table->string('deskripsi');
             $table->string('hari');
             $table->date('tanggal');
             $table->time('waktu');
+            $table->time('waktu_selesai');
             $table->string('tempat');
-            $table->string('angenda');
+            $table->string('agenda');
             $table->string('status');
             $table->string('status_pelaksanaan');
-            $table->string('komentar');
+            $table->string('komentar')->nullable();
             $table->timestamps();
+            $table->unsignedBigInteger('id_supervisor')->nullable();
+            $table->integer('terkirim')->default(0);
+            $table->text('file_undangan')->nullable();
         });
     }
 

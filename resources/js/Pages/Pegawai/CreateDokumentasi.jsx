@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { router, usePage } from '@inertiajs/react';
+import { useForm, usePage } from '@inertiajs/react';
 import Header from '@/Components/Header';
 import SidebarPegawai from '@/Layouts/SidebarPegawai';
 import FlashPopup from '@/Components/FlashPopup';
@@ -10,14 +10,14 @@ import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 
 export default function CreateDokumentasi({ undanganOptions = [] }) {
-  const { errors, flash } = usePage().props;
+  const { flash } = usePage().props;
 
-  const [formData, setFormData] = useState({
+  const { data, setData, post, processing, errors } = useForm({
     undangan_id: '',
     notulensi: '',
     link_zoom: '',
     link_materi: '',
-    foto: [],
+    foto: [], 
   });
 
   const [previewImages, setPreviewImages] = useState([]);
@@ -29,26 +29,19 @@ export default function CreateDokumentasi({ undanganOptions = [] }) {
       const selectedFiles = Array.from(files);
       const previews = selectedFiles.map((file) => URL.createObjectURL(file));
 
-      setFormData((prev) => ({
-        ...prev,
-        foto: selectedFiles,
-      }));
-
+      setData('foto', selectedFiles);
       setPreviewImages(previews);
     } else {
-      setFormData((prev) => ({
-        ...prev,
-        [name]: value,
-      }));
+      setData(name, value);
     }
   };
 
   const handleSelectChange = (value) => {
-    setFormData((prev) => ({ ...prev, undangan_id: value }));
+    setData('undangan_id', value);
   };
 
   const handleQuillChange = (content) => {
-    setFormData((prev) => ({ ...prev, notulensi: content }));
+    setData('notulensi', content);
   };
 
   const quillModules = {
@@ -62,20 +55,8 @@ export default function CreateDokumentasi({ undanganOptions = [] }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const form = new FormData();
-
-    form.append('undangan_id', formData.undangan_id);
-    form.append('notulensi', formData.notulensi);
-    form.append('link_zoom', formData.link_zoom);
-    form.append('link_materi', formData.link_materi);
-
-    if (formData.foto && formData.foto.length > 0) {
-      formData.foto.forEach((file) => {
-        form.append('foto[]', file);
-      });
-    }
-
-    router.post('/dokumentasi_kegiatan', form, {
+    
+    post('/dokumentasi_kegiatan', {
       forceFormData: true,
       preserveScroll: true,
     });
@@ -95,7 +76,7 @@ export default function CreateDokumentasi({ undanganOptions = [] }) {
               <div className="space-y-2">
                 <Label>Undangan</Label>
                 <Select
-                  value={formData.undangan_id}
+                  value={data.undangan_id}
                   onValueChange={handleSelectChange}
                 >
                   <SelectTrigger className="w-full">
@@ -117,7 +98,7 @@ export default function CreateDokumentasi({ undanganOptions = [] }) {
                 <div className="bg-white rounded">
                   <ReactQuill
                     theme="snow"
-                    value={formData.notulensi}
+                    value={data.notulensi}
                     onChange={handleQuillChange}
                     modules={quillModules}
                     placeholder="Tulis notulensi kegiatan di sini..."
@@ -133,7 +114,7 @@ export default function CreateDokumentasi({ undanganOptions = [] }) {
                   <Input
                     type="url"
                     name="link_zoom"
-                    value={formData.link_zoom}
+                    value={data.link_zoom}
                     onChange={handleChange}
                   />
                   {errors.link_zoom && <div className="text-red-500 text-sm">{errors.link_zoom}</div>}
@@ -144,7 +125,7 @@ export default function CreateDokumentasi({ undanganOptions = [] }) {
                   <Input
                     type="url"
                     name="link_materi"
-                    value={formData.link_materi}
+                    value={data.link_materi}
                     onChange={handleChange}
                   />
                   {errors.link_materi && <div className="text-red-500 text-sm">{errors.link_materi}</div>}
@@ -180,7 +161,8 @@ export default function CreateDokumentasi({ undanganOptions = [] }) {
               <div className="pt-4">
                 <button
                   type="submit"
-                  className="w-full bg-[#0B2E74] text-white font-semibold px-4 py-2 rounded-md hover:bg-blue-800 transition duration-150"
+                  disabled={processing}
+                  className="w-full bg-[#0B2E74] text-white font-semibold px-4 py-2 rounded-md hover:bg-blue-800 transition duration-150 disabled:bg-gray-400"
                 >
                   Simpan Dokumentasi
                 </button>

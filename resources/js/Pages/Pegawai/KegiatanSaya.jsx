@@ -9,10 +9,64 @@ import FlashPopup from '@/Components/FlashPopup';
 import ModalDetailUndangan from '@/Components/ModalDetailUndangan';
 import StatsCard from '@/Components/StatsCard';
 import TableCard from '@/Components/TableCard';
+import { Button } from '@/Components/ui/button';
+import { Label } from '@/Components/ui/label';
+import { Textarea } from '@/Components/ui/textarea';
 
 export default function KegiatanSaya({ kegiatan = [] }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedData, setSelectedData] = useState(null);
+
+  const [isAlasanModalOpen, setIsAlasanModalOpen] = useState(false);
+  const [alasanText, setAlasanText] = useState('');
+  const [targetToggleId, setTargetToggleId] = useState(null);
+  const [pendingCallback, setPendingCallback] = useState(null);
+
+  const handleToggleStatus = (id, newStatus, callback) => {
+    console.log('handleToggleStatus called. id:', id, 'newStatus:', newStatus);
+    if (newStatus === 'berhalangan') {
+      console.log('Setting state to show alasan modal...');
+      setTargetToggleId(id);
+      setAlasanText('');
+      setPendingCallback(() => callback);
+      setIsAlasanModalOpen(true);
+    } else {
+      router.post(route('pegawai.konfirmasi.toggle', id), {
+        status_penerima: newStatus,
+        alasan_berhalangan: null,
+      }, {
+        preserveScroll: true,
+        onSuccess: () => {
+          callback(true);
+        },
+        onError: () => {
+          callback(false);
+        }
+      });
+    }
+  };
+
+  const handleConfirmAlasan = () => {
+    if (!alasanText.trim()) {
+      alert('Alasan berhalangan wajib diisi.');
+      return;
+    }
+
+    router.post(route('pegawai.konfirmasi.toggle', targetToggleId), {
+      status_penerima: 'berhalangan',
+      alasan_berhalangan: alasanText,
+    }, {
+      preserveScroll: true,
+      onSuccess: () => {
+        setIsAlasanModalOpen(false);
+        if (pendingCallback) pendingCallback(true);
+      },
+      onError: () => {
+        setIsAlasanModalOpen(false);
+        if (pendingCallback) pendingCallback(false);
+      }
+    });
+  };
 
   const handleOpenModal = (data) => {
     setSelectedData(data);
@@ -140,6 +194,7 @@ export default function KegiatanSaya({ kegiatan = [] }) {
                               id={item.id}
                               defaultStatus={item.status_penerima}
                               routeName="pegawai.konfirmasi.toggle"
+                              onToggle={handleToggleStatus}
                             />
                           </div>
                         </td>
@@ -170,6 +225,55 @@ export default function KegiatanSaya({ kegiatan = [] }) {
         onClose={() => setIsModalOpen(false)}
         data={selectedData}
       />
+
+      {isAlasanModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl border border-gray-100">
+            <div className="flex items-center space-x-3 mb-4">
+              <span className="text-2xl">⚠️</span>
+              <h3 className="text-lg font-bold text-gray-900">Alasan Berhalangan Hadir</h3>
+            </div>
+            
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="alasan" className="text-sm font-medium text-gray-700">
+                  Tuliskan alasan Anda berhalangan hadir pada kegiatan ini:
+                </Label>
+                <Textarea
+                  id="alasan"
+                  placeholder="Contoh: Sedang dinas luar kota / Sakit / Ada rapat penting lain..."
+                  value={alasanText}
+                  onChange={(e) => setAlasanText(e.target.value)}
+                  rows="4"
+                  className="w-full mt-1 border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-xl"
+                  required
+                />
+              </div>
+
+              <div className="flex space-x-3 pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setIsAlasanModalOpen(false);
+                    if (pendingCallback) pendingCallback(false);
+                  }}
+                  className="flex-1 rounded-xl"
+                >
+                  Batal
+                </Button>
+                <Button
+                  type="button"
+                  onClick={handleConfirmAlasan}
+                  className="flex-1 bg-red-600 hover:bg-red-700 text-white rounded-xl shadow-md hover:shadow-lg transition-all"
+                >
+                  Kirim Alasan
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

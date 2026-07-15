@@ -1,6 +1,7 @@
 import Header from '@/Components/Header';
 import Sidebar from '@/Layouts/Sidebar';
 import { useForm } from '@inertiajs/react';
+import Swal from 'sweetalert2';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Textarea } from '@/Components/ui/textarea';
@@ -23,7 +24,20 @@ export default function UpdateKegiatan({ kegiatan, tims }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    put(route('kegiatan.update', kegiatan.id));
+    Swal.fire({
+      title: 'Update Kegiatan?',
+      text: 'Apakah Anda yakin ingin menyimpan perubahan data kegiatan ini?',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#0284c7',
+      cancelButtonColor: '#64748b',
+      confirmButtonText: 'Ya, Update',
+      cancelButtonText: 'Batal'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        put(route('kegiatan.update', kegiatan.id));
+      }
+    });
   };
 
   return (

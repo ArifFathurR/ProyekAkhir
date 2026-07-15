@@ -56,11 +56,9 @@ class DokumentasiKegiatanSupervisorController extends Controller
 
     public function create()
     {
-        $kegiatan = Kegiatan::select('id', 'nama_kegiatan')->get();
         $undangan = UndanganKegiatan::select('id', 'judul', 'kegiatan_id')->get();
 
         return Inertia::render('Supervisor/CreateDokumentasi', [
-            'kegiatanOptions' => $kegiatan,
             'undanganOptions' => $undangan,
         ]);
     }
@@ -68,6 +66,9 @@ class DokumentasiKegiatanSupervisorController extends Controller
     public function store(StoreDokumentasiKegiatanRequest $request)
     {
         $data = $request->validated();
+
+        $undangan = UndanganKegiatan::findOrFail($data['undangan_id']);
+        $data['kegiatan_id'] = $undangan->kegiatan_id;
 
         $dokumentasi = DokumentasiKegiatan::create([
             'kegiatan_id' => $data['kegiatan_id'],
@@ -84,14 +85,12 @@ class DokumentasiKegiatanSupervisorController extends Controller
 
     public function edit(DokumentasiKegiatan $dokumentasisupervisor)
     {
-        $kegiatan = Kegiatan::select('id', 'nama_kegiatan')->get();
         $undangan = UndanganKegiatan::select('id', 'judul')->get();
 
         $dokumentasisupervisor->load('fotoDokumentasi');
 
         return Inertia::render('Supervisor/EditDokumentasi', [
             'dokumentasi' => $dokumentasisupervisor,
-            'kegiatanOptions' => $kegiatan,
             'undanganOptions' => $undangan,
         ]);
     }
@@ -99,7 +98,6 @@ class DokumentasiKegiatanSupervisorController extends Controller
     public function update(Request $request, $id)
     {
         $request->validate([
-            'kegiatan_id' => 'required|exists:kegiatans,id',
             'undangan_id' => 'required|exists:undangan_kegiatans,id',
             'notulensi' => 'nullable|string',
             'link_zoom' => 'nullable|url',
@@ -110,8 +108,10 @@ class DokumentasiKegiatanSupervisorController extends Controller
 
         $dokumentasi = DokumentasiKegiatan::findOrFail($id);
 
+        $undangan = UndanganKegiatan::findOrFail($request->undangan_id);
+
         $dokumentasi->update([
-            'kegiatan_id' => $request->kegiatan_id,
+            'kegiatan_id' => $undangan->kegiatan_id,
             'undangan_id' => $request->undangan_id,
             'notulensi' => $request->notulensi,
             'link_zoom' => $request->link_zoom,
