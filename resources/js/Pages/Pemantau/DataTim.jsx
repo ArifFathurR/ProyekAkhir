@@ -19,15 +19,9 @@ export default function DataTim({ tims, filters }) {
     }
   }, [props.flash]);
 
-  const handleDelete = (id) => {
-    if (confirm('Yakin ingin menghapus data ini?')) {
-      router.delete(route('tim.destroy', id));
-    }
-  };
-
   const handleSearch = (e) => {
     e.preventDefault();
-    router.get(route('tim.index'), { search }, {
+    router.get(route('pemantau.datatim'), { search }, {
       preserveState: true,
       replace: true,
     });
@@ -35,7 +29,7 @@ export default function DataTim({ tims, filters }) {
 
   const handleClearFilter = () => {
     setSearch('');
-    router.get(route('tim.index'));
+    router.get(route('pemantau.datatim'));
   };
 
   return (

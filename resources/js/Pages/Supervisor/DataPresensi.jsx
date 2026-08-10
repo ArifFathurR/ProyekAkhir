@@ -7,7 +7,7 @@ import TableCard from '@/Components/TableCard';
 import Pagination from '@/Components/Pagination';
 import ReactSelect from 'react-select';
 
-export default function DataPresensi({ penerimas, filters = {}, undangans = [] }) {
+export default function DataPresensi({ penerimas, filters = {}, undangans = [], stats = {} }) {
   const { props } = usePage();
   const [search, setSearch] = useState(filters.search || '');
   const [undanganId, setUndanganId] = useState(filters.undangan_id || '');
@@ -22,6 +22,18 @@ export default function DataPresensi({ penerimas, filters = {}, undangans = [] }
   }, [props.flash]);
 
   useEffect(() => {
+    setSearch(filters.search || '');
+    setUndanganId(filters.undangan_id || '');
+  }, [filters.search, filters.undangan_id]);
+
+  useEffect(() => {
+    const searchChanged = String(search) !== String(filters.search || '');
+    const undanganChanged = String(undanganId) !== String(filters.undangan_id || '');
+
+    if (!searchChanged && !undanganChanged) {
+      return;
+    }
+
     const timer = setTimeout(() => {
       router.get(route('penerima.index'), {
         search,
@@ -32,7 +44,7 @@ export default function DataPresensi({ penerimas, filters = {}, undangans = [] }
       });
     }, 500); // 500ms debounce
     return () => clearTimeout(timer);
-  }, [search, undanganId]);
+  }, [search, undanganId, filters]);
 
   // handleFilter function removed as filtering is now automatic
 
@@ -52,9 +64,10 @@ export default function DataPresensi({ penerimas, filters = {}, undangans = [] }
   const isFiltered = !!undanganId;
   const dataToShow = isFiltered ? (penerimas?.data || []) : [];
 
-  const totalPresensi = isFiltered ? (penerimas?.total || 0) : 0;
-  const hadirCount = isFiltered ? dataToShow.filter(item => item.status_kehadiran?.toLowerCase() === 'hadir').length : 0;
-  const tidakHadirCount = isFiltered ? dataToShow.filter(item => item.status_kehadiran === 'Tidak Hadir' || item.status_kehadiran === 'Izin').length : 0;
+  const totalPresensi = isFiltered ? (stats?.total ?? (penerimas?.total || 0)) : 0;
+  const hadirCount = isFiltered ? (stats?.hadir ?? dataToShow.filter(item => item.status_kehadiran?.toLowerCase() === 'hadir').length) : 0;
+  const tidakHadirCount = isFiltered ? (stats?.tidakHadir ?? dataToShow.filter(item => item.status_kehadiran === 'Tidak Hadir' || item.status_kehadiran === 'Izin').length) : 0;
+  const berhalanganCount = isFiltered ? (stats?.berhalangan ?? dataToShow.filter(item => item.status_penerima === 'berhalangan' || item.status_kehadiran?.toLowerCase() === 'berhalangan' || !!item.alasan_berhalangan).length) : 0;
 
   const getStatusBadge = (status) => {
     const s = status?.toLowerCase();
@@ -81,7 +94,7 @@ export default function DataPresensi({ penerimas, filters = {}, undangans = [] }
             </div>
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
               <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl p-6 text-white shadow-lg">
                 <div className="flex items-center justify-between">
                   <div>
@@ -119,6 +132,20 @@ export default function DataPresensi({ penerimas, filters = {}, undangans = [] }
                   <div className="bg-red-400 bg-opacity-50 rounded-full p-3">
                     <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-gradient-to-r from-amber-500 to-amber-600 rounded-xl p-6 text-white shadow-lg">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-amber-100 text-sm font-medium">Berhalangan Hadir</p>
+                    <p className="text-2xl font-bold">{berhalanganCount}</p>
+                  </div>
+                  <div className="bg-amber-400 bg-opacity-50 rounded-full p-3">
+                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                     </svg>
                   </div>
                 </div>
@@ -212,10 +239,23 @@ export default function DataPresensi({ penerimas, filters = {}, undangans = [] }
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap"><div className="text-sm text-gray-900">{item.user?.name || '-'}</div></td>
                         <td className="px-6 py-4 whitespace-nowrap"><div className="text-sm text-gray-900">{item.tim?.nama_tim || '-'}</div></td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${getStatusBadge(item.status_kehadiran)}`}>
-                            {item.status_kehadiran || '-'}
-                          </span>
+                        <td className="px-6 py-4">
+                          <div className="flex flex-col items-start gap-1">
+                            <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${getStatusBadge(item.status_kehadiran)}`}>
+                              {item.status_kehadiran || '-'}
+                            </span>
+                            {item.status_penerima === 'berhalangan' && (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-red-100 text-red-700 border border-red-200">
+                                Konfirmasi: Berhalangan
+                              </span>
+                            )}
+                            {item.alasan_berhalangan && (
+                              <div className="text-xs text-red-600 bg-red-50 border border-red-200 rounded px-2.5 py-1 mt-0.5 max-w-xs whitespace-normal italic">
+                                <span className="font-semibold not-italic text-red-700">Alasan: </span>
+                                {item.alasan_berhalangan}
+                              </div>
+                            )}
+                          </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           {item.latitude && item.longitude ? (

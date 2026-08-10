@@ -47,7 +47,7 @@ export default function DataDokumentasi({ kegiatan_data = {}, total_foto = 0, fi
 
   const handleFilter = (e) => {
     e.preventDefault();
-    router.get(route('pemantau.dokumentasi'), {
+    router.get(route('pemantau.datadokumentasi'), {
       search,
       created_at: createdAt,
     }, {

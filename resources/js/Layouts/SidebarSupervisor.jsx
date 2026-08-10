@@ -9,6 +9,7 @@ import {
   Users,
   Settings,
   LogOut,
+  History,
 } from 'lucide-react';
 
 export default function Sidebar() {
@@ -171,6 +172,19 @@ export default function Sidebar() {
               >
                 <CheckSquare size={18} />
                 Lihat Presensi
+              </Link>
+            </li>
+            <li>
+              <Link
+                href={route('supervisor.riwayatpresensi')}
+                className={`flex items-center gap-2 p-2 rounded ${
+                  isActive('/riwayat-presensi-superviso')
+                    ? 'bg-blue-100 text-black font-semibold'
+                    : 'hover:bg-gray-100 text-gray-700'
+                }`}
+              >
+                <History size={18} />
+                Riwayat Presensi
               </Link>
             </li>
             {/* <li>

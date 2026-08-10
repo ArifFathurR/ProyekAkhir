@@ -33,11 +33,31 @@ class PenerimaUndanganController extends Controller
             ->paginate(5)
             ->withQueryString();
 
+        $stats = [
+            'total' => 0,
+            'hadir' => 0,
+            'tidakHadir' => 0,
+            'berhalangan' => 0,
+        ];
+
+        if ($undanganId) {
+            $baseQuery = PenerimaUndangan::where('undangan_id', $undanganId);
+            if ($search) {
+                $baseQuery->whereHas('user', fn ($q) => $q->where('name', 'like', '%' . $search . '%'));
+            }
+
+            $stats['total'] = (clone $baseQuery)->count();
+            $stats['hadir'] = (clone $baseQuery)->whereRaw('LOWER(status_kehadiran) = ?', ['hadir'])->count();
+            $stats['tidakHadir'] = (clone $baseQuery)->where(fn($q) => $q->where('status_kehadiran', 'Tidak Hadir')->orWhere('status_kehadiran', 'Izin'))->count();
+            $stats['berhalangan'] = (clone $baseQuery)->where(fn($q) => $q->where('status_penerima', 'berhalangan')->orWhereNotNull('alasan_berhalangan'))->count();
+        }
+
         $undangans = UndanganKegiatan::select('id', 'judul')->get();
 
         return Inertia::render('Supervisor/DataPresensi', [
             'penerimas' => $penerimas,
             'undangans' => $undangans,
+            'stats' => $stats,
             'filters' => [
                 'search' => $search,
                 'undangan_id' => $undanganId,

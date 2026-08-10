@@ -9,15 +9,9 @@ import Pagination from '@/Components/Pagination';
 export default function DataPegawai({ users, filters }) {
   const [search, setSearch] = useState(filters.search || '');
 
-  const handleDelete = (id) => {
-    if (confirm('Yakin ingin menghapus data ini?')) {
-      router.delete(route('admin.pegawai.destroy', id));
-    }
-  };
-
   const handleSearch = (e) => {
     e.preventDefault();
-    router.get(route('admin.pegawai.index'), { search }, {
+    router.get(route('pemantau.datapegawai'), { search }, {
       preserveState: true,
       replace: true,
     });
@@ -25,7 +19,7 @@ export default function DataPegawai({ users, filters }) {
 
   const handleClearFilter = () => {
     setSearch('');
-    router.get(route('admin.pegawai.index'));
+    router.get(route('pemantau.datapegawai'));
   };
 
   // Calculate stats

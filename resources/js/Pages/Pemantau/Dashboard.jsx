@@ -2,8 +2,8 @@ import SidebarPemantau from '@/Layouts/SidebarPemantau';
 import Header from '@/Components/Header';
 import FlashPopup from '@/Components/FlashPopup';
 import ModalDetailUndangan from '@/Components/ModalDetailUndangan';
-import { useEffect, useState } from 'react';
-import { FaChartBar, FaCheckDouble } from 'react-icons/fa';
+import { useState } from 'react';
+import { FaChartBar, FaCheckDouble, FaTimes } from 'react-icons/fa';
 import { MdOutlineAccessTime } from 'react-icons/md';
 import { HiOutlineCalendar, HiOutlineArrowRight } from 'react-icons/hi';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
@@ -21,7 +21,9 @@ export default function Dashboard({ statistik = {}, kegiatan = [] }) {
   const currentYear = new Date().getFullYear();
   const [selectedYear, setSelectedYear] = useState(currentYear);
   const [selectedEvent, setSelectedEvent] = useState(null);
-  const [showModal, setShowModal] = useState(false);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [showListModal, setShowListModal] = useState(false);
+  const [selectedDateData, setSelectedDateData] = useState(null);
 
   const years = Array.from(new Array(11), (val, index) => currentYear - 5 + index);
 
@@ -53,11 +55,12 @@ export default function Dashboard({ statistik = {}, kegiatan = [] }) {
     },
   ];
 
-  const getStatusColor = (status) => {
-    if (status === 'Selesai') return 'bg-sky-500 text-white'
-    else if (status === 'Belum Dilaksanakan' || status === 'Akan Datang') return 'bg-yellow-400 text-black'
-    else if (status === 'Sedang Dilaksanakan') return'bg-green-500 text-white';
-    return 'bg-gray-300';
+  const getStatusBadgeStyle = (status) => {
+    if (status === 'Selesai') return 'bg-sky-100 text-sky-700 border border-sky-300';
+    if (status === 'Belum Dilaksanakan' || status === 'Akan Datang' || status === 'Akan datang')
+      return 'bg-red-100 text-red-500';
+    if (status === 'Sedang Dilaksanakan') return 'bg-green-100 text-green-700 border border-green-300';
+    return 'bg-gray-100 text-gray-600 border border-gray-300';
   };
 
   const eventsByMonth = {};
@@ -72,6 +75,17 @@ export default function Dashboard({ statistik = {}, kegiatan = [] }) {
     }
   });
 
+  const handleDateClick = (monthIndex, day, events) => {
+    if (!events || events.length === 0) return;
+    const dateObj = dayjs().year(selectedYear).month(monthIndex).date(day);
+    const dateFormatted = dateObj.locale('id').format('D MMMM YYYY');
+    setSelectedDateData({
+      dateString: dateFormatted,
+      events: events,
+    });
+    setShowListModal(true);
+  };
+
   const renderMonth = (monthIndex) => {
     const start = dayjs().year(selectedYear).month(monthIndex).date(1);
     const daysInMonth = start.daysInMonth();
@@ -80,27 +94,32 @@ export default function Dashboard({ statistik = {}, kegiatan = [] }) {
     const cells = [];
 
     for (let i = 0; i < startDay; i++) {
-      cells.push(<td key={`empty-${i}`} className="h-16 border p-1"></td>);
+      cells.push(<td key={`empty-${i}`} className="h-16 border p-1 bg-gray-50/30"></td>);
     }
 
     for (let d = 1; d <= daysInMonth; d++) {
       const events = eventsByMonth[monthIndex]?.[d] || [];
+      const hasEvents = events.length > 0;
+
       cells.push(
-        <td key={`day-${d}`} className="h-16 border p-1 align-top text-xs">
-          <div>{d}</div>
-          {events.map((evt, idx) => (
+        <td
+          key={`day-${d}`}
+          className={`h-16 border p-1 align-top text-xs relative ${hasEvents ? 'cursor-pointer hover:bg-amber-50/50 transition-colors' : ''}`}
+          onClick={() => {
+            if (hasEvents) {
+              handleDateClick(monthIndex, d, events);
+            }
+          }}
+        >
+          <div className="text-right font-medium text-gray-700 pr-0.5">{d}</div>
+          {hasEvents && (
             <div
-              key={idx}
-              className={`mt-1 rounded px-1 text-[10px] truncate cursor-pointer hover:opacity-80 transition-opacity ${getStatusColor(evt.status)}`}
-              title={evt.title}
-              onClick={() => {
-                setSelectedEvent(evt);
-                setShowModal(true);
-              }}
+              className="mt-1 bg-[#FFA800] hover:bg-[#e09400] text-white font-semibold rounded px-1.5 py-0.5 text-[10px] text-center shadow-sm transition-colors duration-150 truncate"
+              title={`${events.length} Kegiatan`}
             >
-              {evt.title}
+              {events.length} Kegiatan
             </div>
-          ))}
+          )}
         </td>
       );
     }
@@ -119,7 +138,7 @@ export default function Dashboard({ statistik = {}, kegiatan = [] }) {
               <th>Minggu</th><th>Senin</th><th>Selasa</th><th>Rabu</th><th>Kamis</th><th>Jumat</th><th>Sabtu</th>
             </tr>
           </thead>
-          <tbody className='bg-white'>
+          <tbody className="bg-white">
             {rows}
           </tbody>
         </table>
@@ -173,11 +192,79 @@ export default function Dashboard({ statistik = {}, kegiatan = [] }) {
         </main>
       </div>
 
+      {/* Modal List Kegiatan (Modal Gambar Kedua) */}
+      {showListModal && selectedDateData && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-40 p-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 relative border-2 border-sky-400 animate-in fade-in zoom-in duration-150">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-base font-semibold text-gray-900">
+                List Kegiatan {selectedDateData.dateString}
+              </h3>
+              <button
+                onClick={() => setShowListModal(false)}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <FaTimes className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="overflow-x-auto max-h-[60vh] mb-6">
+              <table className="w-full text-sm text-left border-collapse">
+                <thead>
+                  <tr className="border-b-2 border-gray-800 text-gray-900 font-medium">
+                    <th scope="col" className="py-2.5 px-3 text-left w-12 font-semibold">No</th>
+                    <th scope="col" className="py-2.5 px-3 text-left font-semibold">Nama Kegiatan</th>
+                    <th scope="col" className="py-2.5 px-3 text-center font-semibold">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {selectedDateData.events.map((evt, idx) => (
+                    <tr
+                      key={evt.id || idx}
+                      className={idx % 2 === 0 ? 'bg-slate-50' : 'bg-white'}
+                    >
+                      <td className="py-3 px-3 text-left font-medium text-gray-700">{idx + 1}</td>
+                      <td className="py-3 px-3">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedEvent(evt);
+                            setShowDetailModal(true);
+                          }}
+                          className="text-left font-medium text-gray-900 hover:text-blue-600 hover:underline transition-colors"
+                        >
+                          {evt.title || evt.nama_kegiatan}
+                        </button>
+                      </td>
+                      <td className="py-3 px-3 text-center">
+                        <span className={`inline-block px-2.5 py-0.5 text-xs font-semibold rounded-full ${getStatusBadgeStyle(evt.status)}`}>
+                          {evt.status === 'Belum Dilaksanakan' ? 'Akan datang' : evt.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="flex justify-end pt-2">
+              <button
+                type="button"
+                onClick={() => setShowListModal(false)}
+                className="px-6 py-2 bg-sky-400 hover:bg-sky-500 text-white text-sm font-medium rounded-lg shadow transition-colors"
+              >
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Modal Detail Undangan */}
       <ModalDetailUndangan
-        isOpen={showModal}
+        isOpen={showDetailModal}
         onClose={() => {
-          setShowModal(false);
+          setShowDetailModal(false);
           setSelectedEvent(null);
         }}
         data={selectedEvent}

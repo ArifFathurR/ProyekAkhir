@@ -9,6 +9,7 @@ use App\Http\Requests\StoreSupervisorRequest;
 use App\Http\Requests\UpdateSupervisorRequest;
 use App\Models\UndanganKegiatan;
 use App\Models\AnggotaTim;
+use App\Models\Pegawai;
 use App\Models\Tim;
 use Inertia\Inertia;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -57,21 +58,21 @@ class SupervisorController extends Controller
     }
 
 
-public function konfirmasi(Request $request, $id)
-{
-    $request->validate([
-        'status' => 'required|in:Diterima,Ditolak,Revisi',
-        'komentar' => 'nullable|string|max:1000',
-    ]);
+    public function konfirmasi(Request $request, $id)
+    {
+        $request->validate([
+            'status' => 'required|in:Diterima,Ditolak,Revisi',
+            'komentar' => 'nullable|string|max:1000',
+        ]);
 
-    $undangan = UndanganKegiatan::findOrFail($id);
-    $undangan->status = $request->status;
-    $undangan->komentar = $request->komentar;
-    $undangan->id_supervisor = auth()->id();
-    $undangan->save();
+        $undangan = UndanganKegiatan::findOrFail($id);
+        $undangan->status = $request->status;
+        $undangan->komentar = $request->komentar;
+        $undangan->id_supervisor = auth()->id();
+        $undangan->save();
 
-    return redirect()->back()->with('success', 'Status dan komentar berhasil diperbarui.');
-}
+        return redirect()->back()->with('success', 'Status dan komentar berhasil diperbarui.');
+    }
 
 
     /**
@@ -94,37 +95,37 @@ public function konfirmasi(Request $request, $id)
      * Display the specified resource.
      */
     public function show(Supervisor $supervisor)
-   {
-    $userId = auth()->id();
+    {
+        $userId = auth()->id();
 
-    $kegiatan = PenerimaUndangan::with(['undangan.kegiatan'])
-        ->where('user_id', $userId)
-        ->whereHas('undangan', function ($query) {
-            $query->where('status', 'Diterima')
-            ->where('status_pelaksanaan', 'Belum Dilaksanakan')
-            ->whereNotNull('file_undangan')
-            ->where('file_undangan', '!=', ''); // 🔍 Cek status di tabel undangan_kegiatans
-        })
-        ->get()
-        ->map(function ($item) {
-            return [
-                'id' => $item->id,
-                'nama_kegiatan' => $item->undangan->kegiatan->nama_kegiatan ?? '-',
-                'sub_kegiatan' => $item->undangan->judul ?? '-',
-                'tanggal' => $item->undangan->tanggal ?? '-',
-                'tanggal_lengkap' => $item->undangan->tanggal ? \Carbon\Carbon::parse($item->undangan->tanggal)->translatedFormat('l, d F Y') : '-',
-                'waktu' => $item->undangan->waktu ?? '-',
-                'tempat' => $item->undangan->tempat ?? '-',
-                'agenda' => $item->undangan->agenda ?? '-',
-                'file_undangan' => route('undangan_kegiatan.preview', $item->undangan_id),
-                'status_penerima' => $item->status_penerima,
-            ];
-        });
+        $kegiatan = PenerimaUndangan::with(['undangan.kegiatan'])
+            ->where('user_id', $userId)
+            ->whereHas('undangan', function ($query) {
+                $query->where('status', 'Diterima')
+                    ->where('status_pelaksanaan', 'Belum Dilaksanakan')
+                    ->whereNotNull('file_undangan')
+                    ->where('file_undangan', '!=', ''); // 🔍 Cek status di tabel undangan_kegiatans
+            })
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'nama_kegiatan' => $item->undangan->kegiatan->nama_kegiatan ?? '-',
+                    'sub_kegiatan' => $item->undangan->judul ?? '-',
+                    'tanggal' => $item->undangan->tanggal ?? '-',
+                    'tanggal_lengkap' => $item->undangan->tanggal ? \Carbon\Carbon::parse($item->undangan->tanggal)->translatedFormat('l, d F Y') : '-',
+                    'waktu' => $item->undangan->waktu ?? '-',
+                    'tempat' => $item->undangan->tempat ?? '-',
+                    'agenda' => $item->undangan->agenda ?? '-',
+                    'file_undangan' => route('undangan_kegiatan.preview', $item->undangan_id),
+                    'status_penerima' => $item->status_penerima,
+                ];
+            });
 
-    return Inertia::render('Supervisor/KegiatanSaya', [
-        'kegiatan' => $kegiatan,
-    ]);
-}
+        return Inertia::render('Supervisor/KegiatanSaya', [
+            'kegiatan' => $kegiatan,
+        ]);
+    }
 
     /**
      * Show the form for editing the specified resource.
@@ -149,166 +150,216 @@ public function konfirmasi(Request $request, $id)
     {
         //
     }
-   public function preview($id)
-{
-    $undangan = UndanganKegiatan::with(['user', 'kegiatan'])->findOrFail($id);
+    public function preview($id)
+    {
+        $undangan = UndanganKegiatan::with(['user', 'kegiatan'])->findOrFail($id);
 
-    if ($undangan->file_undangan) {
-        $filePath = storage_path('app/public/' . $undangan->file_undangan);
-        if (file_exists($filePath)) {
-            return response()->file($filePath, [
-                'Content-Type' => 'application/pdf',
-                'Content-Disposition' => 'inline; filename="' . basename($filePath) . '"'
-            ]);
+        if ($undangan->file_undangan) {
+            $filePath = storage_path('app/public/' . $undangan->file_undangan);
+            if (file_exists($filePath)) {
+                return response()->file($filePath, [
+                    'Content-Type' => 'application/pdf',
+                    'Content-Disposition' => 'inline; filename="' . basename($filePath) . '"'
+                ]);
+            }
         }
+
+        $pdf = Pdf::loadView('pdf.undangan', compact('undangan'))->setPaper('A4', 'portrait');
+
+        return $pdf->stream("Undangan_{$undangan->judul}.pdf");
     }
-
-    $pdf = Pdf::loadView('pdf.undangan', compact('undangan'))->setPaper('A4', 'portrait');
-
-    return $pdf->stream("Undangan_{$undangan->judul}.pdf");
-}
 
 
     public function semuaDokumentasi(Request $request)
-{
-    $search = $request->search;
-    $createdAt = $request->created_at;
+    {
+        $search = $request->search;
+        $createdAt = $request->created_at;
 
-    $dokumentasis = DokumentasiKegiatan::with([
+        $dokumentasis = DokumentasiKegiatan::with([
             'kegiatan:id,nama_kegiatan',
             'undangan:id,judul',
             'fotoDokumentasi',
         ])
-        ->when($search, function ($query) use ($search) {
-            $query->whereHas('kegiatan', function ($q) use ($search) {
-                $q->where('nama_kegiatan', 'like', '%' . $search . '%');
+            ->when($search, function ($query) use ($search) {
+                $query->whereHas('kegiatan', function ($q) use ($search) {
+                    $q->where('nama_kegiatan', 'like', '%' . $search . '%');
+                });
+            })
+            ->when($createdAt, function ($query) use ($createdAt) {
+                $query->whereDate('created_at', $createdAt);
+            })
+            ->latest()
+            ->paginate(5)
+            ->withQueryString();
+
+        return Inertia::render('Supervisor/DataDokumentasi', [
+            'dokumentasis' => $dokumentasis,
+            'filters' => [
+                'search' => $search,
+                'created_at' => $createdAt,
+            ],
+        ]);
+    }
+
+    public function Sedang(Supervisor $Supervisor)
+    {
+        $userId = auth()->id();
+        $status_pelaksanaan = "Sedang Dilaksanakan";
+        $kegiatan = PenerimaUndangan::with(['undangan.kegiatan'])
+            ->where('user_id', $userId)
+            ->whereHas('undangan', function ($query) use ($status_pelaksanaan) {
+                $query->where('status_pelaksanaan', $status_pelaksanaan);
+            })
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'nama_kegiatan' => $item->undangan->kegiatan->nama_kegiatan ?? '-',
+                    'sub_kegiatan' => $item->undangan->judul ?? '-',
+                    'tanggal' => $item->undangan->tanggal ?? '-',
+                    'file_undangan' => route('undangan_kegiatan.preview', $item->undangan_id),
+                    'status_penerima' => $item->status_penerima,
+                ];
             });
-        })
-        ->when($createdAt, function ($query) use ($createdAt) {
-            $query->whereDate('created_at', $createdAt);
-        })
-        ->latest()
-        ->paginate(5)
-        ->withQueryString();
 
-    return Inertia::render('Supervisor/DataDokumentasi', [
-        'dokumentasis' => $dokumentasis,
-        'filters' => [
-            'search' => $search,
-            'created_at' => $createdAt,
-        ],
-    ]);
-}
+        return Inertia::render('Supervisor/KegiatanSadangBerlangsung', [
+            'kegiatan' => $kegiatan,
+        ]);
+    }
+    public function Selesai(Supervisor $Supervisor)
+    {
+        $userId = auth()->id();
+        $status_pelaksanaan = "Selesai";
+        $kegiatan = PenerimaUndangan::with(['undangan.kegiatan'])
+            ->where('user_id', $userId)
+            ->whereHas('undangan', function ($query) use ($status_pelaksanaan) {
+                $query->where('status_pelaksanaan', $status_pelaksanaan);
+            })
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'nama_kegiatan' => $item->undangan->kegiatan->nama_kegiatan ?? '-',
+                    'sub_kegiatan' => $item->undangan->judul ?? '-',
+                    'tanggal' => $item->undangan->tanggal ?? '-',
+                    'file_undangan' => route('undangan_kegiatan.preview', $item->undangan_id),
+                    'status_penerima' => $item->status_penerima,
+                ];
+            });
 
-public function Sedang(Supervisor $Supervisor)
-{
-    $userId = auth()->id();
-    $status_pelaksanaan = "Sedang Dilaksanakan";
-    $kegiatan = PenerimaUndangan::with(['undangan.kegiatan'])
-        ->where('user_id', $userId)
-        ->whereHas('undangan', function ($query) use ($status_pelaksanaan) {
-            $query->where('status_pelaksanaan', $status_pelaksanaan);
-        })
-        ->get()
-        ->map(function ($item) {
-            return [
-                'id' => $item->id,
-                'nama_kegiatan' => $item->undangan->kegiatan->nama_kegiatan ?? '-',
-                'sub_kegiatan' => $item->undangan->judul ?? '-',
-                'tanggal' => $item->undangan->tanggal ?? '-',
-                'file_undangan' => route('undangan_kegiatan.preview', $item->undangan_id),
-                'status_penerima' => $item->status_penerima,
-            ];
-        });
+        return Inertia::render('Supervisor/KegiatanSelesai', [
+            'kegiatan' => $kegiatan,
+        ]);
+    }
 
-    return Inertia::render('Supervisor/KegiatanSadangBerlangsung', [
-        'kegiatan' => $kegiatan,
-    ]);
-}
-public function Selesai(Supervisor $Supervisor)
-{
-    $userId = auth()->id();
-    $status_pelaksanaan = "Selesai";
-    $kegiatan = PenerimaUndangan::with(['undangan.kegiatan'])
-        ->where('user_id', $userId)
-        ->whereHas('undangan', function ($query) use ($status_pelaksanaan) {
-            $query->where('status_pelaksanaan', $status_pelaksanaan);
-        })
-        ->get()
-        ->map(function ($item) {
-            return [
-                'id' => $item->id,
-                'nama_kegiatan' => $item->undangan->kegiatan->nama_kegiatan ?? '-',
-                'sub_kegiatan' => $item->undangan->judul ?? '-',
-                'tanggal' => $item->undangan->tanggal ?? '-',
-                'file_undangan' => route('undangan_kegiatan.preview', $item->undangan_id),
-                'status_penerima' => $item->status_penerima,
-            ];
-        });
+    public function kalender()
+    {
+        $userId = auth()->id();
 
-    return Inertia::render('Supervisor/KegiatanSelesai', [
-        'kegiatan' => $kegiatan,
-    ]);
-}
+        $kegiatan = PenerimaUndangan::with(['undangan.kegiatan'])
+            ->where('user_id', $userId)
+            ->whereHas('undangan', fn($q) => $q->where('status', 'Diterima'))
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'title' => $item->undangan->judul,
+                    'date' => $item->undangan->tanggal,
+                    'waktu' => $item->undangan->waktu, // ⏰ Tambahkan waktu di sini
+                    // Data untuk ModalDetailUndangan
+                    'nama_kegiatan' => $item->undangan->kegiatan->nama_kegiatan ?? '-',
+                    'sub_kegiatan' => $item->undangan->judul ?? '-',
+                    'tanggal_lengkap' => $item->undangan->tanggal ? \Carbon\Carbon::parse($item->undangan->tanggal)->translatedFormat('l, d F Y') : '-',
+                    'tempat' => $item->undangan->tempat ?? '-',
+                    'agenda' => $item->undangan->agenda ?? '-',
+                    'file_undangan' => route('undangan_kegiatan.preview', $item->undangan_id),
+                ];
+            });
 
-public function kalender()
-{
-    $userId = auth()->id();
+        return Inertia::render('Supervisor/KalenderKegiatan', [
+            'kegiatan' => $kegiatan,
+        ]);
+    }
 
-    $kegiatan = PenerimaUndangan::with(['undangan.kegiatan'])
-        ->where('user_id', $userId)
-        ->whereHas('undangan', fn($q) => $q->where('status', 'Diterima'))
-        ->get()
-        ->map(function ($item) {
-            return [
-                'title' => $item->undangan->judul,
-                'date' => $item->undangan->tanggal,
-                'waktu' => $item->undangan->waktu, // ⏰ Tambahkan waktu di sini
-                // Data untuk ModalDetailUndangan
-                'nama_kegiatan' => $item->undangan->kegiatan->nama_kegiatan ?? '-',
-                'sub_kegiatan' => $item->undangan->judul ?? '-',
-                'tanggal_lengkap' => $item->undangan->tanggal ? \Carbon\Carbon::parse($item->undangan->tanggal)->translatedFormat('l, d F Y') : '-',
-                'tempat' => $item->undangan->tempat ?? '-',
-                'agenda' => $item->undangan->agenda ?? '-',
-                'file_undangan' => route('undangan_kegiatan.preview', $item->undangan_id),
-            ];
-        });
+    public function AnggotaTim()
+    {
+        $search = request('search');
+        $filterTim = request('tim');
+        $userId = Auth::id();
 
-    return Inertia::render('Supervisor/KalenderKegiatan', [
-        'kegiatan' => $kegiatan,
-    ]);
-}
+        // Ambil ID tim dari user yang sedang login
+        $userTimIds = AnggotaTim::where('user_id', $userId)->pluck('tim_id');
 
-public function AnggotaTim()
-{
-    $search = request('search');
-    $filterTim = request('tim');
-    $userId = Auth::id();
-
-    $anggota_tims = AnggotaTim::with('tim:id,nama_tim', 'user:id,name')
-        ->when($search, fn($q) => 
-            $q->whereHas('user', fn($q2) =>
-                $q2->where('name', 'like', '%' . $search . '%')
+        $anggota_tims = AnggotaTim::with('tim:id,nama_tim', 'user:id,name')
+            ->whereIn('tim_id', $userTimIds)
+            ->when(
+                $search,
+                fn($q) =>
+                $q->whereHas(
+                    'user',
+                    fn($q2) =>
+                    $q2->where('name', 'like', '%' . $search . '%')
+                )
             )
-        )
-        ->when($filterTim, fn($q) =>
-            $q->where('tim_id', $filterTim)
-        )
-        ->paginate(5)
-        ->withQueryString();
+            ->when(
+                $filterTim,
+                fn($q) =>
+                $q->where('tim_id', $filterTim)
+            )
+            ->paginate(5)
+            ->withQueryString();
 
-    // hanya ambil tim yang memiliki anggota dengan user login
-    $tims = Tim::whereHas('anggotaTim', function ($query) use ($userId) {
-        $query->where('user_id', $userId);
-    })->select('id', 'nama_tim')->get();
+        // Hanya ambil tim dari user yang login
+        $tims = Tim::whereIn('id', $userTimIds)->select('id', 'nama_tim')->get();
 
-    return Inertia::render('Supervisor/DataAnggotaTim', [
-        'anggota_tims' => $anggota_tims,
-        'filters' => [
-            'search' => $search,
-            'tim' => $filterTim
-        ],
-        'tims' => $tims,
-    ]);
-}
+        return Inertia::render('Supervisor/DataAnggotaTim', [
+            'anggota_tims' => $anggota_tims,
+            'filters' => [
+                'search' => $search,
+                'tim' => $filterTim
+            ],
+            'tims' => $tims,
+        ]);
+    }
+
+
+    public function riwayatPresensi(Pegawai $pegawai)
+    {
+        $userId = auth()->id();
+
+        $kegiatan = PenerimaUndangan::with(['undangan.kegiatan'])
+            ->where('user_id', $userId)
+            ->where(function ($query) {
+                $query->whereNotNull('waktu_presensi')
+                    ->orWhereHas('undangan', function ($q) {
+                        $q->where('status_pelaksanaan', 'Selesai');
+                    });
+            })
+            ->get()
+            ->sortByDesc(function ($item) {
+                return $item->undangan->tanggal . ' ' . $item->undangan->waktu;
+            })
+            ->values()
+            ->map(function ($item) {
+                $status_kehadiran = $item->status_kehadiran;
+                if (is_null($status_kehadiran) && is_null($item->waktu_presensi)) {
+                    $status_kehadiran = 'Tidak Hadir';
+                }
+
+                return [
+                    'id' => $item->id,
+                    'nama_kegiatan' => $item->undangan->kegiatan->nama_kegiatan ?? '-',
+                    'sub_kegiatan' => $item->undangan->judul ?? '-',
+                    'tanggal' => $item->undangan->tanggal ? \Carbon\Carbon::parse($item->undangan->tanggal)->translatedFormat('l, d F Y') : '-',
+                    'waktu_presensi' => $item->waktu_presensi ? \Carbon\Carbon::parse($item->waktu_presensi)->format('H:i') : '-',
+                    'ttd' => $item->ttd,
+                    'status_kehadiran' => $status_kehadiran,
+                    'latitude' => $item->latitude,
+                    'longitude' => $item->longitude,
+                ];
+            });
+
+        return Inertia::render('Supervisor/RiwayatPresensi', [
+            'presensi' => $kegiatan,
+        ]);
+    }
 }
