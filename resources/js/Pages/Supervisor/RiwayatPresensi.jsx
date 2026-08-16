@@ -13,7 +13,7 @@ export default function RiwayatPresensi({ presensi }) {
     ) || [];
 
     const hadirCount = presensi?.filter(item => item.status_kehadiran?.toLocaleLowerCase() === 'hadir').length || 0;
-    const terlambatCount = presensi?.filter(item => item.status_kehadiran?.toLocaleLowerCase() === 'terlambat') || 0;
+    const terlambatCount = presensi?.filter(item => item.status_kehadiran?.toLocaleLowerCase() === 'terlambat').length || 0;
     const tidakHadirCount = presensi?.filter(item => {
         const status = item.status_kehadiran?.toLowerCase();
         return status === 'tidak hadir' || status === 'alpa' || status === 'izin' || status === null || status === undefined || status === '';

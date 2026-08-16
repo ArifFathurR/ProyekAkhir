@@ -1,8 +1,7 @@
-import { useForm, router } from '@inertiajs/react';
-import Header from '@/Components/Header';
-import Sidebar from '@/Layouts/Sidebar';
+import { useForm } from '@inertiajs/react';
+import { useEffect } from 'react';
+import Modal from '@/Components/Modal';
 import Swal from 'sweetalert2';
-import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Button } from '@/Components/ui/button';
 import {
@@ -13,7 +12,7 @@ import {
   SelectValue,
 } from '@/Components/ui/select';
 
-export default function EditAnggotaTim({ anggota_tim, users, tims }) {
+export default function EditAnggotaTim({ show, onClose, anggota_tim, users = [], tims = [] }) {
   const getNormalizedRole = (role) => {
     if (!role) return '';
     const lowerRole = role.toLowerCase();
@@ -23,13 +22,25 @@ export default function EditAnggotaTim({ anggota_tim, users, tims }) {
   };
 
   const { data, setData, put, processing, errors } = useForm({
-    user_id: anggota_tim.user_id || '',
-    tim_id: anggota_tim.tim_id || '',
-    role: getNormalizedRole(anggota_tim.role),
+    user_id: '',
+    tim_id: '',
+    role: '',
   });
+
+  useEffect(() => {
+    if (anggota_tim) {
+      setData({
+        user_id: anggota_tim.user_id ? anggota_tim.user_id.toString() : '',
+        tim_id: anggota_tim.tim_id ? anggota_tim.tim_id.toString() : '',
+        role: getNormalizedRole(anggota_tim.role),
+      });
+    }
+  }, [anggota_tim]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!anggota_tim?.id) return;
+
     Swal.fire({
       title: 'Update Anggota Tim?',
       text: 'Apakah Anda yakin ingin menyimpan perubahan data anggota tim ini?',
@@ -41,104 +52,89 @@ export default function EditAnggotaTim({ anggota_tim, users, tims }) {
       cancelButtonText: 'Batal'
     }).then((result) => {
       if (result.isConfirmed) {
-        put(route('anggota_tim.update', anggota_tim.id));
+        put(route('anggota_tim.update', anggota_tim.id), {
+          onSuccess: () => {
+            onClose();
+          },
+        });
       }
     });
   };
 
   return (
-    <div className="flex justify-start">
-      <Sidebar />
-      <div className="flex-1 bg-[#F5F7FA] min-h-screen md:ml-64">
-        <Header />
-        <main className="pt-28 px-6">
-          <div className="w-full bg-white border border-sky-100 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-8">
-            <h2 className="text-3xl font-bold text-center text-sky-700 mb-2">
-              Formulir Update Anggota Tim
-            </h2>
-            <p className="text-gray-500 text-center mb-8 text-sm">
-              Perbarui data anggota tim di bawah ini, lalu klik tombol update.
-            </p>
+    <Modal show={show} onClose={onClose} maxWidth="md">
+      <div className="p-6">
+        <h2 className="text-xl font-bold text-sky-700 mb-1">Edit Anggota Tim</h2>
+        <p className="text-gray-500 text-xs mb-5">Perbarui data anggota tim di bawah ini.</p>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="user_id">Nama Pegawai</Label>
-                <Select
-                  value={data.user_id ? data.user_id.toString() : ""}
-                  onValueChange={(value) => setData('user_id', value)}
-                >
-                  <SelectTrigger id="user_id" className="focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-1">
-                    <SelectValue placeholder="-- Pilih Pegawai --" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {users.map((user) => (
-                      <SelectItem key={user.id} value={user.id.toString()}>
-                        {user.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {errors.user_id && <p className="text-red-500 text-sm">{errors.user_id}</p>}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="tim_id">Nama Tim</Label>
-                <Select
-                  value={data.tim_id ? data.tim_id.toString() : ""}
-                  onValueChange={(value) => setData('tim_id', value)}
-                >
-                  <SelectTrigger id="tim_id" className="focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-1">
-                    <SelectValue placeholder="-- Pilih Tim --" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {tims.map((tim) => (
-                      <SelectItem key={tim.id} value={tim.id.toString()}>
-                        {tim.nama_tim}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {errors.tim_id && <p className="text-red-500 text-sm">{errors.tim_id}</p>}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="role">Role / Jabatan</Label>
-                <Select
-                  value={data.role || ""}
-                  onValueChange={(value) => setData('role', value)}
-                >
-                  <SelectTrigger id="role" className="focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-1">
-                    <SelectValue placeholder="-- Pilih Role / Jabatan --" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Ketua Tim">Ketua Tim</SelectItem>
-                    <SelectItem value="Anggota">Anggota</SelectItem>
-                  </SelectContent>
-                </Select>
-                {errors.role && <p className="text-red-500 text-sm">{errors.role}</p>}
-              </div>
-
-              <div className="flex flex-col sm:flex-row gap-4 pt-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => router.get(route('anggota_tim.index'))}
-                  className="w-full sm:w-1/2"
-                >
-                  BATAL
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={processing}
-                  className="w-full sm:w-1/2 bg-sky-600 hover:bg-sky-700 text-white font-semibold py-2 rounded-md transition-transform duration-200 hover:scale-[1.02]"
-                >
-                  {processing ? 'Menyimpan...' : 'UPDATE ANGGOTA'}
-                </Button>
-              </div>
-            </form>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-1">
+            <Label htmlFor="edit_user_id">Nama Pegawai <span className="text-red-500">*</span></Label>
+            <Select
+              value={data.user_id ? data.user_id.toString() : ""}
+              onValueChange={(value) => setData('user_id', value)}
+            >
+              <SelectTrigger id="edit_user_id">
+                <SelectValue placeholder="-- Pilih Pegawai --" />
+              </SelectTrigger>
+              <SelectContent>
+                {users.map((user) => (
+                  <SelectItem key={user.id} value={user.id.toString()}>
+                    {user.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {errors.user_id && <p className="text-red-500 text-xs mt-0.5">{errors.user_id}</p>}
           </div>
-        </main>
+
+          <div className="space-y-1">
+            <Label htmlFor="edit_tim_id">Nama Tim <span className="text-red-500">*</span></Label>
+            <Select
+              value={data.tim_id ? data.tim_id.toString() : ""}
+              onValueChange={(value) => setData('tim_id', value)}
+            >
+              <SelectTrigger id="edit_tim_id">
+                <SelectValue placeholder="-- Pilih Tim --" />
+              </SelectTrigger>
+              <SelectContent>
+                {tims.map((tim) => (
+                  <SelectItem key={tim.id} value={tim.id.toString()}>
+                    {tim.nama_tim}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {errors.tim_id && <p className="text-red-500 text-xs mt-0.5">{errors.tim_id}</p>}
+          </div>
+
+          <div className="space-y-1">
+            <Label htmlFor="edit_role">Role / Jabatan <span className="text-red-500">*</span></Label>
+            <Select
+              value={data.role || ""}
+              onValueChange={(value) => setData('role', value)}
+            >
+              <SelectTrigger id="edit_role">
+                <SelectValue placeholder="-- Pilih Role / Jabatan --" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Ketua Tim">Ketua Tim</SelectItem>
+                <SelectItem value="Anggota">Anggota</SelectItem>
+              </SelectContent>
+            </Select>
+            {errors.role && <p className="text-red-500 text-xs mt-0.5">{errors.role}</p>}
+          </div>
+
+          <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+            <Button type="button" variant="outline" onClick={onClose}>
+              Batal
+            </Button>
+            <Button type="submit" disabled={processing} className="bg-sky-600 hover:bg-sky-700 text-white font-semibold">
+              {processing ? 'Menyimpan...' : 'Update Anggota'}
+            </Button>
+          </div>
+        </form>
       </div>
-    </div>
+    </Modal>
   );
 }

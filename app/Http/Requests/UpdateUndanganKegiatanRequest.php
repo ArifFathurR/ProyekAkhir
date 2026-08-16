@@ -3,6 +3,8 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use App\Models\Kegiatan;
+use Carbon\Carbon;
 
 class UpdateUndanganKegiatanRequest extends FormRequest
 {
@@ -39,5 +41,44 @@ class UpdateUndanganKegiatanRequest extends FormRequest
             'tim_ids' => 'nullable|array',
             'tim_ids.*' => 'exists:tims,id',
         ];
+    }
+
+    /**
+     * Configure the validator instance.
+     *
+     * @param  \Illuminate\Validation\Validator  $validator
+     * @return void
+     */
+    public function withValidator($validator)
+    {
+        $validator->after(function ($validator) {
+            $kegiatanId = $this->input('kegiatan_id');
+            $tanggalUndangan = $this->input('tanggal');
+
+            if ($kegiatanId && $tanggalUndangan) {
+                $kegiatan = Kegiatan::find($kegiatanId);
+                if ($kegiatan && $kegiatan->tanggal) {
+                    $selectedDate = date('Y-m-d', strtotime($tanggalUndangan));
+                    $startDate = date('Y-m-d', strtotime($kegiatan->tanggal));
+                    $endDate = $kegiatan->tanggal_selesai
+                        ? date('Y-m-d', strtotime($kegiatan->tanggal_selesai))
+                        : $startDate;
+
+                    if ($selectedDate < $startDate || $selectedDate > $endDate) {
+                        $formattedSelected = Carbon::parse($selectedDate)->translatedFormat('d F Y');
+                        $formattedStart = Carbon::parse($startDate)->translatedFormat('d F Y');
+
+                        if ($kegiatan->tanggal_selesai) {
+                            $formattedEnd = Carbon::parse($endDate)->translatedFormat('d F Y');
+                            $msg = "Tanggal undangan ({$formattedSelected}) harus berada dalam rentang tanggal kegiatan ({$formattedStart} s/d {$formattedEnd}).";
+                        } else {
+                            $msg = "Tanggal undangan ({$formattedSelected}) harus sesuai dengan tanggal kegiatan ({$formattedStart}).";
+                        }
+
+                        $validator->errors()->add('tanggal', $msg);
+                    }
+                }
+            }
+        });
     }
 }

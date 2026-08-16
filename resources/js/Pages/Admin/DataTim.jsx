@@ -41,11 +41,14 @@ export default function DataTim({ tims, filters }) {
       if (result.isConfirmed) {
         router.delete(route('tim.destroy', id), {
           onSuccess: () => {
-            Swal.fire(
-              'Terhapus!',
-              'Data tim telah berhasil dihapus.',
-              'success'
-            )
+            Swal.fire({
+              title: 'Terhapus!',
+              text: 'Data tim telah berhasil dihapus.',
+              icon: 'success',
+              showConfirmButton: false,
+              timer: 1500,
+              timerProgressBar: true,
+            });
           }
         });
       }

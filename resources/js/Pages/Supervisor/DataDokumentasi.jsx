@@ -5,11 +5,17 @@ import SidebarSupervisor from '@/Layouts/SidebarSupervisor';
 import FlashPopup from '@/Components/FlashPopup';
 import TableCard from '@/Components/TableCard';
 import Pagination from '@/Components/Pagination';
+import CreateDokumentasi from './CreateDokumentasi';
+import EditDokumentasi from './EditDokumentasi';
 import Swal from 'sweetalert2';
 
-export default function DataDokumentasi({ dokumentasis, filters = {}, totalUndangan, totalFoto }) {
+export default function DataDokumentasi({ dokumentasis, filters = {}, totalUndangan, totalFoto, undanganOptions = [] }) {
   const [search, setSearch] = useState(filters.search || '');
   const [createdAt, setCreatedAt] = useState(filters.created_at || '');
+
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedDokumentasiEdit, setSelectedDokumentasiEdit] = useState(null);
 
   const handleDelete = (id) => {
     Swal.fire({
@@ -25,11 +31,14 @@ export default function DataDokumentasi({ dokumentasis, filters = {}, totalUndan
       if (result.isConfirmed) {
         router.delete(route('dokumentasisupervisor.destroy', id), {
           onSuccess: () => {
-            Swal.fire(
-              'Terhapus!',
-              'Data dokumentasi telah berhasil dihapus.',
-              'success'
-            )
+            Swal.fire({
+              title: 'Terhapus!',
+              text: 'Data dokumentasi telah berhasil dihapus.',
+              icon: 'success',
+              showConfirmButton: false,
+              timer: 1500,
+              timerProgressBar: true,
+            });
           }
         });
       }
@@ -98,13 +107,13 @@ export default function DataDokumentasi({ dokumentasis, filters = {}, totalUndan
                 </div>
               </div>
 
-              <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl p-6 text-white shadow-lg">
+              <div className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-xl p-6 text-white shadow-lg">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-purple-100 text-sm font-medium">Total Foto</p>
+                    <p className="text-orange-100 text-sm font-medium">Total Foto</p>
                     <p className="text-2xl font-bold">{totalFoto || 0}</p>
                   </div>
-                  <div className="bg-purple-400 bg-opacity-50 rounded-full p-3">
+                  <div className="bg-orange-400 bg-opacity-50 rounded-full p-3">
                     <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd"/>
                     </svg>
@@ -120,7 +129,7 @@ export default function DataDokumentasi({ dokumentasis, filters = {}, totalUndan
               headerActions={
                 <button
                   type="button"
-                  onClick={() => router.get(route('dokumentasisupervisor.create'))}
+                  onClick={() => setIsCreateModalOpen(true)}
                   className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium rounded-lg shadow-sm transition-all duration-200 transform hover:scale-105"
                 >
                   <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -233,7 +242,10 @@ export default function DataDokumentasi({ dokumentasis, filters = {}, totalUndan
                         <td className="px-6 py-4 whitespace-nowrap text-center">
                           <div className="flex items-center justify-center space-x-3">
                             <button
-                              onClick={() => router.get(route('dokumentasisupervisor.edit', item.id))}
+                              onClick={() => {
+                                setSelectedDokumentasiEdit(item);
+                                setIsEditModalOpen(true);
+                              }}
                               className="inline-flex items-center px-3 py-1.5 bg-yellow-100 hover:bg-yellow-200 text-yellow-700 text-xs font-medium rounded-md transition-colors duration-200"
                             >
                               Edit
@@ -259,6 +271,22 @@ export default function DataDokumentasi({ dokumentasis, filters = {}, totalUndan
           </div>
         </main>
       </div>
+
+      <CreateDokumentasi
+        show={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        undanganOptions={undanganOptions}
+      />
+
+      <EditDokumentasi
+        show={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setSelectedDokumentasiEdit(null);
+        }}
+        dokumentasi={selectedDokumentasiEdit}
+        undanganOptions={undanganOptions}
+      />
     </div>
   );
 }

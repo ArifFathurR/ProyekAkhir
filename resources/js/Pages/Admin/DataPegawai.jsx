@@ -3,11 +3,16 @@ import Sidebar from '@/Layouts/Sidebar';
 import { router } from '@inertiajs/react';
 import TabelPegawaiHeader from '@/Components/TabelPegawaiHeader';
 import FlashPopup from '@/Components/FlashPopup';
+import CreatePegawai from './CreatePegawai';
+import EditPegawai from './EditPegawai';
 import { useState } from 'react';
 import Swal from 'sweetalert2';
 
 export default function DataPegawai({ users, filters, totalSupervisor, totalPemantau }) {
   const [search, setSearch] = useState(filters.search || '');
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedPegawai, setSelectedPegawai] = useState(null);
 
   const handleDelete = (id) => {
     Swal.fire({
@@ -23,11 +28,14 @@ export default function DataPegawai({ users, filters, totalSupervisor, totalPema
       if (result.isConfirmed) {
         router.delete(route('admin.pegawai.destroy', id), {
           onSuccess: () => {
-            Swal.fire(
-              'Terhapus!',
-              'Data pegawai telah berhasil dihapus.',
-              'success'
-            )
+            Swal.fire({
+              title: 'Terhapus!',
+              text: 'Data pegawai telah berhasil dihapus.',
+              icon: 'success',
+              showConfirmButton: false,
+              timer: 1500,
+              timerProgressBar: true,
+            });
           }
         });
       }
@@ -48,6 +56,11 @@ export default function DataPegawai({ users, filters, totalSupervisor, totalPema
       preserveState: true,
       replace: true,
     });
+  };
+
+  const handleOpenEdit = (user) => {
+    setSelectedPegawai(user);
+    setIsEditModalOpen(true);
   };
 
   return (
@@ -95,13 +108,13 @@ export default function DataPegawai({ users, filters, totalSupervisor, totalPema
                 </div>
               </div>
 
-              <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl p-6 text-white shadow-lg">
+              <div className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-xl p-6 text-white shadow-lg">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-purple-100 text-sm font-medium">Total Pemantau</p>
+                    <p className="text-orange-100 text-sm font-medium">Total Pemantau</p>
                     <p className="text-2xl font-bold">{totalPemantau || 0}</p>
                   </div>
-                  <div className="bg-purple-400 bg-opacity-50 rounded-full p-3">
+                  <div className="bg-orange-400 bg-opacity-50 rounded-full p-3">
                     <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
                       <path d="M15 12a3 3 0 11-6 0 3 3 0 616 0z" />
                       <path fillRule="evenodd" d="M1.323 11.447C2.811 6.976 7.028 3.75 12.001 3.75c4.97 0 9.185 3.223 10.675 7.69.12.362.12.752 0 1.113-1.487 4.471-5.705 7.697-10.677 7.697-4.97 0-9.186-3.223-10.675-7.69a1.762 1.762 0 010-1.113zM17.25 12a5.25 5.25 0 11-10.5 0 5.25 5.25 0 0110.5 0z" clipRule="evenodd" />
@@ -125,7 +138,7 @@ export default function DataPegawai({ users, filters, totalSupervisor, totalPema
                   <div className="flex gap-3">
                     <button
                       type="button"
-                      onClick={() => router.get(route('admin.pegawai.create'))}
+                      onClick={() => setIsAddModalOpen(true)}
                       className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium rounded-lg shadow-sm transition-all duration-200 transform hover:scale-105"
                     >
                       <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -197,13 +210,11 @@ export default function DataPegawai({ users, filters, totalSupervisor, totalPema
                           <td className="px-6 py-4 whitespace-nowrap">
                             <span className={`inline-flex px-3 py-1 rounded-full text-xs font-semibold ${user.role === 'admin'
                                 ? 'bg-red-100 text-red-800'
-                                : user.role === 'admin'
-                                  ? 'bg-blue-100 text-blue-800'
-                                  : user.role === 'supervisor'
-                                    ? 'bg-green-100 text-green-800'
-                                    : user.role === 'pemantau'
-                                      ? 'bg-purple-100 text-purple-800'
-                                      : 'bg-gray-100 text-gray-800'
+                                : user.role === 'supervisor'
+                                  ? 'bg-green-100 text-green-800'
+                                  : user.role === 'pemantau'
+                                    ? 'bg-orange-100 text-orange-800'
+                                    : 'bg-gray-100 text-gray-800'
                               }`}>
                               {user.role}
                             </span>
@@ -211,7 +222,7 @@ export default function DataPegawai({ users, filters, totalSupervisor, totalPema
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                             <div className="flex items-center space-x-3">
                               <button
-                                onClick={() => router.get(route('admin.pegawai.edit', user.id))}
+                                onClick={() => handleOpenEdit(user)}
                                 className="inline-flex items-center px-3 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 text-xs font-medium rounded-md transition-colors duration-200"
                               >
                                 <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -282,6 +293,22 @@ export default function DataPegawai({ users, filters, totalSupervisor, totalPema
           </div>
         </main>
       </div>
+
+      {/* Modal Tambah Pegawai */}
+      <CreatePegawai
+        show={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+      />
+
+      {/* Modal Edit Pegawai */}
+      <EditPegawai
+        show={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setSelectedPegawai(null);
+        }}
+        pegawai={selectedPegawai}
+      />
     </div>
   );
 }

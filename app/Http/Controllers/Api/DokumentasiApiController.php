@@ -16,11 +16,11 @@ class DokumentasiApiController extends Controller
     {
         $userId = Auth::id();
 
-        $undanganIds = PenerimaUndangan::where('user_id', $userId)
-            ->pluck('undangan_id');
+        $penerimaIds = PenerimaUndangan::where('user_id', $userId)->pluck('id');
 
         $dokumentasi = DokumentasiKegiatan::with('fotoDokumentasi', 'undangan.kegiatan')
-            ->whereIn('undangan_id', $undanganIds)
+            ->whereIn('penerima_id', $penerimaIds)
+            ->latest('id')
             ->get();
 
         return response()->json([
@@ -40,6 +40,7 @@ class DokumentasiApiController extends Controller
                     $q->where('user_id', $userId);
                 });
         })
+        ->latest('id')
         ->get()
         ->map(function ($item) {
             return [
@@ -194,7 +195,7 @@ class DokumentasiApiController extends Controller
         }
     }
 
-    // ✅ Upload file baru jika ada
+    //  Upload file baru jika ada
     if ($request->hasFile('foto_dokumentasi')) {
         $files = $request->file('foto_dokumentasi');
 

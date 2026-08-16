@@ -100,11 +100,19 @@ export default function CreateUndangan({ kegiatans = [], tims = [], pegawaiList 
                 </div>
                 <div className="space-y-2">
                   <Label>Sifat</Label>
-                  <Input
-                    type="text"
+                  <Select
                     value={data.sifat}
-                    onChange={(e) => setData('sifat', e.target.value)}
-                  />
+                    onValueChange={(value) => setData('sifat', value)}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Pilih Sifat Surat" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Biasa">Biasa</SelectItem>
+                      <SelectItem value="Terbatas">Terbatas</SelectItem>
+                      <SelectItem value="Rahasia">Rahasia</SelectItem>
+                    </SelectContent>
+                  </Select>
                   {errors.sifat && <div className="text-red-500 text-sm mt-1">{errors.sifat}</div>}
                 </div>
               </div>

@@ -7,6 +7,7 @@ import {
   FileEdit,
   Settings,
   LogOut,
+  LayoutDashboard,
 } from 'lucide-react';
 
 export default function Sidebar() {
@@ -65,6 +66,19 @@ export default function Sidebar() {
                 href={route('admin.index')}
                 className={`flex items-center gap-2 p-2 rounded ${
                   isActive('/dashboard-admin')
+                    ? 'bg-blue-100 font-semibold'
+                    : 'hover:bg-gray-100'
+                }`}
+              >
+                <LayoutDashboard size={18} />
+                Dashboard
+              </Link>
+            </li>
+            <li>
+              <Link
+                href={route('admin.pegawai.index')}
+                className={`flex items-center gap-2 p-2 rounded ${
+                  isActive('/pegawai')
                     ? 'bg-blue-100 font-semibold'
                     : 'hover:bg-gray-100'
                 }`}

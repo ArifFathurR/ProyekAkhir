@@ -8,6 +8,7 @@ import {
   Settings,
   LogOut,
   History,
+  LayoutDashboard,
 } from 'lucide-react';
 
 export default function Sidebar() {
@@ -87,28 +88,28 @@ export default function Sidebar() {
 
   const menuItems = [
     {
+      href: route('pegawai.dashboard'),
+      icon: <LayoutDashboard className="w-5 h-5" />,
+      label: 'Dashboard',
+      active: isActive('/pegawai/dashboard') || isActive('/dashboard-pegawai'),
+    },
+    {
       href: route('dokumentasi_kegiatan.index'),
       icon: <FileText className="w-5 h-5" />,
       label: 'Dokumentasi Kegiatan Saya',
       active: isActive('/dokumentasi_kegiatan'),
     },
-    {
-      href: route('pegawai.show'),
-      icon: <Info className="w-5 h-5" />,
-      label: 'Kegiatan Saya',
-      active: isActive('/kegiatan-saya'),
-    },
-    {
-      href: route('undangan_kegiatan.create'),
-      icon: <PlusSquare className="w-5 h-5" />,
-      label: 'Buat Undangan Kegiatan',
-      active: isActive('/undangan_kegiatan/create'),
-    },
+    // {
+    //   href: route('pegawai.show'),
+    //   icon: <Info className="w-5 h-5" />,
+    //   label: 'Kegiatan Saya',
+    //   active: isActive('/kegiatan-saya'),
+    // },
     {
       href: route('undangan_kegiatan.index'),
       icon: <Clock className="w-5 h-5" />,
-      label: 'Status Pengajuan Undangan',
-      active: isActive('/undangan_kegiatan') && !url.includes('/create'),
+      label: 'Kelola Undangan Acara',
+      active: isActive('/undangan_kegiatan'),
     },
     {
       href: route('pegawai.riwayat-presensi'),

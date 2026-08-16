@@ -1,45 +1,66 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { router, usePage } from '@inertiajs/react';
-import SidebarSupervisor from '@/Layouts/SidebarSupervisor';
-import FlashPopup from '@/Components/FlashPopup';
-import Header from '@/Components/Header';
+import Modal from '@/Components/Modal';
+import Swal from 'sweetalert2';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
+import { Button } from '@/Components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
-import Swal from 'sweetalert2';
 
-export default function EditDokumentasi({ dokumentasi, undanganOptions }) {
-    const { errors } = usePage().props;
+export default function EditDokumentasi({ show, onClose, dokumentasi, undanganOptions = [] }) {
+  const { errors } = usePage().props;
 
-    const [data, setData] = useState({
-        undangan_id: dokumentasi.undangan_id || '',
+  const [data, setData] = useState({
+    undangan_id: '',
+    notulensi: '',
+    link_zoom: '',
+    link_materi: '',
+    foto: null,
+  });
+
+  const [existingFotos, setExistingFotos] = useState([]);
+  const [previewImages, setPreviewImages] = useState([]);
+  const [processing, setProcessing] = useState(false);
+
+  useEffect(() => {
+    if (dokumentasi) {
+      setData({
+        undangan_id: dokumentasi.undangan_id ? String(dokumentasi.undangan_id) : '',
         notulensi: dokumentasi.notulensi || '',
         link_zoom: dokumentasi.link_zoom || '',
         link_materi: dokumentasi.link_materi || '',
         foto: null,
-    });
+      });
+      setExistingFotos(dokumentasi.foto_dokumentasi || []);
+      setPreviewImages([]);
+    }
+  }, [dokumentasi]);
 
-    const handleUndanganSelectChange = (value) => {
-        setData((prev) => ({ ...prev, undangan_id: value }));
-    };
+  const handleFileChange = (e) => {
+    const files = Array.from(e.target.files || []);
+    setData(prev => ({ ...prev, foto: e.target.files }));
+    const previews = files.map((file) => URL.createObjectURL(file));
+    setPreviewImages(previews);
+  };
 
-    const handleQuillChange = (content) => {
-        setData((prev) => ({ ...prev, notulensi: content }));
-    };
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!dokumentasi?.id) return;
 
-    const quillModules = {
-        toolbar: [
-            ['italic', { 'color': [] }, { 'background': [] }],
-            [{ 'align': '' }, { 'align': 'center' }, { 'align': 'right' }, { 'align': 'justify' }],
-            [{ 'list': 'bullet' }, { 'list': 'ordered' }],
-            ['clean']
-        ],
-    };
-
-    const handleSubmit = (e) => {
-        e.preventDefault();
+    Swal.fire({
+      title: 'Update Dokumentasi?',
+      text: 'Apakah Anda yakin ingin menyimpan perubahan dokumentasi ini?',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#0284c7',
+      cancelButtonColor: '#64748b',
+      confirmButtonText: 'Ya, Update',
+      cancelButtonText: 'Batal'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        setProcessing(true);
         const formData = new FormData();
         formData.append('undangan_id', data.undangan_id);
         formData.append('notulensi', data.notulensi);
@@ -47,164 +68,170 @@ export default function EditDokumentasi({ dokumentasi, undanganOptions }) {
         formData.append('link_materi', data.link_materi);
 
         if (data.foto) {
-            for (let i = 0; i < data.foto.length; i++) {
-                formData.append('foto[]', data.foto[i]);
-            }
+          for (let i = 0; i < data.foto.length; i++) {
+            formData.append('foto[]', data.foto[i]);
+          }
         }
 
-        Swal.fire({
-            title: 'Simpan Perubahan?',
-            text: 'Apakah Anda yakin ingin menyimpan perubahan dokumentasi ini?',
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#0284c7',
-            cancelButtonColor: '#64748b',
-            confirmButtonText: 'Ya, Simpan',
-            cancelButtonText: 'Batal'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                router.post(`/dokumentasisupervisor/${dokumentasi.id}`, formData, {
-                    forceFormData: true,
-                    preserveScroll: true,
-                    method: 'post',
-                    headers: { 'X-HTTP-Method-Override': 'PUT' },
-                });
-            }
+        router.post(`/dokumentasisupervisor/${dokumentasi.id}`, formData, {
+          forceFormData: true,
+          preserveScroll: true,
+          method: 'post',
+          headers: { 'X-HTTP-Method-Override': 'PUT' },
+          onFinish: () => setProcessing(false),
+          onSuccess: () => {
+            onClose();
+          }
         });
-    };
-    const handleDeleteFoto = (fotoId) => {
-        if (confirm('Yakin ingin menghapus foto ini?')) {
-            router.delete(`/foto_dokumentasi/${fotoId}`, {
-                preserveScroll: true,
-                onSuccess: () => {
-                    // Optionally: refresh or remove photo manually from local state
-                },
-            });
-        }
-    };
+      }
+    });
+  };
 
-    return (
-        <div className="flex justify-start min-h-screen w-full overflow-x-hidden">
-            <SidebarSupervisor />
-            <div className="flex-1 min-w-0 bg-[#F5F7FA] min-h-screen md:ml-64">
-                <Header />
-                <main className="pt-20 md:pt-28 px-4 md:px-6">
-                    <FlashPopup />
-                    <div className="max-w-full mx-auto p-4 sm:p-6 bg-white shadow rounded">
-                        <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">Edit Dokumentasi Kegiatan</h2>
-                        <form onSubmit={handleSubmit} encType="multipart/form-data" className="space-y-6">
-                            
+  const handleDeleteFoto = (fotoId) => {
+    Swal.fire({
+      title: 'Hapus Foto?',
+      text: 'Yakin ingin menghapus foto ini?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#64748b',
+      confirmButtonText: 'Ya, Hapus',
+      cancelButtonText: 'Batal'
+    }).then((res) => {
+      if (res.isConfirmed) {
+        router.delete(`/foto_dokumentasi/${fotoId}`, {
+          preserveScroll: true,
+          onSuccess: () => {
+            setExistingFotos(prev => prev.filter(f => f.id !== fotoId));
+          }
+        });
+      }
+    });
+  };
 
+  return (
+    <Modal show={show} onClose={onClose} maxWidth="2xl">
+      <div className="p-6">
+        <h2 className="text-xl font-bold text-sky-700 mb-1">Edit Dokumentasi Kegiatan (Supervisor)</h2>
+        <p className="text-gray-500 text-xs mb-5">Perbarui informasi dokumentasi kegiatan di bawah ini.</p>
 
-                            {/* Pilih Undangan */}
-                            <div className="space-y-2">
-                                <Label>Pilih Undangan</Label>
-                                <Select
-                                    value={String(data.undangan_id)}
-                                    onValueChange={handleUndanganSelectChange}
-                                >
-                                    <SelectTrigger className="w-full">
-                                        <SelectValue placeholder="-- Pilih Undangan --" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {undanganOptions.map((item) => (
-                                            <SelectItem key={item.id} value={String(item.id)}>
-                                                {item.judul}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                {errors.undangan_id && <p className="text-sm text-red-600">{errors.undangan_id}</p>}
-                            </div>
+        <form onSubmit={handleSubmit} encType="multipart/form-data" className="space-y-4">
+          <div className="space-y-1">
+            <Label className="text-sm">Undangan <span className="text-red-500">*</span></Label>
+            <Select
+              value={String(data.undangan_id)}
+              onValueChange={(val) => setData(prev => ({ ...prev, undangan_id: val }))}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Pilih Undangan" />
+              </SelectTrigger>
+              <SelectContent>
+                {undanganOptions.map((item) => (
+                  <SelectItem key={item.id} value={String(item.id)}>
+                    {item.judul}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {errors?.undangan_id && <p className="text-xs text-red-600 mt-0.5">{errors.undangan_id}</p>}
+          </div>
 
-                            {/* Notulensi */}
-                            <div className="space-y-2">
-                                <Label>Notulensi</Label>
-                                <div className="bg-white rounded">
-                                    <ReactQuill
-                                        theme="snow"
-                                        value={data.notulensi}
-                                        onChange={handleQuillChange}
-                                        modules={quillModules}
-                                        placeholder="Tulis notulensi kegiatan di sini..."
-                                        className="h-40 mb-12"
-                                    />
-                                </div>
-                                {errors.notulensi && <p className="text-sm text-red-600 mt-12">{errors.notulensi}</p>}
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                {/* Link Zoom */}
-                                <div className="space-y-2">
-                                    <Label>Link Zoom</Label>
-                                    <Input
-                                        type="url"
-                                        value={data.link_zoom}
-                                        onChange={(e) => setData({ ...data, link_zoom: e.target.value })}
-                                    />
-                                </div>
-
-                                {/* Link Materi */}
-                                <div className="space-y-2">
-                                    <Label>Link Materi</Label>
-                                    <Input
-                                        type="url"
-                                        value={data.link_materi}
-                                        onChange={(e) => setData({ ...data, link_materi: e.target.value })}
-                                    />
-                                </div>
-                            </div>
-
-                            {/* Upload Foto Baru */}
-                            <div className="space-y-2">
-                                <Label>Upload Foto Baru</Label>
-                                <Input
-                                    type="file"
-                                    accept="image/*"
-                                    multiple
-                                    onChange={(e) => setData({ ...data, foto: e.target.files })}
-                                />
-                                {errors.foto && <p className="text-sm text-red-600">{errors.foto}</p>}
-                            </div>
-
-                            {/* Preview Foto Lama */}
-                            {dokumentasi.foto_dokumentasi?.length > 0 && (
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Foto Sebelumnya</label>
-                                    <div className="flex flex-wrap gap-3">
-                                        {dokumentasi.foto_dokumentasi.map((foto, index) => (
-                                            <div key={index} className="relative">
-                                                <img
-                                                    src={`/storage/${foto.foto}`}
-                                                    alt={`Foto ${index + 1}`}
-                                                    className="w-32 h-32 object-cover border rounded"
-                                                />
-                                                <button
-                                                    type="button"
-                                                    onClick={() => handleDeleteFoto(foto.id)}
-                                                    className="absolute top-1 right-1 bg-red-600 text-white text-xs px-2 py-1 rounded"
-                                                >
-                                                    Hapus
-                                                </button>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Submit */}
-                            <div className="pt-4">
-                                <button
-                                    type="submit"
-                                    className="w-full bg-[#0B2E74] text-white font-semibold px-4 py-2 rounded-md hover:bg-blue-800 transition duration-150"
-                                >
-                                    Simpan Perubahan
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </main>
+          <div className="space-y-1">
+            <Label className="text-sm">Notulensi <span className="text-red-500">*</span></Label>
+            <div className="bg-white rounded border border-gray-200">
+              <ReactQuill
+                theme="snow"
+                value={data.notulensi}
+                onChange={(content) => setData(prev => ({ ...prev, notulensi: content }))}
+                placeholder="Tulis notulensi kegiatan di sini..."
+                className="h-32 mb-12"
+              />
             </div>
-        </div>
-    );
+            {errors?.notulensi && <p className="text-xs text-red-600 mt-12">{errors.notulensi}</p>}
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <Label className="text-sm">Link Zoom</Label>
+              <Input
+                type="url"
+                value={data.link_zoom}
+                onChange={(e) => setData(prev => ({ ...prev, link_zoom: e.target.value }))}
+                placeholder="https://zoom.us/..."
+              />
+              {errors?.link_zoom && <p className="text-xs text-red-600 mt-0.5">{errors.link_zoom}</p>}
+            </div>
+
+            <div className="space-y-1">
+              <Label className="text-sm">Link Materi</Label>
+              <Input
+                type="url"
+                value={data.link_materi}
+                onChange={(e) => setData(prev => ({ ...prev, link_materi: e.target.value }))}
+                placeholder="https://drive.google.com/..."
+              />
+              {errors?.link_materi && <p className="text-xs text-red-600 mt-0.5">{errors.link_materi}</p>}
+            </div>
+          </div>
+
+          <div className="space-y-1">
+            <Label className="text-sm">Upload Foto Baru</Label>
+            <Input
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handleFileChange}
+            />
+            {errors?.foto && <p className="text-xs text-red-600 mt-0.5">{errors.foto}</p>}
+
+            {previewImages.length > 0 && (
+              <div className="mt-3 flex flex-wrap gap-3">
+                {previewImages.map((src, index) => (
+                  <img
+                    key={index}
+                    src={src}
+                    alt={`Preview Baru ${index}`}
+                    className="w-20 h-20 object-cover border-2 border-sky-400 rounded shadow-sm"
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+
+          {existingFotos.length > 0 && (
+            <div className="space-y-1">
+              <Label className="text-xs font-semibold text-gray-700">Foto Sebelumnya</Label>
+              <div className="flex flex-wrap gap-3 pt-1">
+                {existingFotos.map((foto, index) => (
+                  <div key={foto.id || index} className="relative group">
+                    <img
+                      src={`/storage/${foto.foto}`}
+                      alt={`Foto ${index + 1}`}
+                      className="w-20 h-20 object-cover border rounded shadow-sm"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteFoto(foto.id)}
+                      className="absolute top-1 right-1 bg-red-600 hover:bg-red-700 text-white text-[10px] font-bold px-1.5 py-0.5 rounded shadow"
+                    >
+                      Hapus
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+            <Button type="button" variant="outline" onClick={onClose}>
+              Batal
+            </Button>
+            <Button type="submit" disabled={processing} className="bg-sky-600 hover:bg-sky-700 text-white font-semibold">
+              {processing ? 'Menyimpan...' : 'Update Dokumentasi'}
+            </Button>
+          </div>
+        </form>
+      </div>
+    </Modal>
+  );
 }

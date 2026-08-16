@@ -181,6 +181,10 @@ public function Selesai(Pegawai $pegawai)
             $query->where('status_pelaksanaan', $status_pelaksanaan);
         })
         ->get()
+        ->sortByDesc(function ($item) {
+            return ($item->undangan->tanggal ?? '') . ' ' . ($item->undangan->waktu ?? '');
+        })
+        ->values()
         ->map(function ($item) {
             return [
                 'id' => $item->id,
@@ -210,7 +214,7 @@ public function kalender(Pegawai $pegawai)
             return [
                 'title' => $item->undangan->judul,
                 'date' => $item->undangan->tanggal,
-                'waktu' => $item->undangan->waktu, // ⏰ Tambahkan waktu di sini
+                'waktu' => $item->undangan->waktu, 
                 // Data untuk ModalDetailUndangan
                 'nama_kegiatan' => $item->undangan->kegiatan->nama_kegiatan ?? '-',
                 'sub_kegiatan' => $item->undangan->judul ?? '-',
@@ -284,12 +288,15 @@ public function storeTtd(Request $request)
 
     // Cek radius lokasi jika koordinat ada
     $warning = null;
-    if ($validated['latitude'] && $validated['longitude']) {
-        $officeLat = config('absensi.office_latitude', 0.5057);
-        $officeLon = config('absensi.office_longitude', 101.4503);
-        $allowedRadius = config('absensi.radius_meters', 75);
+    $lat = $validated['latitude'] ?? null;
+    $lon = $validated['longitude'] ?? null;
 
-        $distance = $this->calculateDistance($officeLat, $officeLon, $validated['latitude'], $validated['longitude']);
+    if (isset($lat) && isset($lon) && $lat !== '' && $lon !== '') {
+        $officeLat = (float) config('absensi.office_latitude', 0.568721);
+        $officeLon = (float) config('absensi.office_longitude', 101.4264105);
+        $allowedRadius = (int) config('absensi.radius_meters', 75);
+
+        $distance = $this->calculateDistance($officeLat, $officeLon, (float) $lat, (float) $lon);
         if ($distance > $allowedRadius) {
             $warning = sprintf('Anda berada di luar radius absensi. Jarak Anda: %.2f meter (Maksimal radius: %d meter).', $distance, $allowedRadius);
         }
@@ -301,6 +308,7 @@ public function storeTtd(Request $request)
     $waktuKegiatan = Carbon::parse($penerima->undangan->tanggal . ' ' . $penerima->undangan->waktu);
     $waktuPresensi = Carbon::now();
 
+    //logika keterlambatan presensi +5 menit dari waktu kegiatan
     $statusKehadiran = $waktuPresensi->greaterThan($waktuKegiatan->copy()->addMinutes(5))
         ? 'terlambat'
         : 'hadir';
@@ -329,11 +337,32 @@ public function storeTtd(Request $request)
         'waktu_presensi'   => $waktuPresensi,
     ]);
 
-    $redirect = redirect()->route('pegawai.sedang')->with('success', 'TTD dan presensi berhasil disimpan.');
+    $redirect = redirect()->route('pegawai.dashboard')->with('success', 'TTD dan presensi berhasil disimpan.');
     if ($warning) {
         $redirect = $redirect->with('warning', $warning);
     }
     return $redirect;
+}
+
+public function storePresensi(Request $request)
+{
+    $lat = $request->input('latitude');
+    $lon = $request->input('longitude');
+
+    if (empty($lat) && empty($lon) && $request->filled('koordinat')) {
+        $parts = explode(',', $request->input('koordinat'));
+        if (count($parts) === 2) {
+            $lat = trim($parts[0]);
+            $lon = trim($parts[1]);
+        }
+    }
+
+    $request->merge([
+        'latitude' => $lat,
+        'longitude' => $lon,
+    ]);
+
+    return $this->storeTtd($request);
 }
 
 /**

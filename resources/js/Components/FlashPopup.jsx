@@ -16,14 +16,18 @@ export default function FlashPopup() {
           icon: 'warning',
           title: 'Perhatian',
           html: `${success}<br><br><span style="color: #d97706; font-weight: 600;">${warning}</span>`,
-          confirmButtonColor: '#d97706',
+          showConfirmButton: false,
+          timer: 2500,
+          timerProgressBar: true,
         });
       } else {
         Swal.fire({
           icon: 'success',
-          title: 'Success',
+          title: 'Berhasil',
           text: success,
-          confirmButtonColor: '#0ea5e9',
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
         });
       }
     } else if (warning) {
@@ -31,7 +35,9 @@ export default function FlashPopup() {
         icon: 'warning',
         title: 'Perhatian',
         text: warning,
-        confirmButtonColor: '#d97706',
+        showConfirmButton: false,
+        timer: 2500,
+        timerProgressBar: true,
       });
     }
 
@@ -40,7 +46,9 @@ export default function FlashPopup() {
         icon: 'error',
         title: 'Error',
         text: error,
-        confirmButtonColor: '#ef4444',
+        showConfirmButton: false,
+        timer: 2500,
+        timerProgressBar: true,
       });
     }
   }, [success, error, warning]);

@@ -13,32 +13,50 @@ export default function PresensiPopup({ isOpen, onClose, penerimaId, userId, tim
 
     const signature = sigCanvas.current.getCanvas().toDataURL('image/png');
 
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const coords = `${pos.coords.latitude},${pos.coords.longitude}`;
+    const sendPresensi = (pos) => {
+      const coords = `${pos.coords.latitude},${pos.coords.longitude}`;
 
-        router.post('/presensi/store', {
-          penerima_id: penerimaId,
-          user_id: userId,
-          tim_id: timId,
-          undangan_id: undanganId,
-          status_penerima: 'terima',           // ⬅️ WAJIB ADA untuk validasi backend
-          status_kehadiran: 'hadir',
-          ttd: signature,                      // ⬅️ dikirim dalam bentuk base64
-          koordinat: coords,
-          waktu_presensi: new Date().toISOString(),
-        }, {
-          onFinish: () => {
-            setLoading(false);
-            onClose();
-          },
-        });
-      },
-      (err) => {
-        alert('Gagal mendapatkan lokasi. Pastikan izin lokasi diaktifkan.');
-        setLoading(false);
-      }
-    );
+      router.post('/presensi/store', {
+        penerima_id: penerimaId,
+        user_id: userId,
+        tim_id: timId,
+        undangan_id: undanganId,
+        status_penerima: 'terima',
+        status_kehadiran: 'hadir',
+        ttd: signature,
+        koordinat: coords,
+        latitude: pos.coords.latitude,
+        longitude: pos.coords.longitude,
+        waktu_presensi: new Date().toISOString(),
+      }, {
+        onFinish: () => {
+          setLoading(false);
+          onClose();
+        },
+      });
+    };
+
+    const handleHighAccuracyError = () => {
+      navigator.geolocation.getCurrentPosition(
+        sendPresensi,
+        (err) => {
+          alert('❌ Gagal mendapatkan lokasi: ' + (err.message || 'Pastikan izin lokasi diaktifkan pada browser.'));
+          setLoading(false);
+        },
+        { enableHighAccuracy: false, timeout: 15000, maximumAge: 60000 }
+      );
+    };
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        sendPresensi,
+        handleHighAccuracyError,
+        { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
+      );
+    } else {
+      alert('Browser Anda tidak mendukung Geolocation.');
+      setLoading(false);
+    }
   };
 
   const handleClear = () => sigCanvas.current.clear();

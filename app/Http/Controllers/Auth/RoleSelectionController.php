@@ -48,9 +48,9 @@ class RoleSelectionController extends Controller
         if ($request->role == 'admin') {
             return redirect()->route('admin.index');
         } elseif ($request->role == 'pegawai') {
-            return redirect()->route('dokumentasi_kegiatan.index');
+            return redirect()->route('pegawai.dashboard');
         } elseif ($request->role == 'supervisor') {
-            return redirect()->route('supervisor.index');
+            return redirect()->route('supervisor.dashboard');
         } elseif ($request->role == 'pemantau') {
             return redirect()->route('pemantau.index');
         }

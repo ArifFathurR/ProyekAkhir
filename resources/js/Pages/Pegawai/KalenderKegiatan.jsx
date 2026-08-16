@@ -18,7 +18,7 @@ export default function KalenderKegiatan({ kegiatan = [] }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedEventData, setSelectedEventData] = useState(null);
 
-  // ✅ Mapping kegiatan ke format FullCalendar events (dengan waktu dan rincian di extendedProps)
+  //  Mapping kegiatan ke format FullCalendar events (dengan waktu dan rincian di extendedProps)
   const events = kegiatan.map(item => {
     // If we have time (waktu), combine with date for proper timeGrid format, otherwise just date
     let startDateTime = item.date;
@@ -57,7 +57,7 @@ export default function KalenderKegiatan({ kegiatan = [] }) {
     setIsModalOpen(true);
   };
 
-  // ✅ Group kegiatan per tanggal untuk tooltip
+  //  Group kegiatan per tanggal untuk tooltip
   const kegiatanPerTanggal = kegiatan.reduce((acc, item) => {
     if (!acc[item.date]) acc[item.date] = [];
     acc[item.date].push({ title: item.title, waktu: item.waktu });
@@ -122,7 +122,7 @@ export default function KalenderKegiatan({ kegiatan = [] }) {
     }
   ];
 
-  // ✅ Render isi event dengan waktu di tooltip
+  //  Render isi event dengan waktu di tooltip
   const renderEventContent = (eventInfo) => {
     const dateStr = eventInfo.event.startStr.split('T')[0];
     const listKegiatan = kegiatanPerTanggal[dateStr] || [];

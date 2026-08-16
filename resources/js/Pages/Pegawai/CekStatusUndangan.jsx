@@ -7,30 +7,32 @@ import Swal from 'sweetalert2';
 import StatsCard from '@/Components/StatsCard';
 import TableCard from '@/Components/TableCard';
 import Pagination from '@/Components/Pagination';
+import ModalCreateUndangan from '@/Components/ModalCreateUndangan';
+import ModalEditUndangan from '@/Components/ModalEditUndangan';
 
-export default function CekStatusUndangan({ undangans, filters }) {
+export default function CekStatusUndangan({ undangans, filters, kegiatans = [], tims = [], pegawaiList = [], anggotaTim = [] }) {
     const [search, setSearch] = useState(filters?.search || '');
     const [status, setStatus] = useState(filters?.status || '');
+    const [tab, setTab] = useState(filters?.tab || 'belum_terkirim');
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [selectedUndangan, setSelectedUndangan] = useState(null);
     const [loadingKirim, setLoadingKirim] = useState(null);
-    const activeTab = filters?.tab || 'belum_terkirim';
 
     const handleSearch = useCallback((e) => {
         if (e) e.preventDefault();
-        router.get(route('undangan_kegiatan.index'), { search, status, tab: activeTab }, {
+        router.get(route('undangan_kegiatan.index'), { search, status, tab }, {
             preserveState: true,
             replace: true,
         });
-    }, [search, status, activeTab]);
+    }, [search, status, tab]);
 
     const handleClearFilter = useCallback(() => {
         setSearch('');
         setStatus('');
-        router.get(route('undangan_kegiatan.index'), { tab: activeTab });
-    }, [activeTab]);
-
-    const handleTabChange = useCallback((tabName) => {
-        router.get(route('undangan_kegiatan.index'), { search, status, tab: tabName });
-    }, [search, status]);
+        setTab('belum_terkirim');
+        router.get(route('undangan_kegiatan.index'), { tab: 'belum_terkirim' });
+    }, []);
 
     const handleKirim = useCallback((id) => {
         Swal.fire({
@@ -72,6 +74,9 @@ export default function CekStatusUndangan({ undangans, filters }) {
                             title: 'Gagal!',
                             text: errorMsg,
                             icon: 'error',
+                            showConfirmButton: false,
+                            timer: 2500,
+                            timerProgressBar: true,
                         });
                     },
                 });
@@ -79,8 +84,9 @@ export default function CekStatusUndangan({ undangans, filters }) {
         });
     }, []);
 
-    const handleEdit = useCallback((id) => {
-        router.get(route('undangan_kegiatan.edit', id));
+    const handleEdit = useCallback((undanganItem) => {
+        setSelectedUndangan(undanganItem);
+        setIsEditModalOpen(true);
     }, []);
 
     // Hitung statistik berdasarkan status (di-memo-isasi agar tidak re-calculate setiap render)
@@ -147,95 +153,80 @@ export default function CekStatusUndangan({ undangans, filters }) {
         }
     ], [totalUndangan, undanganDiterima, undanganMenunggu, undanganDitolak]);
 
-    // Filter form component
+    // Filter form component dengan tab status pengiriman sebagai dropdown sejajar dengan search input
     const filterForm = (
-        <div className="space-y-4">
-            {/* Navigasi Tab */}
-            <div className="flex border-b border-gray-200">
-                <button
-                    type="button"
-                    onClick={() => handleTabChange('belum_terkirim')}
-                    className={`flex items-center gap-2 py-3 px-6 border-b-2 font-medium text-sm transition-all duration-200 ${
-                        activeTab === 'belum_terkirim'
-                            ? 'border-[#0B2E74] text-[#0B2E74]'
-                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                    }`}
-                >
-                    <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                    </svg>
-                    Belum Dikirim
-                </button>
-                <button
-                    type="button"
-                    onClick={() => handleTabChange('terkirim')}
-                    className={`flex items-center gap-2 py-3 px-6 border-b-2 font-medium text-sm transition-all duration-200 ${
-                        activeTab === 'terkirim'
-                            ? 'border-[#0B2E74] text-[#0B2E74]'
-                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                    }`}
-                >
-                    <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                    </svg>
-                    Terkirim
-                </button>
-            </div>
-
-            <form onSubmit={handleSearch}>
-                <div className="flex flex-col lg:flex-row gap-3">
-                    {/* Search Input */}
-                    <div className="relative flex-1">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                            </svg>
-                        </div>
-                        <input
-                            type="text"
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            placeholder="Cari berdasarkan judul undangan..."
-                            className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-colors"
-                        />
+        <form onSubmit={handleSearch}>
+            <div className="flex flex-col lg:flex-row gap-3">
+                {/* Search Input */}
+                <div className="relative flex-1">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
                     </div>
-
-                    {/* Status Filter */}
-                    <div className="flex-shrink-0 w-full lg:w-48">
-                        <select
-                            value={status}
-                            onChange={(e) => setStatus(e.target.value)}
-                            className="block w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-colors"
-                        >
-                            <option value="">Semua Status</option>
-                            <option value="Menunggu">Menunggu</option>
-                            <option value="Diterima">Diterima</option>
-                            <option value="Ditolak">Ditolak</option>
-                            <option value="Revisi">Revisi</option>
-                        </select>
-                    </div>
-
-                    {/* Action Buttons */}
-                    <div className="flex gap-2">
-                        <button
-                            type="submit"
-                            className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm transition-colors duration-200"
-                        >
-                            Filter
-                        </button>
-                        {(search || status) && (
-                            <button
-                                type="button"
-                                onClick={handleClearFilter}
-                                className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition-colors duration-200"
-                            >
-                                Clear
-                            </button>
-                        )}
-                    </div>
+                    <input
+                        type="text"
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        placeholder="Cari berdasarkan judul undangan..."
+                        className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-colors"
+                    />
                 </div>
-            </form>
-        </div>
+
+                {/* Dropdown Filter Status Pengiriman (Gantikan Navigasi Tab) */}
+                <div className="flex-shrink-0 w-full lg:w-48">
+                    <select
+                        value={tab}
+                        onChange={(e) => {
+                            const newTab = e.target.value;
+                            setTab(newTab);
+                            router.get(route('undangan_kegiatan.index'), { search, status, tab: newTab }, {
+                                preserveState: true,
+                                replace: true,
+                            });
+                        }}
+                        className="block w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm font-medium transition-colors"
+                    >
+                        <option value="belum_terkirim">Belum Dikirim</option>
+                        <option value="terkirim">Terkirim</option>
+                    </select>
+                </div>
+
+                {/* Status Persetujuan Filter */}
+                <div className="flex-shrink-0 w-full lg:w-48">
+                    <select
+                        value={status}
+                        onChange={(e) => setStatus(e.target.value)}
+                        className="block w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-colors"
+                    >
+                        <option value="">Semua Status</option>
+                        <option value="Menunggu">Menunggu</option>
+                        <option value="Diterima">Diterima</option>
+                        <option value="Ditolak">Ditolak</option>
+                        <option value="Revisi">Revisi</option>
+                    </select>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex gap-2">
+                    <button
+                        type="submit"
+                        className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm transition-colors duration-200"
+                    >
+                        Filter
+                    </button>
+                    {(search || status || tab !== 'belum_terkirim') && (
+                        <button
+                            type="button"
+                            onClick={handleClearFilter}
+                            className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition-colors duration-200"
+                        >
+                            Clear
+                        </button>
+                    )}
+                </div>
+            </div>
+        </form>
     );
 
     return (
@@ -248,9 +239,12 @@ export default function CekStatusUndangan({ undangans, filters }) {
                 <main className="pt-20 md:pt-28 px-4">
                     <div className="w-full">
                         {/* Page Header */}
-                        <div className="mb-6">
-                            <h1 className="text-2xl font-bold text-gray-900">Status Undangan Kegiatan</h1>
-                            <p className="text-gray-600 mt-1">Monitor status persetujuan undangan kegiatan</p>
+                        <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                            <div>
+                                <h1 className="text-2xl font-bold text-gray-900">Status Undangan Kegiatan</h1>
+                                <p className="text-gray-600 mt-1">Monitor status persetujuan undangan kegiatan</p>
+                            </div>
+
                         </div>
 
                         {/* Stats Cards */}
@@ -264,6 +258,18 @@ export default function CekStatusUndangan({ undangans, filters }) {
                         <TableCard
                             title="Data Undangan Kegiatan"
                             description="Daftar undangan dan status persetujuan"
+                            headerActions={
+                                <button
+                                    type="button"
+                                    onClick={() => setIsCreateModalOpen(true)}
+                                    className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm rounded-lg shadow-sm transition-all duration-200"
+                                >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                    </svg>
+                                    Buat Undangan
+                                </button>
+                            }
                             filterForm={filterForm}
                             pagination={<Pagination data={undangans} />}
                         >
@@ -367,7 +373,7 @@ export default function CekStatusUndangan({ undangans, filters }) {
 
                                                         {(undangan.status === 'Ditolak' || undangan.status === 'Revisi') && (
                                                             <button
-                                                                onClick={() => handleEdit(undangan.id)}
+                                                                onClick={() => handleEdit(undangan)}
                                                                 className="inline-flex items-center px-3 py-1.5 bg-orange-100 hover:bg-orange-200 text-orange-700 text-xs font-medium rounded-md transition-colors duration-200"
                                                             >
                                                                 <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -401,6 +407,29 @@ export default function CekStatusUndangan({ undangans, filters }) {
                     </div>
                 </main>
 
+                {/* Modal Create Undangan */}
+                <ModalCreateUndangan
+                    show={isCreateModalOpen}
+                    onClose={() => setIsCreateModalOpen(false)}
+                    kegiatans={kegiatans}
+                    tims={tims}
+                    pegawaiList={pegawaiList}
+                    anggotaTim={anggotaTim}
+                />
+
+                {/* Modal Edit Undangan */}
+                <ModalEditUndangan
+                    show={isEditModalOpen}
+                    onClose={() => {
+                        setIsEditModalOpen(false);
+                        setSelectedUndangan(null);
+                    }}
+                    undangan={selectedUndangan}
+                    kegiatans={kegiatans}
+                    tims={tims}
+                    pegawaiList={pegawaiList}
+                    anggotaTim={anggotaTim}
+                />
             </div>
         </div>
     );

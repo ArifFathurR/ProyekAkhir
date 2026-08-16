@@ -39,7 +39,7 @@ export default function CreateTim({ show, onClose }) {
         <h2 className="text-xl font-semibold mb-6">Penambahan Tim Baru</h2>
         <form onSubmit={handleAddSubmit} className="space-y-5">
           <div>
-            <Label className="block text-sm font-medium text-gray-700 mb-1">Nama Tim</Label>
+            <Label className="block text-sm font-medium text-gray-700 mb-1">Nama Tim <span className="text-red-500">*</span></Label>
             <Input
               type="text"
               value={data.nama_tim}

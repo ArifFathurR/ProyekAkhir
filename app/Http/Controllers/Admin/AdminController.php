@@ -36,7 +36,7 @@ class AdminController extends Controller
             ],
             'totalSupervisor' => $totalSupervisor,
             'totalPemantau' => $totalPemantau,
-
+            'roles' => ['admin', 'pegawai', 'supervisor', 'pemantau'],
         ]);
     }
 

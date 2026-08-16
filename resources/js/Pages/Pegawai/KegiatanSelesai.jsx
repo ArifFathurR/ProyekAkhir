@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import Header from '@/Components/Header';
 import SidebarPegawai from '@/Layouts/SidebarPegawai';
 import { FaFilePdf } from 'react-icons/fa';
@@ -15,6 +15,8 @@ export default function KegiatanSelesai({ kegiatan = [], auth }) {
   const [dokumentasi, setDokumentasi] = useState(null);
   const [showSemuaPopup, setShowSemuaPopup] = useState(false);
   const [semuaDokumentasi, setSemuaDokumentasi] = useState([]);
+  const [search, setSearch] = useState('');
+  const [filterTanggal, setFilterTanggal] = useState('');
 
   const handleLihatDokumentasi = async (penerimaId) => {
     try {
@@ -35,6 +37,40 @@ export default function KegiatanSelesai({ kegiatan = [], auth }) {
       console.error('Gagal mengambil semua dokumentasi:', error);
     }
   };
+
+  // Filter dan urutkan data kegiatan dari yang terbaru (tanggal & id)
+  const filteredKegiatan = useMemo(() => {
+    if (!kegiatan || !Array.isArray(kegiatan)) return [];
+
+    let result = [...kegiatan];
+
+    if (search.trim() !== '') {
+      const q = search.toLowerCase();
+      result = result.filter(
+        (item) =>
+          (item.nama_kegiatan && item.nama_kegiatan.toLowerCase().includes(q)) ||
+          (item.sub_kegiatan && item.sub_kegiatan.toLowerCase().includes(q))
+      );
+    }
+
+    if (filterTanggal) {
+      result = result.filter((item) => {
+        if (!item.tanggal) return false;
+        return item.tanggal.includes(filterTanggal);
+      });
+    }
+
+    result.sort((a, b) => {
+      const dateA = new Date(a.tanggal || 0).getTime();
+      const dateB = new Date(b.tanggal || 0).getTime();
+      if (dateB !== dateA) {
+        return dateB - dateA;
+      }
+      return (b.id || 0) - (a.id || 0);
+    });
+
+    return result;
+  }, [kegiatan, search, filterTanggal]);
 
   // Hitung kegiatan yang memiliki dokumentasi
   const kegiatanDenganDokumentasi = kegiatan?.filter(item => item.has_dokumentasi).length || 0;
@@ -80,6 +116,54 @@ export default function KegiatanSelesai({ kegiatan = [], auth }) {
     }
   ];
 
+  const filterForm = (
+    <div className="space-y-4">
+      <MenuKegiatan />
+
+      <div className="flex flex-col md:flex-row gap-3 items-center">
+        {/* Input Pencarian */}
+        <div className="relative flex-1 w-full">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Cari berdasarkan nama kegiatan atau sub-kegiatan..."
+            className="block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-colors"
+          />
+        </div>
+
+        {/* Filter Tanggal */}
+        <div className="w-full md:w-48">
+          <input
+            type="date"
+            value={filterTanggal}
+            onChange={(e) => setFilterTanggal(e.target.value)}
+            className="block w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-colors"
+          />
+        </div>
+
+        {/* Reset Filter Button */}
+        {(search || filterTanggal) && (
+          <button
+            type="button"
+            onClick={() => {
+              setSearch('');
+              setFilterTanggal('');
+            }}
+            className="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg text-sm transition-colors whitespace-nowrap"
+          >
+            Reset Filter
+          </button>
+        )}
+      </div>
+    </div>
+  );
+
   return (
     <div className="flex justify-start min-h-screen w-full overflow-x-hidden">
       <SidebarPegawai />
@@ -106,7 +190,7 @@ export default function KegiatanSelesai({ kegiatan = [], auth }) {
             <TableCard
               title="Pusat Informasi Kegiatan"
               description="Kegiatan yang telah selesai dan dokumentasinya"
-              filterForm={<MenuKegiatan />}
+              filterForm={filterForm}
             >
               <table className="w-full">
                 <thead className="bg-[#0B2E74] text-white">
@@ -116,13 +200,13 @@ export default function KegiatanSelesai({ kegiatan = [], auth }) {
                     <th className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider">Sub-Kegiatan</th>
                     <th className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider">Tanggal</th>
                     <th className="px-6 py-4 text-center text-xs font-medium uppercase tracking-wider">Undangan</th>
-                    <th className="px-6 py-4 text-center text-xs font-medium uppercase tracking-wider">Dokumentasi</th>
+                    {/* <th className="px-6 py-4 text-center text-xs font-medium uppercase tracking-wider">Dokumentasi</th> */}
                     <th className="px-6 py-4 text-center text-xs font-medium uppercase tracking-wider">Aksi</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                  {kegiatan?.length > 0 ? (
-                    kegiatan.map((item, index) => (
+                  {filteredKegiatan?.length > 0 ? (
+                    filteredKegiatan.map((item, index) => (
                       <tr key={item.id} className="hover:bg-gray-50 transition-colors duration-150">
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
                           {index + 1}
@@ -147,7 +231,7 @@ export default function KegiatanSelesai({ kegiatan = [], auth }) {
                             PDF
                           </a>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-center">
+                        {/* <td className="px-6 py-4 whitespace-nowrap text-center">
                           <button
                             onClick={() => handleLihatDokumentasi(item.id)}
                             className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-md transition-colors duration-200 shadow-sm"
@@ -158,7 +242,7 @@ export default function KegiatanSelesai({ kegiatan = [], auth }) {
                             </svg>
                             Lihat Dokumentasi
                           </button>
-                        </td>
+                        </td> */}
                         <td className="px-6 py-4 whitespace-nowrap text-center">
                           <button
                             onClick={() => handleLihatSemuaDokumentasi(item.undangan_id)}
@@ -179,8 +263,12 @@ export default function KegiatanSelesai({ kegiatan = [], auth }) {
                           <svg className="w-12 h-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                           </svg>
-                          <h3 className="text-sm font-medium text-gray-900 mb-1">Tidak ada kegiatan selesai</h3>
-                          <p className="text-sm text-gray-500">Saat ini belum ada kegiatan yang telah selesai.</p>
+                          <h3 className="text-sm font-medium text-gray-900 mb-1">Tidak ada kegiatan ditemukan</h3>
+                          <p className="text-sm text-gray-500">
+                            {search || filterTanggal
+                              ? 'Tidak ada kegiatan yang sesuai dengan filter pencarian Anda.'
+                              : 'Saat ini belum ada kegiatan yang telah selesai.'}
+                          </p>
                         </div>
                       </td>
                     </tr>

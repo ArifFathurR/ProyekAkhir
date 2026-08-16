@@ -16,13 +16,15 @@ class NotifikasiKegiatanMail extends Mailable implements ShouldQueue
 
     public $undangan;
     public $tanggalFormatted;
+    public $labelReminder;
 
     /**
      * Create a new message instance.
      */
-    public function __construct(UndanganKegiatan $undangan)
+    public function __construct(UndanganKegiatan $undangan, ?string $labelReminder = null)
     {
         $this->undangan = $undangan;
+        $this->labelReminder = $labelReminder;
         $this->tanggalFormatted = \Carbon\Carbon::parse($undangan->tanggal)
             ->locale('id')
             ->isoFormat('dddd, D MMMM Y');
@@ -33,8 +35,12 @@ class NotifikasiKegiatanMail extends Mailable implements ShouldQueue
      */
     public function envelope(): Envelope
     {
+        $subject = $this->labelReminder 
+            ? "[Pengingat {$this->labelReminder}] Kegiatan: " . $this->undangan->judul
+            : 'Pengingat Kegiatan: ' . $this->undangan->judul;
+
         return new Envelope(
-            subject: 'Pengingat Kegiatan: ' . $this->undangan->judul,
+            subject: $subject,
         );
     }
 
@@ -48,6 +54,7 @@ class NotifikasiKegiatanMail extends Mailable implements ShouldQueue
             with: [
                 'undangan' => $this->undangan,
                 'tanggalFormatted' => $this->tanggalFormatted,
+                'labelReminder' => $this->labelReminder,
             ]
         );
     }

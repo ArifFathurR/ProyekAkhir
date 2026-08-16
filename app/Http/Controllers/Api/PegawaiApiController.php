@@ -21,6 +21,7 @@ class PegawaiApiController extends Controller
         $kegiatan = PenerimaUndangan::with(['undangan.kegiatan'])
             ->where('user_id', $userId)
             ->whereHas('undangan', fn($q) => $q->where('status', 'Diterima'))
+            ->latest('id')
             ->get()
             ->map(function ($item) {
                 return [
@@ -44,6 +45,7 @@ class PegawaiApiController extends Controller
         $kegiatan = PenerimaUndangan::with(['undangan.kegiatan'])
             ->where('user_id', $userId)
             ->whereHas('undangan', fn($q) => $q->where('status_pelaksanaan', 'Belum Dilaksanakan'))
+            ->latest('id')
             ->get()
             ->map(function ($item) {
                 return [
@@ -67,6 +69,7 @@ class PegawaiApiController extends Controller
         $kegiatan = PenerimaUndangan::with(['undangan.kegiatan'])
             ->where('user_id', $userId)
             ->whereHas('undangan', fn($q) => $q->where('status_pelaksanaan', 'Sedang Dilaksanakan'))
+            ->latest('id')
             ->get()
             ->map(function ($item) {
                 return [
@@ -89,6 +92,7 @@ class PegawaiApiController extends Controller
         $kegiatan = PenerimaUndangan::with(['undangan.kegiatan'])
             ->where('user_id', $userId)
             ->whereHas('undangan', fn($q) => $q->where('status_pelaksanaan', 'Selesai'))
+            ->latest('id')
             ->get()
             ->map(function ($item) {
                 return [
@@ -111,6 +115,7 @@ class PegawaiApiController extends Controller
         $kegiatan = PenerimaUndangan::with('undangan')
             ->where('user_id', $userId)
             ->whereHas('undangan', fn($q) => $q->where('status', 'Diterima'))
+            ->latest('id')
             ->get()
             ->map(function ($item) {
                 return [
@@ -231,6 +236,7 @@ public function dropdownDokumentasi()
     // Ambil undangan yang diterima user
     $undangans = PenerimaUndangan::with('undangan.kegiatan')
         ->where('user_id', $userId)
+        ->latest('id')
         ->get()
         ->map(function($penerima) {
             return [
@@ -252,6 +258,7 @@ public function dropdownDokumentasi()
 
         $kegiatan = PenerimaUndangan::with(['undangan.kegiatan'])
             ->where('user_id', $userId)
+            ->latest('id')
             ->get()
             ->map(function ($item) {
                 return [

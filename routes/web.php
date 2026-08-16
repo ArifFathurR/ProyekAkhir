@@ -1,44 +1,46 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Admin\AdminController;
-use App\Http\Controllers\Admin\TimController;
-use App\Http\Controllers\Admin\KegiatanController;
+use App\Http\Controllers\Admin\DashboardAdminController;
 use App\Http\Controllers\Admin\AnggotaTimController;
-use App\Http\Controllers\Pegawai\PegawaiController;
-use App\Http\Controllers\Pegawai\UndanganKegiatanController;
+use App\Http\Controllers\Admin\KegiatanController;
+use App\Http\Controllers\Admin\TimController;
+use App\Http\Controllers\Pegawai\DashboardController;
 use App\Http\Controllers\Pegawai\DokumentasiKegiatanController;
+use App\Http\Controllers\Pegawai\PegawaiController;
 use App\Http\Controllers\Pegawai\PenerimaUndanganController;
-use App\Http\Controllers\Supervisor\SupervisorController;
-use App\Http\Controllers\Supervisor\DokumentasiKegiatanSupervisorController;
+use App\Http\Controllers\Pegawai\UndanganKegiatanController;
 use App\Http\Controllers\Pemantau\PemantauController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Supervisor\DokumentasiKegiatanSupervisorController;
+use App\Http\Controllers\Supervisor\SupervisorController;
+use App\Http\Controllers\Supervisor\DashboardSupervisorController;
 use App\Http\Controllers\TestController;
-use Illuminate\Foundation\Application;
+use App\Http\Middleware\RoleMiddleware;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
-use App\Http\Middleware\RoleMiddleware;
 
 Route::redirect('/', '/login');
 
 Route::middleware(['web', 'auth'])->group(function () {
     // Untuk admin
-    Route::middleware([RoleMiddleware::class . ':admin'])->group(function () {
-        Route::get('/dashboard-admin', [AdminController::class, 'index'])->name('admin.index');
+    Route::middleware([RoleMiddleware::class.':admin'])->group(function () {
+        Route::get('/dashboard-admin', [DashboardAdminController::class, 'index'])->name('admin.index');
         Route::resource('tim', TimController::class);
         Route::resource('anggota_tim', AnggotaTimController::class);
         Route::resource('kegiatan', KegiatanController::class);
         Route::resource('pegawai', AdminController::class)
-        
-    ->names('admin.pegawai')
-    ->parameters(['pegawai' => 'user']);
+            ->except(['show'])
+            ->names('admin.pegawai')
+            ->parameters(['pegawai' => 'user']);
     });
-       
 
     // Untuk pegawai
-    Route::middleware([RoleMiddleware::class . ':pegawai'])->group(function () {
-        Route::get('/dashboard-pegawai', [PegawaiController::class, 'index'])->name('pegawai.index');
+    Route::middleware([RoleMiddleware::class.':pegawai'])->group(function () {
+        Route::get('/dashboard-pegawai', [DashboardController::class, 'index'])->name('pegawai.index');
+        Route::get('/pegawai/dashboard', [DashboardController::class, 'index'])->name('pegawai.dashboard');
         Route::resource('undangan_kegiatan', UndanganKegiatanController::class);
-        Route::resource('dokumentasi_kegiatan',DokumentasiKegiatanController ::class);
+        Route::resource('dokumentasi_kegiatan', DokumentasiKegiatanController::class);
         Route::get('/kegiatan-saya', [PegawaiController::class, 'show'])->name('pegawai.show');
         Route::get('/kegiatan-SedangBerlangsung', [PegawaiController::class, 'sedang'])->name('pegawai.sedang');
         Route::get('/kegiatan-Selesai', [PegawaiController::class, 'selesai'])->name('pegawai.selesai');
@@ -50,13 +52,14 @@ Route::middleware(['web', 'auth'])->group(function () {
         Route::get('/kalender', [PegawaiController::class, 'kalender'])->name('pegawai.kalender');
         Route::get('/riwayat-presensi', [PegawaiController::class, 'riwayatPresensi'])->name('pegawai.riwayat-presensi');
         Route::delete('/foto_dokumentasi/{id}', [DokumentasiKegiatanController::class, 'deleteFoto'])->name('foto_dokumentasi.destroy');
-});
+    });
 
-Route::middleware(['auth'])->group(function () {
-    Route::get('/get-dokumentasi/{penerima_id}', [PegawaiController::class, 'getByPenerimaId']);
-    Route::get('/get-all-dokumentasi/{undangan_id}', [PegawaiController::class, 'getAllDokumentasiByUndanganId']);
-});
-Route::middleware([RoleMiddleware::class . ':supervisor'])->group(function () {
+    Route::middleware(['auth'])->group(function () {
+        Route::get('/get-dokumentasi/{penerima_id}', [PegawaiController::class, 'getByPenerimaId']);
+        Route::get('/get-all-dokumentasi/{undangan_id}', [PegawaiController::class, 'getAllDokumentasiByUndanganId']);
+    });
+    Route::middleware([RoleMiddleware::class.':supervisor'])->group(function () {
+        Route::get('/dashboard-supervisor', [DashboardSupervisorController::class, 'index'])->name('supervisor.dashboard');
         Route::resource('supervisor', SupervisorController::class);
         Route::get('/supervisor/undangan/{id}/preview', [SupervisorController::class, 'preview'])->name('supervisor.undangan.preview');
         Route::post('/supervisor/undangan/{id}/konfirmasi', [SupervisorController::class, 'konfirmasi'])->name('supervisor.undangan.konfirmasi');
@@ -67,6 +70,9 @@ Route::middleware([RoleMiddleware::class . ':supervisor'])->group(function () {
         Route::resource('dokumentasisupervisor', DokumentasiKegiatanSupervisorController::class);
         Route::resource('penerima', PenerimaUndanganController::class);
         Route::get('/anggota-tim-supervisor', [SupervisorController::class, 'AnggotaTim'])->name('supervisor.anggota_tim');
+        Route::get('/anggota-tim-supervisor/edit/{anggotaTim}', [SupervisorController::class, 'editAnggotaTim'])->name('supervisor.editAnggotaTim');
+        Route::put('/anggota-tim-supervisor/update/{anggotaTim}', [SupervisorController::class, 'updateAnggotaTim'])->name('supervisor.updateAnggotaTim');
+        Route::delete('/anggota-tim-supervisor/{anggotaTim}', [SupervisorController::class, 'destroyAnggotaTim'])->name('supervisor.destroyAnggotaTim');
         Route::get('/kalender-supervisor', [SupervisorController::class, 'kalender'])->name('supervisor.kalender');
         Route::get('/riwayat-presensi-supervisor', [SupervisorController::class, 'RiwayatPresensi'])->name('supervisor.riwayatpresensi');
     });
@@ -75,12 +81,12 @@ Route::middleware([RoleMiddleware::class . ':supervisor'])->group(function () {
     Route::post('select-role', [App\Http\Controllers\Auth\RoleSelectionController::class, 'store'])->name('role.select.store');
 });
 
-Route::middleware([RoleMiddleware::class . ':pemantau'])->group(function () {
+Route::middleware([RoleMiddleware::class.':pemantau'])->group(function () {
     route::resource('pemantau', PemantauController::class);
-    route::get('/data-pegawai',[PemantauController::class, 'DataPegawai'])->name('pemantau.datapegawai');
+    route::get('/data-pegawai', [PemantauController::class, 'DataPegawai'])->name('pemantau.datapegawai');
     route::get('/tim-data', [PemantauController::class, 'DataTim'])->name('pemantau.datatim');
-    route::get('/anggota-tim-data',[PemantauController::class, 'DataAnggotaTim'])->name('pemantau.anggotatim');
-    route::get('/presensi-kegiatan',[PemantauController::class, 'DataPresensi'])->name('pemantau.datapresensi');
+    route::get('/anggota-tim-data', [PemantauController::class, 'DataAnggotaTim'])->name('pemantau.anggotatim');
+    route::get('/presensi-kegiatan', [PemantauController::class, 'DataPresensi'])->name('pemantau.datapresensi');
     route::get('/dokumentasi-kegiatan', [PemantauController::class, 'DataDokumentasi'])->name('pemantau.datadokumentasi');
 });
 
@@ -100,7 +106,6 @@ Route::get('/Admin', [AdminController::class, 'test']);
 Route::get('/dashboard-pegawai', [PegawaiController::class, 'index'])->name('pegawai.index');
 // Route::get('/dashboard-admin', [AdminController::class, 'index'])->name('admin.index');
 
-
 Route::get('/test-email', function () {
     Mail::raw('Tes kirim email Laravel via Gmail SMTP.', function ($msg) {
         $msg->to('ariffathurrahman43@gmail.com')->subject('Tes Kirim Gmail SMTP');
@@ -111,6 +116,6 @@ Route::get('/test-email', function () {
 
 Route::get('/test', [TestController::class, 'index']);
 Route::get('/test2', [TestController::class, 'halaman2'])->name('test.halaman2');
+Route::get('/test3', [TestController::class, 'test3'])->name('test.test3');
 
 require __DIR__.'/auth.php';
-

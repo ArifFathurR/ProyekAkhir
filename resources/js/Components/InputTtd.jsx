@@ -65,36 +65,65 @@ export default function InputTtd({ penerimaId, onClose }) {
   const officeLon = absensi_config?.office_longitude || 101.4264105;
   const radius = absensi_config?.radius_meters || 75;
 
-  // Ambil lokasi user
+  // Ambil lokasi user (Browser GPS -> IP Geolocation Fallback)
   const handleAmbilLokasi = () => {
-    if (navigator.geolocation) {
-      setLoadingLocation(true);
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          setCoords({
-            latitude: pos.coords.latitude,
-            longitude: pos.coords.longitude
-          });
+    setLoadingLocation(true);
+
+    const applyCoords = (lat, lng) => {
+      setCoords({
+        latitude: lat.toFixed ? lat.toFixed(6) : lat.toString(),
+        longitude: lng.toFixed ? lng.toFixed(6) : lng.toString()
+      });
+      setLoadingLocation(false);
+    };
+
+    const fetchIpFallback = () => {
+      fetch('https://ipapi.co/json/')
+        .then((res) => res.json())
+        .then((data) => {
+          if (data && data.latitude && data.longitude) {
+            applyCoords(data.latitude, data.longitude);
+          } else {
+            setLoadingLocation(false);
+            alert("❌ Gagal mengambil lokasi. Pastikan Layanan Lokasi di Windows/Browser diaktifkan.");
+          }
+        })
+        .catch(() => {
           setLoadingLocation(false);
-        },
-        (err) => {
-          alert("❌ Gagal ambil lokasi: " + err.message);
-          setLoadingLocation(false);
-        }
-      );
-    } else {
-      alert("Browser tidak mendukung geolocation.");
+          alert("❌ Gagal mengambil lokasi. Pastikan Layanan Lokasi di Windows/Browser diaktifkan.");
+        });
+    };
+
+    if (!navigator.geolocation) {
+      fetchIpFallback();
+      return;
     }
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        applyCoords(pos.coords.latitude, pos.coords.longitude);
+      },
+      (err) => {
+        console.warn("Browser Geolocation failed, trying IP fallback...", err);
+        fetchIpFallback();
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 6000,
+        maximumAge: 0
+      }
+    );
   };
+
+  // Auto-fetch lokasi saat komponen pertama kali di-render
+  useEffect(() => {
+    handleAmbilLokasi();
+  }, []);
 
   // Submit tanda tangan + lokasi
   const handleSubmit = () => {
     if (canvasRef.current.isEmpty()) {
       alert('Silakan tanda tangani terlebih dahulu.');
-      return;
-    }
-    if (!coords.latitude || !coords.longitude) {
-      alert('Lokasi belum diambil. Klik tombol "Ambil Lokasi" terlebih dahulu.');
       return;
     }
 
@@ -106,8 +135,8 @@ export default function InputTtd({ penerimaId, onClose }) {
       {
         penerima_id: penerimaId,
         ttd: signature,
-        latitude: coords.latitude,   // ✅ sama dengan field
-        longitude: coords.longitude, // ✅ sama dengan field
+        latitude: coords.latitude || null,
+        longitude: coords.longitude || null,
       },
       {
         onSuccess: () => {
@@ -186,73 +215,38 @@ export default function InputTtd({ penerimaId, onClose }) {
             </div>
           </div>
 
-          {/* Informasi Lokasi */}
+          {/* Leaflet Map rendering */}
           <div className="mb-6">
-            <h3 className="text-sm font-medium text-gray-700 mb-3">Informasi Lokasi</h3>
-            <div className="space-y-3">
-              <div>
-                <label className="block text-sm text-gray-600 mb-1">Latitude</label>
-                <input
-                  type="text"
-                  value={coords.latitude}
-                  readOnly
-                  placeholder="Belum diambil"
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 bg-gray-50 text-sm focus:outline-none"
-                />
-              </div>
-              <div>
-                <label className="block text-sm text-gray-600 mb-1">Longitude</label>
-                <input
-                  type="text"
-                  value={coords.longitude}
-                  readOnly
-                  placeholder="Belum diambil"
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 bg-gray-50 text-sm focus:outline-none"
-                />
-              </div>
-              <button
-                type="button"
-                onClick={handleAmbilLokasi}
-                className={`w-full px-4 py-2 rounded-lg text-white text-sm font-medium transition-colors duration-200 ${loadingLocation
-                    ? 'bg-gray-400 cursor-not-allowed'
-                    : 'bg-blue-500 hover:bg-blue-600'
-                  }`}
-                disabled={loadingLocation}
+            <h3 className="text-sm font-medium text-gray-700 mb-2">Peta Lokasi</h3>
+            <div className="relative w-full h-44 rounded-lg overflow-hidden border border-gray-300 z-10">
+              <MapContainer
+                center={mapCenter}
+                zoom={16}
+                style={{ height: '100%', width: '100%' }}
               >
-                {loadingLocation ? '⏳ Mengambil lokasi...' : '📍 Ambil Lokasi'}
-              </button>
+                <TileLayer
+                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                />
+                <ChangeView center={mapCenter} />
 
-              {/* Leaflet Map rendering */}
-              <div className="mt-3 relative w-full h-48 rounded-lg overflow-hidden border border-gray-300 z-10">
-                <MapContainer
-                  center={mapCenter}
-                  zoom={16}
-                  style={{ height: '100%', width: '100%' }}
-                >
-                  <TileLayer
-                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                  />
-                  <ChangeView center={mapCenter} />
+                {/* Office acuan marker and radius circle */}
+                <Marker position={[officeLat, officeLon]} icon={officeIcon}>
+                  <Popup>Kantor Acuan</Popup>
+                </Marker>
+                <Circle
+                  center={[officeLat, officeLon]}
+                  radius={radius}
+                  pathOptions={{ color: '#3b82f6', fillColor: '#3b82f6', fillOpacity: 0.15 }}
+                />
 
-                  {/* Office acuan marker and radius circle */}
-                  <Marker position={[officeLat, officeLon]} icon={officeIcon}>
-                    <Popup>Kantor Acuan</Popup>
+                {/* User marker if taken */}
+                {coords.latitude && coords.longitude && (
+                  <Marker position={[parseFloat(coords.latitude), parseFloat(coords.longitude)]} icon={userIcon}>
+                    <Popup>Lokasi Anda</Popup>
                   </Marker>
-                  <Circle
-                    center={[officeLat, officeLon]}
-                    radius={radius}
-                    pathOptions={{ color: '#3b82f6', fillColor: '#3b82f6', fillOpacity: 0.15 }}
-                  />
-
-                  {/* User marker if taken */}
-                  {coords.latitude && coords.longitude && (
-                    <Marker position={[parseFloat(coords.latitude), parseFloat(coords.longitude)]} icon={userIcon}>
-                      <Popup>Lokasi Anda</Popup>
-                    </Marker>
-                  )}
-                </MapContainer>
-              </div>
+                )}
+              </MapContainer>
             </div>
           </div>
 
@@ -268,8 +262,8 @@ export default function InputTtd({ penerimaId, onClose }) {
             <button
               onClick={handleSubmit}
               className={`px-6 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${loading
-                  ? 'bg-gray-400 text-white cursor-not-allowed'
-                  : 'bg-green-600 text-white hover:bg-green-700'
+                ? 'bg-gray-400 text-white cursor-not-allowed'
+                : 'bg-green-600 text-white hover:bg-green-700'
                 }`}
               disabled={loading}
             >

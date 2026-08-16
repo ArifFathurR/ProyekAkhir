@@ -10,6 +10,44 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote')->hourly();
 
+// Kirim pengingat H-3, H-2, dan H-1 setiap hari jam 08:00 WIB
+Schedule::call(function () {
+    $reminderDays = [
+        3 => 'H-3',
+        2 => 'H-2',
+        1 => 'H-1',
+    ];
+
+    foreach ($reminderDays as $days => $label) {
+        $targetDate = Carbon::today()->addDays($days)->format('Y-m-d');
+
+        $kegiatanReminder = \App\Models\UndanganKegiatan::with(['penerimaUndangan.user', 'supervisor'])
+            ->where('tanggal', $targetDate)
+            ->where('status', 'Diterima')
+            ->get();
+
+        foreach ($kegiatanReminder as $undangan) {
+            $emails = $undangan->penerimaUndangan
+                ->filter(fn($p) => $p->user && $p->user->email)
+                ->pluck('user.email')
+                ->unique();
+
+            if ($undangan->supervisor && $undangan->supervisor->email) {
+                $emails->push($undangan->supervisor->email);
+            }
+
+            $emails = $emails->unique();
+
+            foreach ($emails as $email) {
+                \Illuminate\Support\Facades\Mail::to($email)
+                    ->send(new \App\Mail\NotifikasiKegiatanMail($undangan, $label));
+            }
+
+            logger("Reminder {$label} kegiatan '{$undangan->judul}' telah dikirim ke " . count($emails) . " penerima.");
+        }
+    }
+})->dailyAt('08:00');
+
 Schedule::call(function () {
     $now = Carbon::now()->format('Y-m-d H:i');
 

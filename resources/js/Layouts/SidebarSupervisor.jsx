@@ -10,6 +10,7 @@ import {
   Settings,
   LogOut,
   History,
+  LayoutDashboard,
 } from 'lucide-react';
 
 export default function Sidebar() {
@@ -56,7 +57,7 @@ export default function Sidebar() {
     const handleStorageChange = () => {
       try {
         setSeenIds(JSON.parse(localStorage.getItem('seen_undangans') || '[]'));
-      } catch {}
+      } catch { }
     };
     window.addEventListener('storage', handleStorageChange);
     window.addEventListener('seen_updated', handleStorageChange);
@@ -114,25 +115,35 @@ export default function Sidebar() {
           <ul className="space-y-2">
             <li>
               <Link
-                href={route('dokumentasisupervisor.index')}
-                className={`flex items-center gap-2 p-2 rounded ${
-                  isActive('/dokumentasisupervisor')
-                    ? 'bg-blue-100 text-black font-semibold'
-                    : 'hover:bg-gray-100 text-gray-700'
-                }`}
+                href={route('supervisor.dashboard')}
+                className={`flex items-center gap-2 p-2 rounded ${isActive('/dashboard-supervisor')
+                  ? 'bg-blue-100 text-black font-semibold'
+                  : 'hover:bg-gray-100 text-gray-700'
+                  }`}
               >
-                <FolderKanban size={18} />
-                <span className="flex-1">Semua Kegiatan</span>
+                <LayoutDashboard size={18} />
+                <span className="flex-1">Dashboard</span>
               </Link>
             </li>
             <li>
               <Link
-                href={route('supervisor.show')}
-                className={`flex items-center gap-2 p-2 rounded ${
-                  isActive('/kegiatan-saya-supervisor')
+                href={route('dokumentasisupervisor.index')}
+                className={`flex items-center gap-2 p-2 rounded ${isActive('/dokumentasisupervisor')
                     ? 'bg-blue-100 text-black font-semibold'
                     : 'hover:bg-gray-100 text-gray-700'
-                }`}
+                  }`}
+              >
+                <FolderKanban size={18} />
+                <span className="flex-1">Semua Dokumentasi</span>
+              </Link>
+            </li>
+            {/* <li>
+              <Link
+                href={route('supervisor.show')}
+                className={`flex items-center gap-2 p-2 rounded ${isActive('/kegiatan-saya-supervisor')
+                    ? 'bg-blue-100 text-black font-semibold'
+                    : 'hover:bg-gray-100 text-gray-700'
+                  }`}
               >
                 <ClipboardList size={18} />
                 <span className="flex-1">Kegiatan Saya</span>
@@ -142,15 +153,14 @@ export default function Sidebar() {
                   </span>
                 )}
               </Link>
-            </li>
+            </li> */}
             <li>
               <Link
                 href={route('supervisor.index')}
-                className={`flex items-center gap-2 p-2 rounded ${
-                  isActive('/supervisor') && !url.includes('/kegiatan-saya-supervisor') && !url.includes('/kegiatan-SedangBerlangsung-supervisor') && !url.includes('/kegiatan-Selesai-supervisor')
+                className={`flex items-center gap-2 p-2 rounded ${isActive('/supervisor') && !url.includes('/kegiatan-saya-supervisor') && !url.includes('/kegiatan-SedangBerlangsung-supervisor') && !url.includes('/kegiatan-Selesai-supervisor')
                     ? 'bg-blue-100 text-black font-semibold'
                     : 'hover:bg-gray-100 text-gray-700'
-                }`}
+                  }`}
               >
                 <MailCheck size={18} />
                 <span className="flex-1">Konfirmasi Undangan</span>
@@ -164,11 +174,10 @@ export default function Sidebar() {
             <li>
               <Link
                 href={route('penerima.index')}
-                className={`flex items-center gap-2 p-2 rounded ${
-                  isActive('/penerima')
+                className={`flex items-center gap-2 p-2 rounded ${isActive('/penerima')
                     ? 'bg-blue-100 text-black font-semibold'
                     : 'hover:bg-gray-100 text-gray-700'
-                }`}
+                  }`}
               >
                 <CheckSquare size={18} />
                 Lihat Presensi
@@ -177,11 +186,10 @@ export default function Sidebar() {
             <li>
               <Link
                 href={route('supervisor.riwayatpresensi')}
-                className={`flex items-center gap-2 p-2 rounded ${
-                  isActive('/riwayat-presensi-superviso')
+                className={`flex items-center gap-2 p-2 rounded ${isActive('/riwayat-presensi-superviso')
                     ? 'bg-blue-100 text-black font-semibold'
                     : 'hover:bg-gray-100 text-gray-700'
-                }`}
+                  }`}
               >
                 <History size={18} />
                 Riwayat Presensi
@@ -203,11 +211,10 @@ export default function Sidebar() {
             <li>
               <Link
                 href={route('supervisor.anggota_tim')}
-                className={`flex items-center gap-2 p-2 rounded ${
-                  isActive('/anggota-tim')
+                className={`flex items-center gap-2 p-2 rounded ${isActive('/anggota-tim')
                     ? 'bg-blue-100 text-black font-semibold'
                     : 'hover:bg-gray-100 text-gray-700'
-                }`}
+                  }`}
               >
                 <Users size={18} />
                 Anggota Tim
@@ -223,11 +230,10 @@ export default function Sidebar() {
             <li>
               <Link
                 href="/profile"
-                className={`flex items-center gap-2 p-2 rounded ${
-                  isActive('/profile')
+                className={`flex items-center gap-2 p-2 rounded ${isActive('/profile')
                     ? 'bg-blue-100 text-black font-semibold'
                     : 'hover:bg-gray-100 text-gray-700'
-                }`}
+                  }`}
               >
                 <Settings size={18} />
                 Akun

@@ -2,6 +2,7 @@ import Header from '@/Components/Header';
 import SidebarSupervisor from '@/Layouts/SidebarSupervisor';
 import { router, usePage } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
+import Swal from 'sweetalert2';
 import FlashPopup from '@/Components/FlashPopup';
 import TableCard from '@/Components/TableCard';
 import Pagination from '@/Components/Pagination';
@@ -21,9 +22,40 @@ export default function DataAnggotaTim({ anggota_tims, filters = {}, tims = [] }
   }, [props.flash]);
 
   const handleDelete = (id) => {
-    if (confirm('Yakin ingin menghapus data ini?')) {
-      router.delete(route('anggota_tim.destroy', id));
-    }
+    Swal.fire({
+      title: 'Hapus Anggota Tim?',
+      text: 'Apakah Anda yakin ingin menghapus data anggota tim ini? Tindakan ini tidak dapat dibatalkan.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#64748b',
+      confirmButtonText: 'Ya, Hapus',
+      cancelButtonText: 'Batal'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        router.delete(route('supervisor.destroyAnggotaTim', id), {
+          onSuccess: () => {
+            Swal.fire({
+              title: 'Terhapus!',
+              text: 'Data anggota tim berhasil dihapus.',
+              icon: 'success',
+              timer: 1500,
+              showConfirmButton: false,
+            });
+          },
+          onError: () => {
+            Swal.fire({
+              title: 'Gagal!',
+              text: 'Terjadi kesalahan saat menghapus data anggota tim.',
+              icon: 'error',
+              showConfirmButton: false,
+              timer: 2500,
+              timerProgressBar: true,
+            });
+          }
+        });
+      }
+    });
   };
 
   const handleFilter = () => {
@@ -58,18 +90,18 @@ export default function DataAnggotaTim({ anggota_tims, filters = {}, tims = [] }
             <TableCard
               title="Data Anggota Tim"
               description="Daftar seluruh anggota tim perusahaan"
-              headerActions={
-                <button
-                  type="button"
-                  onClick={() => router.get(route('anggota_tim.create'))}
-                  className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium rounded-lg shadow-sm transition-all duration-200 transform hover:scale-105"
-                >
-                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                  </svg>
-                  Tambah Anggota
-                </button>
-              }
+              // headerActions={
+              //   <button
+              //     type="button"
+              //     onClick={() => router.get(route('anggota_tim.create'))}
+              //     className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium rounded-lg shadow-sm transition-all duration-200 transform hover:scale-105"
+              //   >
+              //     <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              //       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              //     </svg>
+              //     Tambah Anggota
+              //   </button>
+              // }
               filterForm={
                 <div className="flex flex-col lg:flex-row gap-3">
                   {/* Search Input */}
@@ -145,9 +177,9 @@ export default function DataAnggotaTim({ anggota_tims, filters = {}, tims = [] }
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className={`inline-flex px-3 py-1 rounded-full text-xs font-semibold ${
-                            anggota_tim.role === 'leader' 
+                            anggota_tim.role === 'leader' || anggota_tim.role === 'Ketua Tim'
                               ? 'bg-yellow-100 text-yellow-800' 
-                              : anggota_tim.role === 'member'
+                              : anggota_tim.role === 'member' || anggota_tim.role === 'Anggota'
                               ? 'bg-blue-100 text-blue-800'
                               : 'bg-gray-100 text-gray-800'
                           }`}>
@@ -160,7 +192,7 @@ export default function DataAnggotaTim({ anggota_tims, filters = {}, tims = [] }
                         <td className="px-6 py-4 whitespace-nowrap text-center">
                           <div className="flex items-center justify-center space-x-3">
                             <button
-                              onClick={() => router.get(route('anggota_tim.edit', anggota_tim.id))}
+                              onClick={() => router.get(route('supervisor.editAnggotaTim', anggota_tim.id))}
                               className="inline-flex items-center px-3 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 text-xs font-medium rounded-md transition-colors duration-200"
                             >
                               <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">

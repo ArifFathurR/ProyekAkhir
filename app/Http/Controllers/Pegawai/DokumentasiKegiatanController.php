@@ -20,51 +20,94 @@ use Intervention\Image\Drivers\Gd\Driver as GdDriver;
 class DokumentasiKegiatanController extends Controller
 {
     public function index(Request $request)
-{
-    $search = $request->search;
-    $createdAt = $request->created_at;
-    $userId = Auth::id();
+    {
+        $search = $request->search;
+        $createdAt = $request->created_at;
+        $scope = $request->input('scope', 'kegiatan_saya');
+        $userId = Auth::id();
 
-    // Ambil semua undangan yang diterima user
-    $undanganIds = PenerimaUndangan::where('user_id', $userId)->pluck('undangan_id');
-    
-    // Ambil data penerima user ini
-    $penerimaIds = PenerimaUndangan::where('user_id', $userId)->pluck('id');
+        // Ambil semua id penerima_undangan milik user ini
+        $userPenerimaIds = PenerimaUndangan::where('user_id', $userId)->pluck('id')->toArray();
 
-    // Ambil dokumentasi yang hanya dibuat oleh user
-    $dokumentasis = DokumentasiKegiatan::with(['kegiatan:id,nama_kegiatan', 'undangan:id,judul', 'fotoDokumentasi'])
-        ->whereIn('penerima_id', $penerimaIds)
-        ->when($search, fn ($query) =>
-            $query->whereHas('kegiatan', fn ($q) =>
-                $q->where('nama_kegiatan', 'like', '%' . $search . '%')
-            )
-        )
-        ->when($createdAt, fn ($query) =>
-            $query->whereDate('created_at', $createdAt)
-        )
-        ->latest()
-        ->paginate(5)
-        ->withQueryString();
+        if ($scope === 'semua_kegiatan') {
+            $undangansQuery = UndanganKegiatan::with(['kegiatan'])
+                ->where('status_pelaksanaan', 'Selesai')
+                ->when($search, function ($query) use ($search) {
+                    $query->where(function ($q) use ($search) {
+                        $q->where('judul', 'like', "%{$search}%")
+                          ->orWhereHas('kegiatan', fn ($k) => $k->where('nama_kegiatan', 'like', "%{$search}%"));
+                    });
+                })
+                ->when($createdAt, fn ($query) =>
+                    $query->whereDate('tanggal', $createdAt)
+                )
+                ->latest('tanggal');
 
-    // Hitung total undangan yang dimiliki user
-    $totalUndangan = UndanganKegiatan::whereIn('id', $undanganIds)->count();
+            $dokumentasis = $undangansQuery->paginate(10)
+                ->withQueryString()
+                ->through(function ($u) {
+                    return [
+                        'id' => $u->id,
+                        'undangan_id' => $u->id,
+                        'nama_kegiatan' => $u->kegiatan->nama_kegiatan ?? '-',
+                        'sub_kegiatan' => $u->judul ?? '-',
+                        'tanggal' => $u->tanggal ?? '-',
+                        'file_undangan' => route('undangan_kegiatan.preview', $u->id),
+                    ];
+                });
+        } else {
+            $query = DokumentasiKegiatan::with([
+                'kegiatan:id,nama_kegiatan',
+                'undangan:id,judul',
+                'fotoDokumentasi',
+                'penerima.user:id,name'
+            ])->whereIn('penerima_id', $userPenerimaIds);
 
-    // Ambil semua dokumentasi milik user
-    $dokumentasiIds = DokumentasiKegiatan::whereIn('penerima_id', $penerimaIds)->pluck('id');
+            $dokumentasis = $query
+                ->when($search, fn ($q) =>
+                    $q->whereHas('kegiatan', fn ($k) =>
+                        $k->where('nama_kegiatan', 'like', '%' . $search . '%')
+                    )
+                )
+                ->when($createdAt, fn ($q) =>
+                    $q->whereDate('created_at', $createdAt)
+                )
+                ->latest()
+                ->paginate(10)
+                ->withQueryString();
+        }
 
-    // Hitung total foto dokumentasi milik user
-    $totalFoto = FotoDokumentasi::whereIn('dokumentasi_id', $dokumentasiIds)->count();
+        // Ambil semua undangan yang diterima user
+        $undanganIds = PenerimaUndangan::where('user_id', $userId)->pluck('undangan_id');
+        $totalUndangan = UndanganKegiatan::whereIn('id', $undanganIds)->count();
 
-    return Inertia::render('Pegawai/DataDokumentasi', [
-        'dokumentasis' => $dokumentasis,
-        'filters' => [
-            'search' => $search,
-            'created_at' => $createdAt,
-        ],
-        'totalUndangan' => $totalUndangan,
-        'totalFoto' => $totalFoto,
-    ]);
-}
+        // Ambil semua foto dokumentasi milik user
+        $totalFoto = FotoDokumentasi::whereIn('dokumentasi_id', function($q) use ($userPenerimaIds) {
+            $q->select('id')->from('dokumentasi_kegiatans')->whereIn('penerima_id', $userPenerimaIds);
+        })->count();
+
+        // Ambil semua undangan yang diterima user untuk pilihan modal
+        $undanganOptions = UndanganKegiatan::with('kegiatan:id,nama_kegiatan')
+            ->whereHas('penerimaUndangan', function ($query) use ($userId) {
+                $query->where('user_id', $userId);
+            })
+            ->select('id', 'judul', 'kegiatan_id')
+            ->get();
+
+        return Inertia::render('Pegawai/DataDokumentasi', [
+            'dokumentasis' => $dokumentasis,
+            'filters' => [
+                'search' => $search,
+                'created_at' => $createdAt,
+                'scope' => $scope,
+            ],
+            'totalUndangan' => $totalUndangan,
+            'totalFoto' => $totalFoto,
+            'currentUserId' => $userId,
+            'userPenerimaIds' => $userPenerimaIds,
+            'undanganOptions' => $undanganOptions,
+        ]);
+    }
 
 
     public function create()
@@ -164,14 +207,6 @@ class DokumentasiKegiatanController extends Controller
     ]);
 
     if ($request->hasFile('foto')) {
-        // Hapus foto lama
-        foreach ($dokumentasi->fotoDokumentasi as $foto) {
-            if (Storage::disk('public')->exists($foto->foto)) {
-                Storage::disk('public')->delete($foto->foto);
-            }
-            $foto->delete();
-        }
-
         $this->handleFotoUpload($request, $dokumentasi->id);
     }
 

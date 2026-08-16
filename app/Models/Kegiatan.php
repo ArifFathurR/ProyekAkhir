@@ -15,8 +15,10 @@ class Kegiatan extends Model
     // Menentukan kolom yang bisa diisi
     protected $fillable = [
         'nama_kegiatan', 
+        'jenis_kegiatan',
         'deskripsi',
         'tanggal',
+        'tanggal_selesai',
         'tim_id', 
         'user_id'
     ];

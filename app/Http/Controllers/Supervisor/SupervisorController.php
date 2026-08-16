@@ -8,12 +8,14 @@ use App\Models\Supervisor;
 use App\Http\Requests\StoreSupervisorRequest;
 use App\Http\Requests\UpdateSupervisorRequest;
 use App\Models\UndanganKegiatan;
+use App\Models\PenerimaUndangan;
 use App\Models\AnggotaTim;
 use App\Models\Pegawai;
 use App\Models\Tim;
+use App\Models\User;
 use Inertia\Inertia;
 use Barryvdh\DomPDF\Facade\Pdf;
-use App\Models\PenerimaUndangan;
+use App\Http\Requests\UpdateAnggotaTimRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -362,4 +364,38 @@ class SupervisorController extends Controller
             'presensi' => $kegiatan,
         ]);
     }
+
+    public function editAnggotaTim(AnggotaTim $anggotaTim)
+    {
+        $anggotaTim->load(['user', 'tim']);
+        $tims = Tim::all();
+        $users = User::all();
+
+        return Inertia::render('Supervisor/EditAnggotaTim', [
+            'anggota_tim' => $anggotaTim,
+            'tims' => $tims,
+            'users' => $users,
+        ]);
+    }
+
+    public function updateAnggotaTim(Request $request, AnggotaTim $anggotaTim)
+    {
+        $validated = $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'tim_id'  => 'required|exists:tims,id',
+            'role'    => 'required|string|max:255',
+        ]);
+
+        $anggotaTim->update($validated);
+
+        return redirect()->route('supervisor.anggota_tim')->with('success', 'Data anggota tim berhasil diperbarui.');
+    }
+
+    public function destroyAnggotaTim(AnggotaTim $anggotaTim)
+    {
+        $anggotaTim->delete();
+
+        return redirect()->route('supervisor.anggota_tim')->with('success', 'Anggota tim berhasil dihapus.');
+    }
+
 }

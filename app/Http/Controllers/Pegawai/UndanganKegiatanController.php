@@ -30,7 +30,7 @@ class UndanganKegiatanController extends Controller
         $status = $request->status;
         $tab = $request->input('tab', 'belum_terkirim');
 
-        $undangansQuery = UndanganKegiatan::with(['updatedByUser', 'supervisor'])
+        $undangansQuery = UndanganKegiatan::with(['updatedByUser', 'supervisor', 'penerimaUndangan.user'])
             ->where('user_id', auth()->id())
             ->when(
                 $search,
@@ -56,7 +56,13 @@ class UndanganKegiatanController extends Controller
         $undangans = $undangansQuery->paginate(10)
             ->withQueryString();
 
-        $pegawaiList = User::select('id', 'name', 'email')->get();
+        $userId = Auth::id();
+
+        // Ambil semua tim_id yang diikuti oleh user dari tabel anggota_tim
+        $timIds = AnggotaTim::where('user_id', $userId)->pluck('tim_id');
+
+        // Ambil kegiatan yang memiliki tim_id dalam daftar tersebut
+        $kegiatanOptions = Kegiatan::whereIn('tim_id', $timIds)->get(['id', 'nama_kegiatan', 'tanggal', 'tanggal_selesai']);
 
         return Inertia::render('Pegawai/CekStatusUndangan', [
             'undangans' => $undangans,
@@ -65,40 +71,55 @@ class UndanganKegiatanController extends Controller
                 'status' => $status,
                 'tab' => $tab,
             ],
-            'pegawaiList' => $pegawaiList,
+            'kegiatans' => $kegiatanOptions,
+            'tims' => Tim::select('id', 'nama_tim')->get(),
+            'pegawaiList' => User::select('id', 'name', 'email')->get(),
+            'anggotaTim' => AnggotaTim::select('user_id', 'tim_id')->get(),
         ]);
     }
+
     /**
      * Show the form for creating a new resource.
      */
-public function create()
-{
-    $userId = Auth::id();
-
-    // Ambil semua tim_id yang diikuti oleh user dari tabel anggota_tim
-    $timIds = AnggotaTim::where('user_id', $userId)->pluck('tim_id');
-
-    // Ambil kegiatan yang memiliki tim_id dalam daftar tersebut
-    $kegiatanOptions = Kegiatan::whereIn('tim_id', $timIds)->get(['id', 'nama_kegiatan']);
-
-    return Inertia::render('Pegawai/CreateUndangan', [
-        'kegiatans' => $kegiatanOptions,
-        'tims' => Tim::select('id', 'nama_tim')->get(),
-        'pegawaiList' => User::select('id', 'name', 'email')->get(),
-        'anggotaTim' => AnggotaTim::select('user_id', 'tim_id')->get(),
-    ]);
-}
+    public function create()
+    {
+        return redirect()->route('undangan_kegiatan.index');
+    }
 
     /**
      * Store a newly created resource in storage.
      */
     public function store(StoreUndanganKegiatanRequest $request)
-{
-    $data = $request->validated();
-    $data['user_id'] = auth()->id();
+    {
+        $data = $request->validated();
+        $data['user_id'] = auth()->id();
 
-    // Simpan ke tabel undangan_kegiatans
-    $undangan = UndanganKegiatan::create($data);
+        // Validasi tambahan: Tanggal undangan harus berada dalam rentang tanggal kegiatan
+        $kegiatan = Kegiatan::find($request->kegiatan_id);
+        if ($kegiatan && $kegiatan->tanggal) {
+            $selectedDate = date('Y-m-d', strtotime($request->tanggal));
+            $startDate = date('Y-m-d', strtotime($kegiatan->tanggal));
+            $endDate = $kegiatan->tanggal_selesai
+                ? date('Y-m-d', strtotime($kegiatan->tanggal_selesai))
+                : $startDate;
+
+            if ($selectedDate < $startDate || $selectedDate > $endDate) {
+                $formattedSelected = \Carbon\Carbon::parse($selectedDate)->translatedFormat('d F Y');
+                $formattedStart = \Carbon\Carbon::parse($startDate)->translatedFormat('d F Y');
+
+                if ($kegiatan->tanggal_selesai) {
+                    $formattedEnd = \Carbon\Carbon::parse($endDate)->translatedFormat('d F Y');
+                    $msg = "Tanggal undangan ({$formattedSelected}) harus berada dalam rentang tanggal kegiatan ({$formattedStart} s/d {$formattedEnd}).";
+                } else {
+                    $msg = "Tanggal undangan ({$formattedSelected}) harus sesuai dengan tanggal kegiatan ({$formattedStart}).";
+                }
+
+                return redirect()->back()->withErrors(['tanggal' => $msg])->withInput();
+            }
+        }
+
+        // Simpan ke tabel undangan_kegiatans
+        $undangan = UndanganKegiatan::create($data);
 
     // Simpan ke tabel penerima_undangan (hanya isi undangan_id, user_id, tim_id)
     if ($request->has('user_ids') && is_array($request->user_ids)) {
@@ -272,6 +293,7 @@ public function update(UpdateUndanganKegiatanRequest $request, UndanganKegiatan 
 
         return $pdf->download("Undangan_{$undangan->judul}.pdf");
     }
+    
     public function kirim(Request $request, $id)
     {
         $request->validate([
@@ -310,7 +332,7 @@ public function update(UpdateUndanganKegiatanRequest $request, UndanganKegiatan 
                 return back()->with('error', 'Tidak ada penerima undangan yang memiliki email.');
             }
 
-            \Log::info("🟢 Mulai kirim undangan: {$undangan->judul}", [
+            \Log::info(" Mulai kirim undangan: {$undangan->judul}", [
                 'total_penerima' => count($emails),
             ]);
 

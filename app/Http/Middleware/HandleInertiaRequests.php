@@ -40,13 +40,14 @@ class HandleInertiaRequests extends Middleware
                 'warning' => fn () => $request->session()->get('warning'),
             ],
             'user_undangans' => function () use ($request) {
-                if (!$request->user() || !in_array($request->user()->role, ['pegawai', 'supervisor'])) {
+                if (! $request->user() || ! in_array($request->user()->role, ['pegawai', 'supervisor'])) {
                     return [];
                 }
+
                 return \App\Models\PenerimaUndangan::with('undangan')
                     ->where('user_id', $request->user()->id)
                     ->get()
-                    ->filter(fn($item) => $item->undangan !== null)
+                    ->filter(fn ($item) => $item->undangan !== null)
                     ->map(function ($item) {
                         $statusPelaksanaan = $item->undangan->status_pelaksanaan ?? 'Belum Dilaksanakan';
                         $tab = 'saya';
@@ -55,6 +56,7 @@ class HandleInertiaRequests extends Middleware
                         } elseif ($statusPelaksanaan === 'Selesai') {
                             $tab = 'selesai';
                         }
+
                         return [
                             'id' => $item->id,
                             'tab' => $tab,
@@ -64,15 +66,17 @@ class HandleInertiaRequests extends Middleware
                     ->toArray();
             },
             'pending_approvals' => function () use ($request) {
-                if (!$request->user() || !in_array($request->user()->role, ['supervisor', 'admin'])) {
+                if (! $request->user() || ! in_array($request->user()->role, ['supervisor', 'admin'])) {
                     return 0;
                 }
+
                 return \App\Models\UndanganKegiatan::where('status', 'Menunggu')->count();
             },
             'ongoing_activities' => function () use ($request) {
-                if (!$request->user() || $request->user()->role !== 'pemantau') {
+                if (! $request->user() || $request->user()->role !== 'pemantau') {
                     return 0;
                 }
+
                 return \App\Models\UndanganKegiatan::where('status_pelaksanaan', 'Sedang Dilaksanakan')->count();
             },
             'absensi_config' => [

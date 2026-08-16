@@ -17,4 +17,22 @@ class TestController extends Controller
     public function halaman2 (){
         return Inertia::render('Test2');
     }
+
+    public function test3(){
+        $data = [
+            ['nama' => "Arif",
+            'kelas' => "4 TIC",
+            'nim' => "2255301021",],
+
+            ['nama' => "udinn",
+            'kelas' => "1 TIC",
+            'nim' => "112323232",
+            
+            ],
+        ];
+
+        return Inertia::render('Test3', [
+            'data' => $data,
+        ]);
+    }
 }

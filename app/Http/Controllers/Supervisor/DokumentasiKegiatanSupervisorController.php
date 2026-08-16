@@ -42,6 +42,7 @@ class DokumentasiKegiatanSupervisorController extends Controller
 
     $totalUndangan = UndanganKegiatan::count();
     $totalFoto = FotoDokumentasi::count();
+    $undanganOptions = UndanganKegiatan::select('id', 'judul', 'kegiatan_id')->get();
 
     return Inertia::render('Supervisor/DataDokumentasi', [
         'dokumentasis' => $dokumentasis,
@@ -51,6 +52,7 @@ class DokumentasiKegiatanSupervisorController extends Controller
         ],
         'totalUndangan' => $totalUndangan,
         'totalFoto' => $totalFoto,
+        'undanganOptions' => $undanganOptions,
     ]);
 }
 
@@ -119,13 +121,6 @@ class DokumentasiKegiatanSupervisorController extends Controller
         ]);
 
         if ($request->hasFile('foto')) {
-            foreach ($dokumentasi->fotoDokumentasi as $foto) {
-                if (Storage::disk('public')->exists($foto->foto)) {
-                    Storage::disk('public')->delete($foto->foto);
-                }
-                $foto->delete();
-            }
-
             $this->handleFotoUpload($request, $dokumentasi->id);
         }
 

@@ -39,6 +39,7 @@ class AnggotaTimController extends Controller
             ->withQueryString();  // Menjaga query string saat pagination
 
         $tims = Tim::select('id', 'nama_tim')->get();
+        $users = User::select('id', 'name')->get();
 
         return Inertia::render('Admin/DataAnggotaTim', [
             'anggota_tims' => $anggota_tims,
@@ -47,6 +48,7 @@ class AnggotaTimController extends Controller
                 'tim' => $filterTim
             ],
             'tims' => $tims,
+            'users' => $users,
         ]);
     }
 

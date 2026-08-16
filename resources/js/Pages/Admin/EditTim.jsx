@@ -49,7 +49,7 @@ export default function EditTim({ show, onClose, tim }) {
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
             <Label htmlFor="nama_tim" className="block text-sm font-medium text-gray-700 mb-1">
-              Nama Tim
+              Nama Tim <span className="text-red-500">*</span>
             </Label>
             <Input
               id="nama_tim"

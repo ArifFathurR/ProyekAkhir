@@ -45,9 +45,9 @@ class AuthenticatedSessionController extends Controller
         if ($activeRole == 'admin') {
             return redirect()->route('admin.index');
         } elseif ($activeRole == 'pegawai') {
-            return redirect()->route('dokumentasi_kegiatan.index');
+            return redirect()->route('pegawai.dashboard');
         } elseif ($activeRole == 'supervisor') {
-            return redirect()->route('supervisor.index');
+            return redirect()->route('supervisor.dashboard');
         } elseif ($activeRole == 'pemantau') {
             return redirect()->route('pemantau.index');
         }

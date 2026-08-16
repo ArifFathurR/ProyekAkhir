@@ -1,9 +1,13 @@
 @component('mail::message')
-# Pengingat Kegiatan: {{ $undangan->judul }}
+# Pengingat Kegiatan {{ !empty($labelReminder) ? "($labelReminder)" : '' }}: {{ $undangan->judul }}
 
 Yth. Bapak/Ibu,
 
+@if(!empty($labelReminder))
+Ini adalah pengingat bahwa kegiatan **{{ $undangan->judul }}** akan dilaksanakan dalam **{{ $labelReminder }}** (pada tanggal **{{ $tanggalFormatted }}** pukul **{{ $undangan->waktu }} WIB**). Mohon dipersiapkan kehadirannya.
+@else
 Ini adalah pengingat bahwa kegiatan **{{ $undangan->judul }}** dijadwalkan pada saat ini. Mohon kehadirannya untuk mengikuti kegiatan terkait {{ $undangan->deskripsi }}.
+@endif
 
 ---
 
